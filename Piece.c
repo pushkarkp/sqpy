@@ -1,0 +1,42 @@
+/**
+ * Copyright 2018 Pushkar Piggott
+ *
+ * Piece.h
+ */
+
+#include "Piece.h"
+
+///////////////////////////////////////////////////////////////////////////////
+// a -> (0, +1), b -> (0, +2) ... z -> (0, -1), y -> (0, -2) ...
+// A -> (+1, 0), B -> (+2, 0) ... Z -> (-1, 0), Y -> (-2, 0) ...
+// . or , saves and then restores the current location.
+// For the pyramid symmetry optimization to work, paths must be 
+// predominantly positive (prefer aA over zZ).
+const TPiece pieces[ePresences] = {
+   {0}, // eAbsent
+   {"a.a.A.Z", ".z.a.A.Z", 0}, // eGrey
+   {"aAaA", ".z.AaA", ".Zz.aA", 0}, // Pink Purple
+   {"bB", ".z.aB", ".b.B", 0}, // Light Blue
+   {"aAb", ".z.Ab", ".Zz.b", ".z.aAa", "bAa", 0}, // Dark Green
+   {"AbZ", ".A.bA", ".zA.aA", 0}, // Yellow
+   {"Ac", ".A.c", ".zA.b", ".z.bA", "cA", 0}, // Dark Blue
+   {"bAz", ".z.aAz", ".b.Aa", ".Ab.a", "zAb", 0}, // Red
+   {"a.b.A", ".z.b.A", "A.z.b", ".z.a,A,a", "b.a.A", 0}, // Pink
+   {"c", ".z.b", 0}, // Blue Purple
+   {"aAz", 0}, // Light Green
+   {"Ab", ".A.b", ".zZ.a", "bA", 0}, // Orange
+   {"Aa", ".A.a", 0} // White
+};
+
+///////////////////////////////////////////////////////////////////////////////
+const char* setOfPiecesToString(char* buf, TSetOfPieces* sop) {
+   char* p = buf;
+   int i;
+   for (i = 0; i < ePresences; ++i) {
+      if (sop->piece[i]) {
+         *p++ = glyph[i];
+      }
+   }
+   *p = 0;
+   return buf;
+}

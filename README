@@ -1,0 +1,9 @@
+SqPy uses a standard generate and test approach to pack
+connected groups of spheres into a cubic close packed
+square pyramid.
+
+LonPos (lonpos.com.au) Pyramid (eg 101) uses a 5 deep 
+pyramid and a specific set of flat sphere groups.
+
+SqPy finds LonPos pyramid solutions but support user
+specified sphere groups and pyramid size.
