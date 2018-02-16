@@ -15,5 +15,10 @@ typedef enum {
    ePresences} EPresence;
 const char* presenceToString(EPresence);
 extern const char glyph[ePresences];
+typedef struct {
+   char presence[ePresences];
+} TSetOfPresences;
+const char* setOfPresencesToString(char* buf, TSetOfPresences*);
+int setOfPresencesAll(int, const TSetOfPresences*);
 
 #endif

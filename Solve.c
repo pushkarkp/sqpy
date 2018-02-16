@@ -42,37 +42,64 @@ int walk(EPresence pc, const char* path, const TOrientation* or, TPosition pos, 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int search(EPresence pc, const TSetOfPieces* used, TPosition* pos, PSquarePyramid sp) {
+int search(EPresence pc, const TSetOfPresences* used, TPosition* pos, PSquarePyramid sp) {
    int solutions = 0;
-char buf1[16];
-printf("%s %s\r\n", presenceToString(pc), posToString(buf1, pos));
-   TOrientation or = {e110, eY, {ePlus, ePlus}};//{0, 0, {0, 0}};
-   TOrientation* por = &or;
-   for (por = &or; por; por = orNext(por)) {
-      int path;
-      for (path = 0; pieces[pc][path]; ++path) {
+   int top = setOfPresencesAll(0, used);
+//char buf[16];
+//printf("%s %s\r\n", presenceToString(pc), posToString(buf, pos));
+   int path;
+   for (path = 0; pieces[pc][path]; ++path) {
+      if (top) {
+         solReset();
+      }
+      ERotation ePathSymmetry = e0;
+      TOrientation or = {0, 0, {0, 0}};
+      TOrientation* por = &or;
+      for (por = &or; por; por = orNext(por)) {
          if (!repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]
           && walk(eAbsent, pieces[pc][path], por, *pos, sp)) {
             TSquarePyramid newsp;
             spCopy(newsp, sp);
             spSet(newsp, pc, pos);
             walk(pc, pieces[pc][path], por, *pos, newsp);
+            ERotation sym = spSymmetry(newsp);
+            if (sym != e0) {
+               if (ePathSymmetry != e0) {
+                  continue;
+               } else {
+                  ePathSymmetry = sym;
+               }
+            }
             TPosition newpos;
-            sqFind(&newpos, eAbsent, spSymmetry(newsp), newsp);
-            TSetOfPieces newused = *used;
-            newused.piece[pc] = 1;
-//char buf1[16];
-//char buf2[32];
-//char buf3[16];
-//printf("%s, %s: %s (%c) %s: %s\r\n", posToString(buf1, pos), orToString(buf2, por), presenceToString(pc), glyph[pc], pieces[pc][path], setOfPiecesToString(buf3, &newused));
-display1(eUpright, newsp);
-//            displayWide(eUpright, PAGE_WIDTH, newsp);
+            spFind(&newpos, eAbsent, sym, newsp);
+/*char buf[16];
+//printf("%s %s\r\n", rotationToString(sym), posToString(buf, &newpos));
+char buf1[16];
+char buf2[32];
+char buf3[16];
+printf("%s, %s: %s (%c) %s: %s %s\r\n", posToString(buf1, pos), orToString(buf2, por), presenceToString(pc), glyph[pc], pieces[pc][path], setOfPiecesToString(buf3, &newused), rotationToString(sym));
+//display1(SHAPE, newsp);
+//printf("%s\r\n", rotationToString(sym));
+displayWide(SHAPE, PAGE_WIDTH, newsp);
+int done = 0;
+EPresence u;
+for (u = eGrey; u < ePresences; ++u) {
+   if (newused.presence[u]) {
+      ++done;
+   }
+}
+if (done > 1) {
+   continue;
+}
+*/
+            TSetOfPresences newused = *used;
+            newused.presence[pc] = 1;
             int togo = 0;
             int fork = 0;
             int path_solutions = 0;
             EPresence next;
             for (next = eGrey; next < ePresences; ++next) {
-               if (!newused.piece[next]) {
+               if (!newused.presence[next]) {
                   ++togo;
                   int s = search(next, &newused, &newpos, newsp);
                   if (s && path_solutions) {
@@ -83,9 +110,10 @@ display1(eUpright, newsp);
             }
             if (!togo || fork) {
                if (!togo) {
+                  solAddUniqueSymmetric(newsp);
                   path_solutions = 1;
                }
-//               displayWide(eUpright, PAGE_WIDTH, newsp);
+//               displayWide(SHAPE, PAGE_WIDTH, newsp);
             }
             solutions += path_solutions;
          }
@@ -95,34 +123,65 @@ display1(eUpright, newsp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve() {
+void testSpSymmetry() {
+   TOrientation or = {e110, eX, {ePlus, ePlus}};
    TPosition pos = {0, 0, 0};
-   int pc = eWhite;
-   TSquarePyramid sp;
-   spInit(sp);
-   spEnumerate(sp);
-   do {
-      spSet(sp, pc, &pos);
-display1(eUpright, sp);
-      sqFind(&pos, pc, e180, sp);
-char buf[16];
-   } while (pos.d[eX] != -1);
-   return 0;
+   int pc;
+   for (pc = eGrey; pc < ePresences; ++pc) {
+      int path;
+      for (path = 0; pieces[pc][path]; ++path) {
+         TSquarePyramid sp;
+         spInit(sp);
+         if (walk(eAbsent, pieces[pc][path], &or, pos, sp)) {
+            spSet(sp, pc, &pos);
+            walk(pc, pieces[pc][path], &or, pos, sp);
+            printf("%s %s %s\r\n", presenceToString(pc), pieces[pc][path], rotationToString(spSymmetry(sp)));
+            displayWide(SHAPE, PAGE_WIDTH, sp);
+         }
+      }
+      displayWide(SHAPE, PAGE_WIDTH, NULL);
+   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 int solve1() {
    int solutions = 0;
+   int pc = eLightBlue;
+   TSetOfPresences used = {0};
+   used.presence[pc] = 1;
+   int path = 2;
+   TOrientation or = {e110, eX, {ePlus, ePlus}};
    TPosition pos = {0, 0, 0};
-   int pc;
+   TSquarePyramid sp;
+   spInit(sp);
+   spSet(sp, pc, &pos);
+   walk(pc, pieces[pc][path], &or, pos, sp);
+   ERotation sym = spSymmetry(sp);
+   spFind(&pos, eAbsent, sym, sp);
    for (pc = eGrey; pc < ePresences; ++pc) {
+      if (!used.presence[pc]) {
+         solutions += search(pc, &used, &pos, sp);
+      }
+   }
+   displayWide(SHAPE, PAGE_WIDTH, NULL);
+printf("solutions %d\r\n", solutions);
+   return solutions;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int solve() {
+   int solutions = 0;
+   TPosition pos = {0, 0, 0};
+   int pc = eLightBlue;;
+   //for (pc = eGrey; pc < ePresences; ++pc) {
       TSquarePyramid sp;
       spInit(sp);
-      TSetOfPieces used = {0};
-      int sol = search(eWhite, &used, &pos, sp);
-printf("%s sol %d\r\n\r\n", presenceToString(pc), sol);
+      TSetOfPresences used = {0};
+      int sol = search(pc, &used, &pos, sp);
       solutions += sol;
-   }
+      displayWide(SHAPE, PAGE_WIDTH, NULL);
+printf("%s sol %d unique %d\r\n\r\n", presenceToString(pc), sol, solGetCount());
+//   }
 printf("solutions %d\r\n", solutions);
    return solutions;
 }

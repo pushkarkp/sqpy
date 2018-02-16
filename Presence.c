@@ -29,3 +29,27 @@ const char* presenceToString(EPresence ePresence) {
       default: return "Unknown presence";
    }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+int setOfPresencesAll(int v, const TSetOfPresences* sop) {
+   int i;
+   for (i = 0; i < ePresences; ++i) {
+      if (sop->presence[i] != v) {
+         return 0;
+      }
+   }
+   return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const char* setOfPresencesToString(char* buf, TSetOfPresences* sop) {
+   char* p = buf;
+   int i;
+   for (i = 0; i < ePresences; ++i) {
+      if (sop->presence[i]) {
+         *p++ = glyph[i];
+      }
+   }
+   *p = 0;
+   return buf;
+}

@@ -13,10 +13,4 @@
 typedef const char* TPiece[MAX_PATHS + 1];
 extern const TPiece pieces[ePresences];
 
-///////////////////////////////////////////////////////////////////////////////
-typedef struct {
-   char piece[ePresences];
-} TSetOfPieces;
-const char* setOfPiecesToString(char* buf, TSetOfPieces*);
-
 #endif

@@ -27,16 +27,3 @@ const TPiece pieces[ePresences] = {
    {"Ab", ".A.b", ".zZ.a", "bA", 0}, // Orange
    {"Aa", ".A.a", 0} // White
 };
-
-///////////////////////////////////////////////////////////////////////////////
-const char* setOfPiecesToString(char* buf, TSetOfPieces* sop) {
-   char* p = buf;
-   int i;
-   for (i = 0; i < ePresences; ++i) {
-      if (sop->piece[i]) {
-         *p++ = glyph[i];
-      }
-   }
-   *p = 0;
-   return buf;
-}

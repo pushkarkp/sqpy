@@ -46,20 +46,20 @@ void findRepeat() {
                      break;
                   }
                }
-/*               char buf2[32];
-               printf("%s: %s %s distinct %d eq %d", presenceToString(pc), orToString(buf2, por), pieces[pc][path], distinct, eq);
-               if (por->plane) {
-                  printf(" repeat %d\r\n", repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]);
-                  displayWide(eCube, PAGE_WIDTH, sps[AS_INDEX(distinct)]);
-               } else {
-                  printf("\r\n");
-                  displayWideRowRange(eCube, PAGE_WIDTH, 25, 33, sps[AS_INDEX(distinct)]);
-               }
-*/               if (por->plane
-                && (eq < 0) == repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]) {
-//                  printf("!! \r\n");
-                  display1(eCube, sps[AS_INDEX(distinct)]);
-               }
+/*char buf2[32];
+printf("%s: %s %s distinct %d eq %d", presenceToString(pc), orToString(buf2, por), pieces[pc][path], distinct, eq);
+if (por->plane) {
+   printf(" repeat %d\r\n", repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]);
+   displayWide(eCube, PAGE_WIDTH, sps[AS_INDEX(distinct)]);
+} else {
+   printf("\r\n");
+   displayWideRowRange(eCube, PAGE_WIDTH, 25, 33, sps[AS_INDEX(distinct)]);
+}
+if (por->plane
+ && (eq < 0) == repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]) {
+   printf("!! \r\n");
+   display1(eCube, sps[AS_INDEX(distinct)]);
+}*/
                if (eq < 0) {
                   ++distinct;
                } else {
