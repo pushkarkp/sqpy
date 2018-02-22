@@ -47,12 +47,12 @@ const char* reflectionToString(char* buf, int ref) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void spClear(TSquarePyramid sp) {
-   memset(sp, 0, SIZE * SIZE * SIZE);
+   memset(sp, 0, SP_SIZE * SP_SIZE * SP_SIZE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void spInit(TSquarePyramid sp) {
-   memset(sp, -1, SIZE * SIZE * SIZE);
+   memset(sp, -1, SP_SIZE * SP_SIZE * SP_SIZE);
    int z;
    for (z = MARGIN; z < MARGIN + HEIGHT; ++z) {
       int y;
@@ -81,12 +81,12 @@ void spEnumerate(TSquarePyramid sp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 PSquarePyramid spCopy(TSquarePyramid dst, TSquarePyramid src) {
-   return memcpy(dst, src, SIZE * SIZE * SIZE);
+   return memcpy(dst, src, SP_SIZE * SP_SIZE * SP_SIZE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 int spEqual(TSquarePyramid sp1, TSquarePyramid sp2) {
-   return 0 == memcmp(sp1, sp2, SIZE * SIZE * SIZE);
+   return 0 == memcmp(sp1, sp2, SP_SIZE * SP_SIZE * SP_SIZE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -184,21 +184,20 @@ char* spRowToString(char* str, int y, int z, TSquarePyramid sp, const char* glyp
 ///////////////////////////////////////////////////////////////////////////////
 char* spWholeRowToString(char* str, int y, int z, TSquarePyramid sp, const char* glyph) {
    int x;
-   for (x = 0; x < SIZE; ++x) {
+   for (x = 0; x < SP_SIZE; ++x) {
       *str++ = glyph[sp[z][y][x]];
    }
    return str;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spFind(TPosition* pos, char c, ERotation sym, TSquarePyramid sp) {
+void spFind1(TPosition* pos, char c, ERotation sym, TSquarePyramid sp) {
    if (sp[MARGIN][MARGIN][MARGIN] == c) {
       pos->d[eX] = 0;
       pos->d[eY] = 0;
       pos->d[eZ] = 0;
       return;
    }
-   TPosition p00 = {0, 0, 0};
    int z;
    for (z = 1; z < HEIGHT; ++z) {
       int xlimit = z + 1;
@@ -234,7 +233,7 @@ void spFind(TPosition* pos, char c, ERotation sym, TSquarePyramid sp) {
          // 180 symmetrical, scan another quarter
          int y;
          for (y = ylimit; y <= z; ++y) {
-             int x;
+            int x;
             for (x = 0; x < ylimit; ++x) {
 //printf("(%d, %d, %d) %c %s\r\n", x, y, z, glyph[sp[MARGIN + z][MARGIN + y][MARGIN + x]], rotationToString(sym));
                if (sp[MARGIN + z][MARGIN + y][MARGIN + x] == c) {
@@ -243,6 +242,35 @@ void spFind(TPosition* pos, char c, ERotation sym, TSquarePyramid sp) {
                   pos->d[eZ] = z;
                   return;
                }
+            }
+         }
+      }
+   }
+   pos->d[eX] = -1;
+   pos->d[eY] = -1;
+   pos->d[eZ] = -1;
+   return;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void spFind(TPosition* pos, char c, TSquarePyramid sp) {
+   if (sp[MARGIN][MARGIN][MARGIN] == c) {
+      pos->d[eX] = 0;
+      pos->d[eY] = 0;
+      pos->d[eZ] = 0;
+      return;
+   }
+   int z;
+   for (z = 1; z < HEIGHT; ++z) {
+      int y;
+      for (y = 0; y <= z; ++y) {
+         int x;
+         for (x = 0; x <= z; ++x) {
+            if (sp[MARGIN + z][MARGIN + y][MARGIN + x] == c) {
+               pos->d[eX] = x;
+               pos->d[eY] = y;
+               pos->d[eZ] = z;
+               return;
             }
          }
       }

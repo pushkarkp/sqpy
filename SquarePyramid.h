@@ -15,9 +15,9 @@ typedef enum {eNoReflection, e100Reflection, e010Reflection, e110Reflection = 4,
 const char* reflectionToString(char*, int); 
 #define HEIGHT 5
 #define MARGIN 1
-#define SIZE (HEIGHT + 2 * MARGIN)
-typedef char TSquarePyramid[SIZE][SIZE][SIZE];
-typedef char (*PSquarePyramid)[SIZE][SIZE];
+#define SP_SIZE (HEIGHT + 2 * MARGIN)
+typedef char TSquarePyramid[SP_SIZE][SP_SIZE][SP_SIZE];
+typedef char (*PSquarePyramid)[SP_SIZE][SP_SIZE];
 
 ///////////////////////////////////////////////////////////////////////////////
 void spClear(TSquarePyramid);
@@ -30,7 +30,7 @@ void spSet(TSquarePyramid, char, TPosition*);
 ERotation spSymmetry(TSquarePyramid);
 char* spRowToString(char*, int y, int z, TSquarePyramid, const char* glyph);
 char* spWholeRowToString(char*, int, int, TSquarePyramid, const char* glyph);
-void spFind(TPosition*, char, ERotation, TSquarePyramid);
+void spFind(TPosition*, char, TSquarePyramid);
 ERotation spEqualRotation(TSquarePyramid, TSquarePyramid);
 int spEqualReflection(TSquarePyramid, TSquarePyramid);
 

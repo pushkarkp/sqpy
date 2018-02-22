@@ -31,25 +31,36 @@ const char* presenceToString(EPresence ePresence) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int setOfPresencesAll(int v, const TSetOfPresences* sop) {
-   int i;
-   for (i = 0; i < ePresences; ++i) {
-      if (sop->presence[i] != v) {
-         return 0;
-      }
-   }
-   return 1;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const char* setOfPresencesToString(char* buf, TSetOfPresences* sop) {
+const char* sopToString(char* buf, TSetOfPresences sop) {
    char* p = buf;
    int i;
    for (i = 0; i < ePresences; ++i) {
-      if (sop->presence[i]) {
+      if (SOP_HAS(sop, i)) {
          *p++ = glyph[i];
       }
    }
    *p = 0;
    return buf;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int sopAll() {
+   int sop = 0;
+   int i;
+   for (i = eAbsent + 1; i < ePresences; ++i) {
+      sop = SOP_WITH(sop, i);
+   }
+   return sop;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int sopCount(TSetOfPresences sop) {
+   int count = 0;
+   int i;
+   for (i = 0; i < ePresences; ++i) {
+      if (SOP_HAS(sop, i)) {
+         ++count;
+      }
+   }
+   return count;
 }

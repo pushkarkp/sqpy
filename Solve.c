@@ -5,6 +5,7 @@
  */
 
 #include "Solve.h"
+#include "Solutions.h"
 #include "PathState.h"
 #include "Repeat.h"
 #include "Display.h"
@@ -42,17 +43,17 @@ int walk(EPresence pc, const char* path, const TOrientation* or, TPosition pos, 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int search(EPresence pc, const TSetOfPresences* used, TPosition* pos, PSquarePyramid sp) {
+int search(EPresence pc, TSetOfPresences used, TPosition* pos, PSquarePyramid sp, TSquarePyramid* sym) {
    int solutions = 0;
-   int top = setOfPresencesAll(0, used);
 //char buf[16];
 //printf("%s %s\r\n", presenceToString(pc), posToString(buf, pos));
+   TSetOfPresences newused = SOP_WITH(used, pc);
    int path;
    for (path = 0; pieces[pc][path]; ++path) {
-      if (top) {
-         solReset();
+      if (used == 0) {
+//         path = 2;
+         solInit();
       }
-      ERotation ePathSymmetry = e0;
       TOrientation or = {0, 0, {0, 0}};
       TOrientation* por = &or;
       for (por = &or; por; por = orNext(por)) {
@@ -62,29 +63,20 @@ int search(EPresence pc, const TSetOfPresences* used, TPosition* pos, PSquarePyr
             spCopy(newsp, sp);
             spSet(newsp, pc, pos);
             walk(pc, pieces[pc][path], por, *pos, newsp);
-            ERotation sym = spSymmetry(newsp);
-            if (sym != e0) {
-               if (ePathSymmetry != e0) {
-                  continue;
-               } else {
-                  ePathSymmetry = sym;
-               }
-            }
-            TPosition newpos;
-            spFind(&newpos, eAbsent, sym, newsp);
-/*char buf[16];
-//printf("%s %s\r\n", rotationToString(sym), posToString(buf, &newpos));
-char buf1[16];
+            if (solIsUniqueSymmetric(newused, newsp)) {
+               TPosition newpos;
+               spFind(&newpos, eAbsent, newsp);
+/*char buf1[16];
 char buf2[32];
 char buf3[16];
-printf("%s, %s: %s (%c) %s: %s %s\r\n", posToString(buf1, pos), orToString(buf2, por), presenceToString(pc), glyph[pc], pieces[pc][path], setOfPiecesToString(buf3, &newused), rotationToString(sym));
+printf("%s, %s: %s (%c) %s: %s\r\n", posToString(buf1, pos), orToString(buf2, por), presenceToString(pc), glyph[pc], pieces[pc][path], sopToString(buf3, newused));
 //display1(SHAPE, newsp);
 //printf("%s\r\n", rotationToString(sym));
 displayWide(SHAPE, PAGE_WIDTH, newsp);
 int done = 0;
 EPresence u;
 for (u = eGrey; u < ePresences; ++u) {
-   if (newused.presence[u]) {
+   if (SOP_HAS(newused, u)) {
       ++done;
    }
 }
@@ -92,30 +84,28 @@ if (done > 1) {
    continue;
 }
 */
-            TSetOfPresences newused = *used;
-            newused.presence[pc] = 1;
-            int togo = 0;
-            int fork = 0;
-            int path_solutions = 0;
-            EPresence next;
-            for (next = eGrey; next < ePresences; ++next) {
-               if (!newused.presence[next]) {
-                  ++togo;
-                  int s = search(next, &newused, &newpos, newsp);
-                  if (s && path_solutions) {
-                     fork = 1;
+               int togo = 0;
+               int fork = 0;
+               int next_solutions = 0;
+               EPresence next;
+               for (next = eGrey; next < ePresences; ++next) {
+                  if (!SOP_HAS(newused, next)) {
+                     ++togo;
+                     int s = search(next, newused, &newpos, newsp, sym);
+                     if (s && next_solutions) {
+                        fork = 1;
+                     }
+                     next_solutions += s;
                   }
-                  path_solutions += s;
                }
-            }
-            if (!togo || fork) {
-               if (!togo) {
-                  solAddUniqueSymmetric(newsp);
-                  path_solutions = 1;
+               if (!togo || fork) {
+                  solAddUniqueSymmetric(newused, newsp);
+                  if (!togo) {
+                     next_solutions = 1;
+                  }
                }
-//               displayWide(SHAPE, PAGE_WIDTH, newsp);
+               solutions += next_solutions;
             }
-            solutions += path_solutions;
          }
       }
    }
@@ -146,9 +136,10 @@ void testSpSymmetry() {
 ///////////////////////////////////////////////////////////////////////////////
 int solve1() {
    int solutions = 0;
+   TSquarePyramid sym[ePresences];
    int pc = eLightBlue;
-   TSetOfPresences used = {0};
-   used.presence[pc] = 1;
+   TSetOfPresences used = 0;
+   used = SOP_WITH(used, pc);
    int path = 2;
    TOrientation or = {e110, eX, {ePlus, ePlus}};
    TPosition pos = {0, 0, 0};
@@ -156,11 +147,10 @@ int solve1() {
    spInit(sp);
    spSet(sp, pc, &pos);
    walk(pc, pieces[pc][path], &or, pos, sp);
-   ERotation sym = spSymmetry(sp);
-   spFind(&pos, eAbsent, sym, sp);
+   spFind(&pos, eAbsent, sp);
    for (pc = eGrey; pc < ePresences; ++pc) {
-      if (!used.presence[pc]) {
-         solutions += search(pc, &used, &pos, sp);
+      if (!SOP_HAS(used, pc)) {
+         solutions += search(pc, used, &pos, sp, sym);
       }
    }
    displayWide(SHAPE, PAGE_WIDTH, NULL);
@@ -171,17 +161,18 @@ printf("solutions %d\r\n", solutions);
 ///////////////////////////////////////////////////////////////////////////////
 int solve() {
    int solutions = 0;
+   TSquarePyramid sym[ePresences];
    TPosition pos = {0, 0, 0};
-   int pc = eLightBlue;;
-   //for (pc = eGrey; pc < ePresences; ++pc) {
+   int pc = eLightBlue;
+   for (pc = eGrey; pc < ePresences; ++pc) {
       TSquarePyramid sp;
       spInit(sp);
       TSetOfPresences used = {0};
-      int sol = search(pc, &used, &pos, sp);
+      int sol = search(pc, used, &pos, sp, sym);
       solutions += sol;
       displayWide(SHAPE, PAGE_WIDTH, NULL);
-printf("%s sol %d unique %d\r\n\r\n", presenceToString(pc), sol, solGetCount());
-//   }
+printf("%s sol %d unique %d\r\n\r\n", presenceToString(pc), sol, solGetCount(sopAll()));
+   }
 printf("solutions %d\r\n", solutions);
    return solutions;
 }

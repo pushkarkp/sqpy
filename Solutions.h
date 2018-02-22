@@ -7,6 +7,7 @@
 #include "SquarePyramid.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-void solReset();
-void solCount();
-int solAddUniqueSymmetric(TSquarePyramid);
+void solInit();
+int solGetCount(int);
+int solIsUniqueSymmetric(int, TSquarePyramid);
+int solAddUniqueSymmetric(int, TSquarePyramid);
