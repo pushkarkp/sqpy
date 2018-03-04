@@ -13,16 +13,11 @@ typedef enum {
    eGrey, ePinkPurple, eLightBlue, eDarkGreen, eYellow, eDarkBlue, 
    eRed, ePink, eBluePurple, eLightGreen, eOrange, eWhite,
    ePresences} EPresence;
-const char* presenceToString(EPresence);
-extern const char glyph[ePresences];
+const char* presToString(EPresence);
+#define GLYPH(c) ('`' + c)
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef int TSetOfPresences;
 const char* sopToString(char* buf, TSetOfPresences);
-int sopAll();
-int sopCount(TSetOfPresences);
-#define SOP_WITH(sop, pres) ((sop) | (1 << (pres)))
-#define SOP_WITHOUT(sop, pres) ((sop) & ~(1 << (pres)))
-#define SOP_HAS(sop, pres) ((sop) & ((1 << pres)))
 
 #endif

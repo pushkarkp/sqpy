@@ -5,6 +5,7 @@
  */
 
 #include "Repeat.h"
+#include "Orientation.h"
 #include "Solve.h"
 #include "Display.h"
 #include <stdio.h>
@@ -26,18 +27,17 @@ void findRepeat() {
          int distinct = 0;
          int path = 0;
          for (path = 0; pieces[pc][path]; ++path) {
-            TOrientation or = {plane, 0, {0, 0}};
-            TOrientation* por = &or;
-            for (por = &or; por; por = orNext(por)) {
-               if (por->plane != plane) {
-                  break;
+            EOrientation or;
+            for (or = 0; or < ORIENTATIONS; ++or) {
+               if (orients[or].plane != plane) {
+                  continue;
                }
                TPosition pos = {2, 2, 2};
                spClear(sps[AS_INDEX(distinct)]);
                spClear(sps[AS_INDEX(distinct) - 1]);
                spClear(sps[AS_INDEX(distinct) + 1]);
                spSet(sps[AS_INDEX(distinct)], pc, &pos);
-               walk(pc, pieces[pc][path], &or, pos, sps[AS_INDEX(distinct)]);
+               walk(pc, pieces[pc][path], or, pos, sps[AS_INDEX(distinct)]);
                int eq;
                for (eq = distinct - 1; eq >= 0; --eq) {
                   if (spEqual(sps[AS_INDEX(distinct)], sps[AS_INDEX(eq)])
@@ -63,6 +63,7 @@ if (por->plane
                if (eq < 0) {
                   ++distinct;
                } else {
+                  const TOrient* por = &orients[or];
                   repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]] = 1;
                }
             }

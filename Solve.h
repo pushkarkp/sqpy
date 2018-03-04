@@ -8,10 +8,11 @@
 
 #include "Piece.h"
 #include "Position.h"
+#include "Orientation.h"
 #include "SquarePyramid.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 int solve();
-int walk(EPresence, const char*, const TOrientation*, TPosition, PSquarePyramid);
+int walk(EPresence, const char*, EOrientation, TPosition, PSquarePyramid);
 
 #endif

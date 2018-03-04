@@ -143,9 +143,9 @@ char* display1Line(char* str, int r, EDisplayShape shape, TSquarePyramid sp) {
          pos = margin(pos, layout[shape][r][eGap]);
       }
       if (shape == eCube) {
-         pos = spWholeRowToString(pos, layout[shape][r][i], layout[shape][r][i + 1], sp, glyph);
+         pos = spWholeRowToString(pos, layout[shape][r][i], layout[shape][r][i + 1], sp);
       } else {
-         pos = spRowToString(pos, layout[shape][r][i], layout[shape][r][i + 1], sp, glyph);
+         pos = spRowToString(pos, layout[shape][r][i], layout[shape][r][i + 1], sp);
       }
 //printf("display1Line pos %d\r\n", pos - str);
    }
@@ -169,7 +169,7 @@ void display1RowRange(EDisplayShape shape, int row0, int row1, TSquarePyramid sp
    int r;
    for (r = r0; r < r1; ++r) {
       printf(display1Line(buf, r, shape, sp));
-      printf(eol[EOL_TYPE]);
+      printf(EOL);
    }
 }
 
@@ -195,7 +195,7 @@ int displayPageRowRange(EDisplayShape shape, int w, int h, int row0, int row1, i
          for (a = 0; a < limit; ++a) {
             printf(display1Line(buf, r, shape, sp[p + a]));
          }
-         printf(eol[EOL_TYPE]);
+         printf(EOL);
       }
       p += limit;
    }

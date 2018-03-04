@@ -5,8 +5,8 @@
  */
 
 #include "Solutions.h"
+#include "SetOf.h"
 #include "Presence.h" // sopToString
-#include "Display.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -68,17 +68,17 @@ printf("max_keys %d\r\n", max_keys);
 int findSp(int i, TSquarePyramid sp) {
    int eq;
    for (eq = sps_count[i] - 1; eq >= 0; --eq) {
-      ERotation rot = spEqualRotation(sp, sps[i][eq]);
-      int ref = spEqualReflection(sp, sps[i][eq]);
-      if (rot || ref) {
+      ERotation rot = spEqualRotate(sp, sps[i][eq]);
+      TSetOfReflectionPlanes sorp = spEqualReflect(sp, sps[i][eq]);
+      if (rot || sorp) {
          if (rot) {
             char bufSop[ePresences + 1];
-            printf("%s[%d] %s rotation%s", sopToString(bufSop, keys[i]), eq, rotationToString(rot), eol[EOL_TYPE]);
+            printf("%s[%d] %s rotation%s", sopToString(bufSop, keys[i]), eq, rotationToString(rot), EOL);
          } 
-         if (ref) {
+         if (sorp) {
             char bufSop[ePresences + 1];
-            char bufRef[16];
-            printf("%s[%d] %s reflection%s", sopToString(bufSop, keys[i]), eq, reflectionToString(bufRef, ref), eol[EOL_TYPE]);
+            char bufSorp[16];
+            printf("%s[%d] %s reflection%s", sopToString(bufSop, keys[i]), eq, sorpToString(bufSorp, sorp), EOL);
          }
          return eq;
       }
@@ -143,6 +143,11 @@ int solAddUniqueSymmetric(int key, TSquarePyramid sp) {
    int i = findOrAddKey(key);
    int s = findSp(i, sp);
    if (s < sps_count[i]) {
+displayWide(eUpright, PAGE_WIDTH, NULL);
+printf("skip\r\n");
+displayWide(eUpright, PAGE_WIDTH, sps[i][s]);
+displayWide(eUpright, PAGE_WIDTH, sp);
+displayWide(eUpright, PAGE_WIDTH, NULL);
       return 0;
    }
    if (sps_count[i] == max_sps[i]) {
@@ -153,4 +158,30 @@ printf("max_sps[i] %d ", max_sps[i]);
    spCopy(sps[i][sps_count[i]++], sp);
 displayWide(eUpright, PAGE_WIDTH, sp);
    return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void displayKey(int key, EDisplayShape eShape, int pageWidth) {
+   int k = findKey(key);
+   int i;
+   for (i = 0; i < sps_count[k]; ++i) {
+      displayWide(eShape, pageWidth, sps[k][i]);
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void solDisplay(int key, EDisplayShape eShape, int pageWidth) {
+   displayKey(key, eShape, pageWidth);
+   displayWide(eShape, pageWidth, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void solDisplayBySize(int size, EDisplayShape eShape, int pageWidth) {
+   int i;
+   for (i = 0; keys[i]; ++i) {
+      if (setCount(keys[i]) == size) {
+         displayKey(keys[i], eShape, pageWidth);
+      }
+   }
+   displayWide(eShape, pageWidth, 0);
 }

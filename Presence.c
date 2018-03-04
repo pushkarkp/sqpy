@@ -5,12 +5,10 @@
  */
 
 #include "Presence.h"
+#include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-const char glyph[ePresences] = ".abcdefghijkl";
-
-///////////////////////////////////////////////////////////////////////////////
-const char* presenceToString(EPresence ePresence) {
+const char* presToString(EPresence ePresence) {
    switch (ePresence) {
       case eMargin: return "Margin";
       case eAbsent: return "Absent";
@@ -35,32 +33,10 @@ const char* sopToString(char* buf, TSetOfPresences sop) {
    char* p = buf;
    int i;
    for (i = 0; i < ePresences; ++i) {
-      if (SOP_HAS(sop, i)) {
-         *p++ = glyph[i];
+      if (SET_HAS(sop, i)) {
+         *p++ = GLYPH(i);
       }
    }
    *p = 0;
    return buf;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-int sopAll() {
-   int sop = 0;
-   int i;
-   for (i = eAbsent + 1; i < ePresences; ++i) {
-      sop = SOP_WITH(sop, i);
-   }
-   return sop;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-int sopCount(TSetOfPresences sop) {
-   int count = 0;
-   int i;
-   for (i = 0; i < ePresences; ++i) {
-      if (SOP_HAS(sop, i)) {
-         ++count;
-      }
-   }
-   return count;
 }

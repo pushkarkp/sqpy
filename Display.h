@@ -11,8 +11,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {eUnix, eMac, eWindows, eEolTypes} EEol;
-#define EOL_TYPE eWindows
 extern const char* eol[eEolTypes];
+#define EOL (eol[eWindows])
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {eUpright, eFolded, eCube, eDisplayShapes} EDisplayShape;

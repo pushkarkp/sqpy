@@ -24,6 +24,6 @@ const TPiece pieces[ePresences] = {
    {"a.b.A", ".z.b.A", "A.z.b", ".z.a,A,a", "b.a.A", 0}, // Pink
    {"c", ".z.b", 0}, // Blue Purple
    {"aAz", 0}, // Light Green
-   {"Ab", ".A.b", ".zZ.a", "bA", 0}, // Orange
-   {"Aa", ".A.a", 0} // White
+   {"bA", ".b.A", ".zZ.a", "Ab", 0}, // Orange
+   {"aA", ".a.A", 0} // White
 };
