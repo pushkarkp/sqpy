@@ -14,10 +14,12 @@ typedef enum {
    eRed, ePink, eBluePurple, eLightGreen, eOrange, eWhite,
    ePresences} EPresence;
 const char* presToString(EPresence);
-#define GLYPH(c) ('`' + c)
+#define PIECE(c) (c - '`')
+#define GLYPH(i) (i + '`')
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef int TSetOfPresences;
 const char* sopToString(char* buf, TSetOfPresences);
+#define SOP_BUF_SIZE (ePresences + 1)
 
 #endif

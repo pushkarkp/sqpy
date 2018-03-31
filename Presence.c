@@ -24,7 +24,7 @@ const char* presToString(EPresence ePresence) {
       case eLightGreen: return "LightGreen";
       case eOrange: return "Orange";
       case eWhite: return "White";
-      default: return "Unknown presence";
+      default: return "";
    }
 }
 

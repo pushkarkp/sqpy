@@ -38,7 +38,7 @@ void spInit(TSquarePyramid sp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void spEnumerate(TSquarePyramid sp) {
-   int c = 0;
+   int c = -25;
    int z;
    for (z = MARGIN; z < MARGIN + HEIGHT; ++z) {
       int y;
@@ -52,39 +52,17 @@ void spEnumerate(TSquarePyramid sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-PSquarePyramid spCopy(TSquarePyramid dst, TSquarePyramid src) {
+PSquarePyramid spCopy(TSquarePyramid dst, const TSquarePyramid src) {
    return memcpy(dst, src, SP_SIZE * SP_SIZE * SP_SIZE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int spEqual(TSquarePyramid sp1, TSquarePyramid sp2) {
+int spEqual(const TSquarePyramid sp1, const TSquarePyramid sp2) {
    return 0 == memcmp(sp1, sp2, SP_SIZE * SP_SIZE * SP_SIZE);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char spGet(TPosition* pat, TSquarePyramid sp) {
-//printf("spGet x %d y %d z %d: %s\r\n", pat->d[eX], pat->d[eY], pat->d[eZ], presenceToString(sp[MARGIN + pat->d[eZ]][MARGIN + pat->d[eY]][MARGIN + pat->d[eX]]));
-   return sp[MARGIN + pat->d[eZ]][MARGIN + pat->d[eY]][MARGIN + pat->d[eX]];
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void spSet(TSquarePyramid sp, char c, TPosition* pat) {
-   sp[MARGIN + pat->d[eZ]][MARGIN + pat->d[eY]][MARGIN + pat->d[eX]] = c;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-int spFindRepeat(int n, TSquarePyramid* sps) {
-   int eq;
-   for (eq = n - 1; eq >= 0; --eq) {
-      if (spEqual(sps[n], sps[eq])) {
-         return n - 1;
-      }
-   }
-   return n;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-char* spRowToString(char* str, int y, int z, TSquarePyramid sp) {
+char* spRowToString(char* str, int y, int z, const TSquarePyramid sp) {
    y += MARGIN;
    z += MARGIN;
    int x;
@@ -95,7 +73,7 @@ char* spRowToString(char* str, int y, int z, TSquarePyramid sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char* spWholeRowToString(char* str, int y, int z, TSquarePyramid sp) {
+char* spWholeRowToString(char* str, int y, int z, const TSquarePyramid sp) {
    int x;
    for (x = 0; x < SP_SIZE; ++x) {
       *str++ = GLYPH(sp[z][y][x]);
@@ -104,7 +82,7 @@ char* spWholeRowToString(char* str, int y, int z, TSquarePyramid sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spFind(TPosition* pos, char c, TSquarePyramid sp) {
+void spFind(TPosition* pos, char c, const TSquarePyramid sp) {
    // find the potentially symmetrical central spots first
    int z;
    for (z = 0; z < HEIGHT; z += 2) {
@@ -171,12 +149,14 @@ void spFind(TPosition* pos, char c, TSquarePyramid sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ERotation spEqualRotate(TSquarePyramid sp1, TSquarePyramid sp2) {
+ERotation spEqualRotate(const TSquarePyramid sp1, const TSquarePyramid sp2) {
    if (sp1[MARGIN][MARGIN][MARGIN]
     != sp2[MARGIN][MARGIN][MARGIN]) {
       return e0;
    }
-   if (sp1[MARGIN][MARGIN][MARGIN] == eAbsent) {
+   if (sp1[MARGIN][MARGIN][MARGIN] == eAbsent
+    && sp2[MARGIN][MARGIN][MARGIN] == eAbsent) {
+//printf("spEqualRotate() empty\r\n"); 
       return e90;
    }
    int z;
@@ -204,7 +184,7 @@ ERotation spEqualRotate(TSquarePyramid sp1, TSquarePyramid sp2) {
              != sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + y]
              || sp1[MARGIN + z][MARGIN + y][MARGIN + x]
              != sp2[MARGIN + z][MARGIN + x][MARGIN + (z - y)]) {
-//printf("90(%d, %d, %d) %c != (%d, %d) %c (%d, %d) %c\r\n", 
+//printf("90(%d, %d, %d) %c ?= (%d, %d) %c (%d, %d) %c\r\n", 
 //   x, y, z,    GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   y, (z - x), GLYPH(sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + y]),
 //   (z - y), x, GLYPH(sp2[MARGIN + z][MARGIN + x][MARGIN + (z - y)]));
@@ -217,7 +197,7 @@ ERotation spEqualRotate(TSquarePyramid sp1, TSquarePyramid sp2) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfReflectionPlanes spEqualReflect(TSquarePyramid sp1, TSquarePyramid sp2) {
+TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyramid sp2) {
    if (sp1[MARGIN][MARGIN][MARGIN]
     != sp2[MARGIN][MARGIN][MARGIN]) {
       return 0;
@@ -235,7 +215,7 @@ TSetOfReflectionPlanes spEqualReflect(TSquarePyramid sp1, TSquarePyramid sp2) {
             if (SET_HAS(sorp, e100Reflection)
              && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
               != sp2[MARGIN + z][MARGIN + y][MARGIN + z - x])) {
-//printf("110(%d, %d, %d) %c != (%d, %d) %c\r\n", 
+//printf("100(%d, %d, %d) %c != (%d, %d) %c\r\n", 
 //   x, y, z,  GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   z - x, y, GLYPH(sp2[MARGIN + z][MARGIN + y][MARGIN + z - x]));
                sorp = SET_WITHOUT(sorp, e100Reflection);
@@ -246,7 +226,7 @@ TSetOfReflectionPlanes spEqualReflect(TSquarePyramid sp1, TSquarePyramid sp2) {
             if (SET_HAS(sorp, e010Reflection)
              && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
               != sp2[MARGIN + z][MARGIN + z - y][MARGIN + x])) {
-//printf("110(%d, %d, %d) %c != (%d, %d) %c\r\n", 
+//printf("010(%d, %d, %d) %c != (%d, %d) %c\r\n", 
 //   x, y, z,  GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   x, z - y, GLYPH(sp2[MARGIN + z][MARGIN + z - y][MARGIN + x]));
                sorp = SET_WITHOUT(sorp, e010Reflection);

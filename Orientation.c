@@ -5,61 +5,78 @@
  */
 
 #include "Orientation.h"
+#include "SetOf.h"
 
 #include <stdio.h>
+#include <string.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* orToString(EOrientation or) {
    switch (or) {
       case e001XPlusPlus:
-         return "e001XPlusPlus";
+         return "001XPlusPlus";
       case e001XMinusPlus:
-         return "e001XMinusPlus";
+         return "001XMinusPlus";
       case e001XPlusMinus:
-         return "e001XPlusMinus"; 
+         return "001XPlusMinus"; 
       case e001XMinusMinus:
-         return "e001XMinusMinus";
+         return "001XMinusMinus";
       case e001YPlusPlus:
-         return "e001YPlusPlus";
+         return "001YPlusPlus";
       case e001YMinusPlus:
-         return "e001YMinusPlus";
+         return "001YMinusPlus";
       case e001YPlusMinus:
-         return "e001YPlusMinus";
+         return "001YPlusMinus";
       case e001YMinusMinus:
-         return "e001YMinusMinus";
+         return "001YMinusMinus";
       case e110XPlusPlus:
-         return "e110XPlusPlus";
+         return "110XPlusPlus";
       case e110XMinusPlus:
-         return "e110XMinusPlus";
+         return "110XMinusPlus";
       case e110XPlusMinus:
-         return "e110XPlusMinus";
+         return "110XPlusMinus";
       case e110XMinusMinus:
-         return "e110XMinusMinus";
+         return "110XMinusMinus";
       case e110YPlusPlus:
-         return "e110YPlusPlus";
+         return "110YPlusPlus";
       case e110YMinusPlus:
-         return "e110YMinusPlus";
+         return "110YMinusPlus";
       case e110YPlusMinus:
-         return "e110YPlusMinus";
+         return "110YPlusMinus";
       case e110YMinusMinus:
-         return "e110YMinusMinus";
+         return "110YMinusMinus";
       case e1T0XPlusPlus:
-         return "e1T0XPlusPlus";
+         return "1T0XPlusPlus";
       case e1T0XMinusPlus:
-         return "e1T0XMinusPlus";
+         return "1T0XMinusPlus";
       case e1T0XPlusMinus:
-         return "e1T0XPlusMinus";
+         return "1T0XPlusMinus";
       case e1T0XMinusMinus:
-         return "e1T0XMinusMinus";
+         return "1T0XMinusMinus";
       case e1T0YPlusPlus:
-         return "e1T0YPlusPlus";
+         return "1T0YPlusPlus";
       case e1T0YMinusPlus:
-         return "e1T0YMinusPlus";
+         return "1T0YMinusPlus";
       case e1T0YPlusMinus:
-         return "e1T0YPlusMinus";
+         return "1T0YPlusMinus";
       case e1T0YMinusMinus:
-         return "e1T0YMinusMinus";
+         return "1T0YMinusMinus";
    } 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const char* soorToString(char* buf, TSetOfOrientations soor) {
+   *buf = 0;
+   const char* sep = "";
+   EOrientation or;
+   for (int or = 0; or < eOrientations; ++or) {
+      if (SET_HAS(soor, or)) {
+         strcat(buf, sep);
+         strcat(buf, orToString(or));
+         sep = " ";
+      }
+   }
+   return buf;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

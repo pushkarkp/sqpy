@@ -36,7 +36,7 @@ void findRepeat() {
                spClear(sps[AS_INDEX(distinct)]);
                spClear(sps[AS_INDEX(distinct) - 1]);
                spClear(sps[AS_INDEX(distinct) + 1]);
-               spSet(sps[AS_INDEX(distinct)], pc, &pos);
+               SP_SET(sps[AS_INDEX(distinct)], pc, &pos);
                walk(pc, pieces[pc][path], or, pos, sps[AS_INDEX(distinct)]);
                int eq;
                for (eq = distinct - 1; eq >= 0; --eq) {

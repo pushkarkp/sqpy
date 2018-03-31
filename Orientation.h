@@ -20,12 +20,15 @@ typedef enum {
 } EOrientation;
 const char* orToString(EOrientation);
 typedef int TSetOfOrientations;
+const char* soorToString(char*, TSetOfOrientations);
+#define SOOR_BUF_SIZE 336
 typedef struct {
    EPlane plane;
    EDimension align;
    ESign fwd[e2dDimensions];
 } TOrient;
 const char* orientToString(char*, const TOrient*);
+#define ORIENT_BUF_SIZE 36
 #define GET_ORIENTATION(plane, align, fwdY, fwdX) ((plane) * e2dDimensions * 2 * eSigns + (align) * 2 * eSigns + (fwdY) * eSigns + (fwdX))
 #define PLANE_ORIENTATIONS 8
 #define ORIENTATIONS (PLANE_ORIENTATIONS * ePlanes)

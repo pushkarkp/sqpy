@@ -1,14 +1,31 @@
-HEADERS = Display.h Move.h Orientation.h PathState.h Piece.h Position.h Presence.h Repeat.h SetOf.h Solutions.h Solve.h SquarePyramid.h Symmetry.h
-OBJS = Display.o Move.o Orientation.o PathState.o Piece.o Position.o Presence.o Repeat.o SetOf.o Solutions.o Solve.o SquarePyramid.o Symmetry.o
+HEADERS = Display.h Move.h Orientation.h PathState.h Piece.h Position.h Presence.h Repeat.h SetOf.h Solutions.h Solve.h SquarePyramid.h Steps.h Symmetry.h
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-I. -O2 -g
+OBJDIR=obj
+objs = $(addprefix $(OBJDIR)/, Display.o Move.o Orientation.o PathState.o Piece.o Position.o Presence.o Repeat.o SetOf.o Solutions.o Solve.o SquarePyramid.o Steps.o Symmetry.o )
+GPROF_FLAGS=-I. -O2 -pg
+GPROF_OBJDIR=gprofobj
+gprof_objs = $(addprefix $(GPROF_OBJDIR)/, Display.o Move.o Orientation.o PathState.o Piece.o Position.o Presence.o Repeat.o SetOf.o Solutions.o Solve.o SquarePyramid.o Steps.o Symmetry.o )
 
-all: sqpy.exe 
+sqpy.exe: SqPy.c $(objs)
+	$(CC) $(CFLAGS) -o $@ SqPy.c $(objs)
+
+$(OBJDIR)/%.o: %.c $(HEADERS) | $(OBJDIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR) : 
+	mkdir $(OBJDIR)
+
+gprof: sqpyGprof.exe
+
+sqpyGprof.exe: SqPy.c $(gprof_objs)
+	$(CC) $(GPROF_FLAGS) -o $@ SqPy.c $(gprof_objs)
+
+$(GPROF_OBJDIR)/%.o: %.c $(HEADERS) | $(GPROF_OBJDIR)
+	$(CC) $(GPROF_FLAGS) -c -o $@ $<
+
+$(GPROF_OBJDIR) : 
+	mkdir $(GPROF_OBJDIR)
+
 clean:
-	rm *~ *.o core *.bak *.tmp
-%.o: %.c $(HEADERS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-sqpy.exe: SqPy.c $(OBJS)
-	$(CC) -o $@ SqPy.c $(OBJS)
-
+	-rm -Rf $(OBJDIR) $(GPROF_OBJDIR) *~ *.o core *.bak *.tmp *.coredump

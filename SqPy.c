@@ -8,7 +8,11 @@
 #include "Display.h"
 #include "Repeat.h"
 #include "Solve.h"
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 void testPyramid() {
@@ -29,7 +33,29 @@ void testPyramid() {
 
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv) {
-   //testPyramid();
+   int i;
+   for (i = 1; argv[i]; ++i) {
+      if (strcmp("-p", argv[i]) == 0) {
+         testPyramid();
+         return 0;
+      }         
+      if (strcmp("-po", argv[i]) == 0) {
+         EPresence pc = 0;
+         if (argv[i + 1]) {
+            pc = PIECE(argv[i + 1][0]);
+         }
+         const char* path = 0;
+         if (argv[i + 1] && argv[i + 2] && isdigit(argv[i + 2][0])) {
+            path = pieces[pc][strtol(argv[i + 2], 0, 10)];
+         }
+         if (argv[i + 1] && argv[i + 2] && argv[i + 2][0] != '-') {
+            path = argv[i + 2];
+         }
+         testPieceOrientations(pc, path);
+         return 0;
+      }         
+   }
+   setPathMaxLength();
    findRepeat();
    solve();
    return 0;

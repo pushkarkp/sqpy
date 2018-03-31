@@ -21,5 +21,6 @@ typedef struct {
    int d[eDimensions];
 } TPosition;
 const char* posToString(char*, const TPosition*);
+#define POS_BUF_SIZE 10
 
 #endif

@@ -5,6 +5,8 @@
  */
 
 #include "Display.h"
+#include "Alloc.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -133,7 +135,7 @@ char* margin(char* pos, int n) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char* display1Line(char* str, int r, EDisplayShape shape, TSquarePyramid sp) {
+char* display1Line(char* str, int r, EDisplayShape shape, const TSquarePyramid sp) {
    char* pos = str;
    pos = margin(pos, layout[shape][r][eLeftMargin]);
 //printf("display1Line pos %d\r\n", pos - str);
@@ -156,12 +158,12 @@ char* display1Line(char* str, int r, EDisplayShape shape, TSquarePyramid sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void display1(EDisplayShape shape, TSquarePyramid sp) {
+void display1(EDisplayShape shape, const TSquarePyramid sp) {
    display1RowRange(shape, 0, rows[shape], sp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void display1RowRange(EDisplayShape shape, int row0, int row1, TSquarePyramid sp) {
+void display1RowRange(EDisplayShape shape, int row0, int row1, const TSquarePyramid sp) {
    char* buf = malloc(columns[shape] + 1);
 //printf("display1 buf size %d\r\n", columns[shape] + 1);
    const int r0 = (row0 > 0) ? row0 : 0;
@@ -174,12 +176,12 @@ void display1RowRange(EDisplayShape shape, int row0, int row1, TSquarePyramid sp
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int displayPage(EDisplayShape shape, int w, int h, int n, TSquarePyramid* sp) {
+int displayPage(EDisplayShape shape, int w, int h, int n, const TSquarePyramid* sp) {
    return displayPageRowRange(shape, w, h, 0, rows[shape], n, sp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int displayPageRowRange(EDisplayShape shape, int w, int h, int row0, int row1, int n, TSquarePyramid* sp) {
+int displayPageRowRange(EDisplayShape shape, int w, int h, int row0, int row1, int n, const TSquarePyramid* sp) {
    char* buf = malloc(columns[shape] + 1);
    const int across = w / columns[shape];
    const int down = h / rows[shape];
@@ -203,18 +205,18 @@ int displayPageRowRange(EDisplayShape shape, int w, int h, int row0, int row1, i
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void displayWide(EDisplayShape shape, int w, PSquarePyramid sp) {
+void displayWide(EDisplayShape shape, int w, const TSquarePyramid sp) {
    displayWideRowRange(shape, w, 0, rows[shape], sp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void displayWideRowRange(EDisplayShape shape, int w, int r0, int r1, TSquarePyramid sp) {
+void displayWideRowRange(EDisplayShape shape, int w, int r0, int r1, const TSquarePyramid sp) {
    static TSquarePyramid store[MAX_STORE];
    static int stored = 0;
    if (sp) {
       spCopy(store[stored++], sp);
    }
-   if (!sp || (stored + 1) > w / columns[shape]) {
+   if (!sp || stored + 1 > w / columns[shape]) {
       displayPageRowRange(shape, w, 1000, r0, r1, stored, store);
       stored = 0;
    }

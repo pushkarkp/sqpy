@@ -14,9 +14,12 @@ const char* rotationToString(ERotation);
 typedef enum {e100Reflection, e010Reflection, 
               e110Reflection, e1T0Reflection, eReflectionPlanes} EReflectionPlane;
 typedef int TSetOfReflectionPlanes;
-const char* sorpToString(char*, TSetOfReflectionPlanes); 
+const char* sorpToString(char*, TSetOfReflectionPlanes);
+#define SORP_BUF_SIZE 16 
+#define ON_AXIS(p) (!((p).d[eZ] & 1) && (p).d[eX] == (p).d[eY] && (p).d[eX] == (p).d[eZ] / 2)
 
 ///////////////////////////////////////////////////////////////////////////////
 TSetOfOrientations rotateSkip(ERotation);
 TSetOfOrientations reflectSkip(TSetOfReflectionPlanes);
+TSetOfReflectionPlanes onPlanes(const TPosition*);
 #endif

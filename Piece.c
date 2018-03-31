@@ -1,10 +1,14 @@
 /**
  * Copyright 2018 Pushkar Piggott
  *
- * Piece.h
+ * Piece.c
  */
 
 #include "Piece.h"
+
+#include <string.h>
+
+int pathMaxLength = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 // a -> (0, +1), b -> (0, +2) ... z -> (0, -1), y -> (0, -2) ...
@@ -13,8 +17,8 @@
 // For the pyramid symmetry optimization to work, paths must be 
 // predominantly positive (prefer aA over zZ).
 const TPiece pieces[ePresences] = {
-   {0}, // eAbsent
-   {"a.a.A.Z", ".z.a.A.Z", 0}, // eGrey
+   {0}, // Absent
+   {"a.a.A.Z", ".z.a.A.Z", 0}, // Grey
    {"aAaA", ".z.AaA", ".Zz.aA", 0}, // Pink Purple
    {"bB", ".z.aB", ".b.B", 0}, // Light Blue
    {"aAb", ".z.Ab", ".Zz.b", ".z.aAa", "bAa", 0}, // Dark Green
@@ -27,3 +31,17 @@ const TPiece pieces[ePresences] = {
    {"bA", ".b.A", ".zZ.a", "Ab", 0}, // Orange
    {"aA", ".a.A", 0} // White
 };
+
+///////////////////////////////////////////////////////////////////////////////
+void setPathMaxLength() {
+   int pc;
+   for (pc = 0; pc < ePresences; ++pc) {
+      int p;
+      for (p = 0; pieces[pc][p]; ++p) {
+         int len = strlen(pieces[pc][p]);
+         if (len > pathMaxLength) {
+            pathMaxLength = len;
+         }
+      }
+   }
+}

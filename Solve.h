@@ -15,4 +15,6 @@
 int solve();
 int walk(EPresence, const char*, EOrientation, TPosition, PSquarePyramid);
 
+void testPieceOrientations(EPresence, const char* path);
+
 #endif

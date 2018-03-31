@@ -111,3 +111,23 @@ TSetOfOrientations reflectSkip(TSetOfReflectionPlanes sorp) {
    }
    return s;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+TSetOfReflectionPlanes onPlanes(const TPosition* p) {
+   TSetOfReflectionPlanes sorp = 0;
+   if (!(p->d[eZ] & 1)) {
+      if (p->d[eX] == p->d[eZ] / 2) {
+         sorp = SET_WITH(sorp, e100Reflection);
+      }
+      if (p->d[eY] == p->d[eZ] / 2) {
+         sorp = SET_WITH(sorp, e010Reflection);
+      }
+   }
+   if (p->d[eX] == p->d[eY]) {
+      sorp = SET_WITH(sorp, e110Reflection);
+   }
+   if (p->d[eX] == p->d[eZ] - p->d[eY]) {
+      sorp = SET_WITH(sorp, e1T0Reflection);
+   }
+   return sorp;
+}

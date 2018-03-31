@@ -10,12 +10,11 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum{eDot, eComma, ePositionStores} EPositionStore;
-typedef struct {
-   TPosition pos[ePositionStores];
-} TPathState;
 
 ///////////////////////////////////////////////////////////////////////////////
-void psInit(TPathState*);
-const char* psRead(TPosition*, const char*, TPathState*);
+#define PS_INIT(ps) \
+   memset((ps), -1, sizeof(TPosition) * ePositionStores)
+
+const char* psRead(TPosition*, const char*, TPosition*);
 
 #endif
