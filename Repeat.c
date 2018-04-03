@@ -28,7 +28,7 @@ void findRepeat() {
          int path = 0;
          for (path = 0; pieces[pc][path]; ++path) {
             EOrientation or;
-            for (or = 0; or < ORIENTATIONS; ++or) {
+            for (or = 0; or < eOrientations; ++or) {
                if (orients[or].plane != plane) {
                   continue;
                }
@@ -49,15 +49,15 @@ void findRepeat() {
 /*char buf2[32];
 printf("%s: %s %s distinct %d eq %d", presenceToString(pc), orToString(buf2, por), pieces[pc][path], distinct, eq);
 if (por->plane) {
-   printf(" repeat %d\r\n", repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]);
+   printf(" repeat %d%s", repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]], EOL);
    displayWide(eCube, PAGE_WIDTH, sps[AS_INDEX(distinct)]);
 } else {
-   printf("\r\n");
+   print(EOL);
    displayWideRowRange(eCube, PAGE_WIDTH, 25, 33, sps[AS_INDEX(distinct)]);
 }
 if (por->plane
  && (eq < 0) == repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]) {
-   printf("!! \r\n");
+   printf("!!%s", EOL);
    display1(eCube, sps[AS_INDEX(distinct)]);
 }*/
                if (eq < 0) {

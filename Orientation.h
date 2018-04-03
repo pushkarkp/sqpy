@@ -29,10 +29,8 @@ typedef struct {
 } TOrient;
 const char* orientToString(char*, const TOrient*);
 #define ORIENT_BUF_SIZE 36
-#define GET_ORIENTATION(plane, align, fwdY, fwdX) ((plane) * e2dDimensions * 2 * eSigns + (align) * 2 * eSigns + (fwdY) * eSigns + (fwdX))
-#define PLANE_ORIENTATIONS 8
-#define ORIENTATIONS (PLANE_ORIENTATIONS * ePlanes)
+#define PLANE_ORIENTATIONS (eOrientations / ePlanes)
 
 ///////////////////////////////////////////////////////////////////////////////
-extern const TOrient orients[ORIENTATIONS];
+extern const TOrient orients[eOrientations];
 #endif

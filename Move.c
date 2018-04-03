@@ -77,7 +77,7 @@ int charToMove(const TMove** pmove, int c, EOrientation or) {
 //printf("count %d sign %d ((sign * count) < 0) ? eMinus : ePlus %s ", count, sign, signToString((sign * count) < 0 ? eMinus : ePlus));
    *pmove = &moves[por->plane][dim][(sign * count) < 0 ? eMinus : ePlus];
 //char buf[16];
-//printf("%s\r\n", moveToString(buf, *pmove));
+//printf("%s%s", moveToString(buf, *pmove), EOL);
    return abs(count);
 }
 

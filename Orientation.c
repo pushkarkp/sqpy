@@ -80,7 +80,7 @@ const char* soorToString(char* buf, TSetOfOrientations soor) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const TOrient orients[ORIENTATIONS] = {
+const TOrient orients[eOrientations] = {
    {e001, eX, {ePlus, ePlus}},
    {e001, eX, {eMinus, ePlus}},
    {e001, eX, {ePlus, eMinus}},

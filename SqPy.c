@@ -1,7 +1,7 @@
 /**
  * Copyright 2018 Pushkar Piggott
  *
- * LonSolve.c
+ * SqPy.c
  */
 
 #include "SquarePyramid.h"
@@ -28,7 +28,7 @@ void testPyramid() {
    display1(eUpright, spCopy(cpy, sps[0]));
    display1(eFolded, sps[0]);
    int left = SPS - displayPage(eFolded, 45, 50, SPS, sps);
-   printf("\r\nleft %d\r\n", left);
+   printf("%sleft %d%s", EOL, left, EOL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,8 +38,20 @@ int main(int argc, char** argv) {
       if (strcmp("-p", argv[i]) == 0) {
          testPyramid();
          return 0;
-      }         
-      if (strcmp("-po", argv[i]) == 0) {
+      }
+      if (strcmp("-f", argv[i]) == 0) {
+         testSpFind();
+         return 0;
+      }
+      if (strcmp("-s", argv[i]) == 0) {
+         EOrientation or = e001XPlusPlus;
+         if (argv[i + 1] && isdigit(argv[i + 1][0])) {
+            or = strtol(argv[i + 1], 0, 10);
+         }
+         testPathSymmetry(or);
+         return 0;
+      }
+      if (strcmp("-o", argv[i]) == 0) {
          EPresence pc = 0;
          if (argv[i + 1]) {
             pc = PIECE(argv[i + 1][0]);
@@ -53,10 +65,10 @@ int main(int argc, char** argv) {
          }
          testPieceOrientations(pc, path);
          return 0;
-      }         
+      }
    }
    setPathMaxLength();
    findRepeat();
-   solve();
+   printf("solutions %d%s", solve(), EOL);
    return 0;
 }

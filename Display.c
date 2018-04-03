@@ -5,7 +5,6 @@
  */
 
 #include "Display.h"
-#include "Alloc.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -138,7 +137,6 @@ char* margin(char* pos, int n) {
 char* display1Line(char* str, int r, EDisplayShape shape, const TSquarePyramid sp) {
    char* pos = str;
    pos = margin(pos, layout[shape][r][eLeftMargin]);
-//printf("display1Line pos %d\r\n", pos - str);
    int i;
    for (i = eSpaceFields; pos + layout[shape][r][eRightMargin] < str + columns[shape]; i += 2) {
       if (i > eSpaceFields) {
@@ -149,11 +147,9 @@ char* display1Line(char* str, int r, EDisplayShape shape, const TSquarePyramid s
       } else {
          pos = spRowToString(pos, layout[shape][r][i], layout[shape][r][i + 1], sp);
       }
-//printf("display1Line pos %d\r\n", pos - str);
    }
    pos = margin(pos, layout[shape][r][eRightMargin]);
    *pos = 0;
-//printf("display1Line pos %d\r\n", pos - str);
    return str;
 }
 
@@ -165,7 +161,7 @@ void display1(EDisplayShape shape, const TSquarePyramid sp) {
 ///////////////////////////////////////////////////////////////////////////////
 void display1RowRange(EDisplayShape shape, int row0, int row1, const TSquarePyramid sp) {
    char* buf = malloc(columns[shape] + 1);
-//printf("display1 buf size %d\r\n", columns[shape] + 1);
+//printf("display1 buf size %d%s", columns[shape] + 1, EOL);
    const int r0 = (row0 > 0) ? row0 : 0;
    const int r1 = (row1 < rows[shape]) ? row1 : rows[shape];
    int r;

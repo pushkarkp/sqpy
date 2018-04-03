@@ -18,12 +18,10 @@ const char* psRead(TPosition* pos, const char* path, TPosition* ps) {
    if (eStore == ePositionStores) {
       return path;
    }
-//printf("psRead c %c pos x %d y %d z %d\r\n", *path, pos->d[eX], pos->d[eY], pos->d[eZ]);
    if (ps[eStore].d[eX] == -1) {
       ps[eStore] = *pos;
    } else {
       *pos = ps[eStore];
    }
-//printf("psRead pos x %d y %d z %d\r\n", pos->d[eX], pos->d[eY], pos->d[eZ]);
    return path + 1;
 }

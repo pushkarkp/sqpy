@@ -6,7 +6,6 @@
 
 #include "Steps.h"
 #include "Piece.h"
-#include "Alloc.h"
 
 #include <string.h>
 #include <stdio.h>

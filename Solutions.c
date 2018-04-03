@@ -8,7 +8,6 @@
 #include "Steps.h"
 #include "Presence.h"
 #include "SetOf.h"
-#include "Alloc.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,6 +28,9 @@ static TSquarePyramid** sps = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 void zeroAllFrom(int i) {
+   if (!keys) {
+      return;
+   }
    for (; i < max_keys; ++i) {
       keys[i] = 0;
       max_sps[i] = 0;
@@ -53,7 +55,7 @@ int findKey(int key) {
 void addKey(int key, int k) {
    if (k == max_keys - 1) {
       max_keys *= GROWTH_FACTOR;
-//printf("addKey(key %d k %d) max_keys %d\r\n", key, k, max_keys);
+//printf("addKey(key %d k %d) max_keys %d%s", key, k, max_keys, EOL);
       keys = (int*)realloc(keys, max_keys * sizeof(int));
       max_sps = (int*)realloc(max_sps, max_keys * sizeof(int));
       sps_count = (int*)realloc(sps_count, max_keys * sizeof(int));
@@ -62,7 +64,7 @@ void addKey(int key, int k) {
       zeroAllFrom(k);
    }
    if (!keys[k]) {
-//printf("addKey(key %d k %d) keys[k] %d\r\n", key, k, keys[k]);
+//printf("addKey(key %d k %d) keys[k] %d%s", key, k, keys[k], EOL);
       keys[k] = key;
       max_sps[k] = INITIAL_SPS;
       sps_count[k] = 0;
@@ -103,7 +105,6 @@ int findSymmetricSp(ERotation* prot, TSetOfReflectionPlanes* psorp, int k, TSqua
 
 ///////////////////////////////////////////////////////////////////////////////
 void solInit() {
-printf("solInit()\r\n");
    max_keys = INITIAL_KEYS;
    if (keys) {
       free(keys);

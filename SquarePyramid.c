@@ -156,7 +156,6 @@ ERotation spEqualRotate(const TSquarePyramid sp1, const TSquarePyramid sp2) {
    }
    if (sp1[MARGIN][MARGIN][MARGIN] == eAbsent
     && sp2[MARGIN][MARGIN][MARGIN] == eAbsent) {
-//printf("spEqualRotate() empty\r\n"); 
       return e90;
    }
    int z;
@@ -167,9 +166,9 @@ ERotation spEqualRotate(const TSquarePyramid sp1, const TSquarePyramid sp2) {
          for (x = 0; x <= z; ++x) {
             if (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
              != sp2[MARGIN + z][MARGIN + (z - y)][MARGIN + (z - x)]) {
-//printf("180(%d, %d, %d) %c != (%d, %d) %c\r\n", 
+//printf("180(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z,           GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
-//   (z - x), (z - y), GLYPH(sp2[MARGIN + z][MARGIN + (z - y)][MARGIN + (z - x)]));
+//   (z - x), (z - y), GLYPH(sp2[MARGIN + z][MARGIN + (z - y)][MARGIN + (z - x)]), EOL);
                return e0;
             }
          }
@@ -184,10 +183,10 @@ ERotation spEqualRotate(const TSquarePyramid sp1, const TSquarePyramid sp2) {
              != sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + y]
              || sp1[MARGIN + z][MARGIN + y][MARGIN + x]
              != sp2[MARGIN + z][MARGIN + x][MARGIN + (z - y)]) {
-//printf("90(%d, %d, %d) %c ?= (%d, %d) %c (%d, %d) %c\r\n", 
+//printf("90(%d, %d, %d) %c ?= (%d, %d) %c (%d, %d) %c%s", 
 //   x, y, z,    GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   y, (z - x), GLYPH(sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + y]),
-//   (z - y), x, GLYPH(sp2[MARGIN + z][MARGIN + x][MARGIN + (z - y)]));
+//   (z - y), x, GLYPH(sp2[MARGIN + z][MARGIN + x][MARGIN + (z - y)]), EOL);
                return e180;
             }
          }
@@ -215,9 +214,9 @@ TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyr
             if (SET_HAS(sorp, e100Reflection)
              && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
               != sp2[MARGIN + z][MARGIN + y][MARGIN + z - x])) {
-//printf("100(%d, %d, %d) %c != (%d, %d) %c\r\n", 
+//printf("100(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z,  GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
-//   z - x, y, GLYPH(sp2[MARGIN + z][MARGIN + y][MARGIN + z - x]));
+//   z - x, y, GLYPH(sp2[MARGIN + z][MARGIN + y][MARGIN + z - x]), EOL);
                sorp = SET_WITHOUT(sorp, e100Reflection);
                if (!sorp) {
                   return 0;
@@ -226,9 +225,9 @@ TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyr
             if (SET_HAS(sorp, e010Reflection)
              && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
               != sp2[MARGIN + z][MARGIN + z - y][MARGIN + x])) {
-//printf("010(%d, %d, %d) %c != (%d, %d) %c\r\n", 
+//printf("010(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z,  GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
-//   x, z - y, GLYPH(sp2[MARGIN + z][MARGIN + z - y][MARGIN + x]));
+//   x, z - y, GLYPH(sp2[MARGIN + z][MARGIN + z - y][MARGIN + x]), EOL);
                sorp = SET_WITHOUT(sorp, e010Reflection);
                if (!sorp) {
                   return 0;
@@ -237,9 +236,9 @@ TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyr
             if (SET_HAS(sorp, e110Reflection)
              && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
               != sp2[MARGIN + z][MARGIN + x][MARGIN + y])) {
-//printf("110(%d, %d, %d) %c != (%d, %d) %c\r\n", 
+//printf("110(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z, GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
-//   y, x,    GLYPH(sp2[MARGIN + z][MARGIN + x][MARGIN + y]));
+//   y, x,    GLYPH(sp2[MARGIN + z][MARGIN + x][MARGIN + y]), EOL);
                sorp = SET_WITHOUT(sorp, e110Reflection);
                if (!sorp) {
                   return 0;
@@ -248,9 +247,9 @@ TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyr
             if (SET_HAS(sorp, e1T0Reflection)
              && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
               != sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + (z - y)])) {
-//printf("1T0(%d, %d, %d) %c != (%d, %d) %c\r\n", 
+//printf("1T0(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z,          GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
-//   (z - y), (z - x), GLYPH(sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + (z - y)]));
+//   (z - y), (z - x), GLYPH(sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + (z - y)]), EOL);
                sorp = SET_WITHOUT(sorp, e1T0Reflection);
                if (!sorp) {
                   return 0;
