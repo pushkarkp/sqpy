@@ -3,3 +3,6 @@
 *~
 *.bak
 *.txt
+txt/
+tmp
+out

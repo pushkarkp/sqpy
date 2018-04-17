@@ -10,27 +10,33 @@
 #include "Symmetry.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-#define HEIGHT 5
 #define MARGIN 1
-#define SP_SIZE (HEIGHT + 2 * MARGIN)
-typedef char TSquarePyramid[SP_SIZE][SP_SIZE][SP_SIZE];
-typedef char (*PSquarePyramid)[SP_SIZE][SP_SIZE];
+typedef char TPlace;
+
+extern int spHeight;
+extern int spX;
+extern int spXY;
+extern int spXYZ;
 
 ///////////////////////////////////////////////////////////////////////////////
-#define SP_GET(pat, sp) \
-   ((sp)[MARGIN + (pat)->d[eZ]][MARGIN + (pat)->d[eY]][MARGIN + (pat)->d[eX]])
-#define SP_SET(sp, c, pat) \
-   ((sp)[MARGIN + (pat)->d[eZ]][MARGIN + (pat)->d[eY]][MARGIN + (pat)->d[eX]] = (c))
+#define SPS(i) ((i) * spXYZ * sizeof(TPlace))
+#define SP_NEW(i) ((TPlace*)malloc(SPS(i)))
+#define SP_EXTEND(i, sps) ((TPlace*)realloc(sps, SPS(i)))
+#define SP_XYZ(x, y, z) (((MARGIN + z) * spXY + (MARGIN + y) * spX + (MARGIN + x)) * sizeof(TPlace))
+#define SP_GET(p, sp) ((sp)[SP_XYZ((p)->d[eX], (p)->d[eY], (p)->d[eZ])])
+#define SP_SET(sp, c, p) ((sp)[SP_XYZ((p)->d[eX], (p)->d[eY], (p)->d[eZ])] = (c))
 
-void spClear(TSquarePyramid);
-void spInit(TSquarePyramid);
-void spEnumerate(TSquarePyramid);
-PSquarePyramid spCopy(TSquarePyramid, const TSquarePyramid);
-int spEqual(const TSquarePyramid, const TSquarePyramid);
-char* spRowToString(char*, int y, int z, const TSquarePyramid);
-char* spWholeRowToString(char*, int, int, const TSquarePyramid);
-void spFind(TPosition*, char, const TSquarePyramid);
-ERotation spEqualRotate(const TSquarePyramid, const TSquarePyramid);
-TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid, const TSquarePyramid);
+void spSetHeight(int);
+int spGetOffset(int x, int y, int z);
+void spClear(TPlace*);
+void spInit(TPlace*);
+void spEnumerate(TPlace*);
+TPlace* spCopy(TPlace*, const TPlace*);
+int spEqual(const TPlace*, const TPlace*);
+char* spRowToString(char*, int y, int z, const TPlace*);
+char* spWholeRowToString(char*, int, int, const TPlace*);
+void spFind(TPosition*, TPlace, const TPlace*);
+ERotation spEqualRotate(const TPlace*, const TPlace*);
+TSetOfReflectionPlanes spEqualReflect(const TPlace*, const TPlace*);
 
 #endif

@@ -24,19 +24,19 @@ static int* keys = 0;
 static int* max_sps = 0;
 static int* sps_count = 0;
 static char*** steps = 0;
-static TSquarePyramid** sps = 0;
+static TPlace*** sps = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
-void zeroAllFrom(int i) {
+void zeroAllFrom(int k) {
    if (!keys) {
       return;
    }
-   for (; i < max_keys; ++i) {
-      keys[i] = 0;
-      max_sps[i] = 0;
-      sps_count[i] = 0;
-      steps[i] = 0;
-      sps[i] = 0;
+   for (; k < max_keys; ++k) {
+      keys[k] = 0;
+      max_sps[k] = 0;
+      sps_count[k] = 0;
+      steps[k] = 0;
+      sps[k] = 0;
    }
 }
 
@@ -60,7 +60,7 @@ void addKey(int key, int k) {
       max_sps = (int*)realloc(max_sps, max_keys * sizeof(int));
       sps_count = (int*)realloc(sps_count, max_keys * sizeof(int));
       steps = (char***)realloc(steps, max_keys * sizeof(char**));
-      sps = (TSquarePyramid**)realloc(sps, max_keys * sizeof(TSquarePyramid*));
+      sps = (TPlace***)realloc(sps, max_keys * sizeof(TPlace**));
       zeroAllFrom(k);
    }
    if (!keys[k]) {
@@ -69,12 +69,12 @@ void addKey(int key, int k) {
       max_sps[k] = INITIAL_SPS;
       sps_count[k] = 0;
       steps[k] = (char**)malloc(max_sps[k] * sizeof(char*));
-      sps[k] = (TSquarePyramid*)malloc(max_sps[k] * SP_SIZE * SP_SIZE * SP_SIZE * sizeof(char));
+      sps[k] = (TPlace**)malloc(max_sps[k] * spXYZ * sizeof(TPlace));
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int findSp(int k, TSquarePyramid sp) {
+int findSp(int k, const TPlace* sp) {
    int i;
    for (i = sps_count[k] - 1; i >= 0; --i) {
       if (spEqual(sp, sps[k][i])) {
@@ -85,7 +85,7 @@ int findSp(int k, TSquarePyramid sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int findSymmetricSp(ERotation* prot, TSetOfReflectionPlanes* psorp, int k, TSquarePyramid sp) {
+int findSymmetricSp(ERotation* prot, TSetOfReflectionPlanes* psorp, int k, const TPlace* sp) {
    int i;
    for (i = sps_count[k] - 1; i >= 0; --i) {
       ERotation rot = spEqualRotate(sp, sps[k][i]);
@@ -107,22 +107,27 @@ int findSymmetricSp(ERotation* prot, TSetOfReflectionPlanes* psorp, int k, TSqua
 void solInit() {
    max_keys = INITIAL_KEYS;
    if (keys) {
-      free(keys);
-      free(max_sps);
-      free(sps_count);
-      int i;
-      for (i = 0; sps[i]; ++i) {
-         free(steps[i]);
-         free(sps[i]);
+      int k;
+      for (k = 0; sps[k]; ++k) {
+         int i;
+         for (i = 0; i < sps_count[k]; ++i) {
+            free(steps[k][i]);
+            free(sps[k][i]);
+         }
+         free(steps[k]);
+         free(sps[k]);
       }
       free(steps);
       free(sps);
+      free(keys);
+      free(max_sps);
+      free(sps_count);
    }
    keys = (int*)malloc(max_keys * sizeof(int));
    max_sps = (int*)malloc(max_keys * sizeof(int));
    sps_count = (int*)malloc(max_keys * sizeof(int));
    steps = (char***)malloc(max_keys * sizeof(char**));
-   sps = (TSquarePyramid**)malloc(max_keys * sizeof(TSquarePyramid*));
+   sps = (TPlace***)malloc(max_keys * sizeof(TPlace**));
    zeroAllFrom(0);
 }
 
@@ -144,7 +149,7 @@ int solGetCount(int key) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-PSquarePyramid solGet(int key, int i) {
+const TPlace* solGet(int key, int i) {
    int k = findKey(key);
    if (!keys[k] || i < 0 || i >= sps_count[k]) {
       return 0;
@@ -153,7 +158,7 @@ PSquarePyramid solGet(int key, int i) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solIsUnique(int key, TSquarePyramid sp) {
+int solIsUnique(int key, const const TPlace* sp) {
    int k = findKey(key);
    if (!keys[k]) {
       return 1;
@@ -168,7 +173,7 @@ int solIsUnique(int key, TSquarePyramid sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int findUniqueSymmetric(int key, const char* spsteps, TSquarePyramid sp) {
+int findUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    int k = findKey(key);
    if (!keys[k]) {
       return k;
@@ -190,12 +195,12 @@ printf("findUniqueSymmetric() symmetric: k %d s %d %s%s", k, s, steps[k][s], EOL
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solIsUniqueSymmetric(int key, const char* spsteps, TSquarePyramid sp) {
+int solIsUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    return findUniqueSymmetric(key, spsteps, sp) != -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solAddUniqueSymmetric(int key, const char* spsteps, TSquarePyramid sp) {
+int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    int k = findUniqueSymmetric(key, spsteps, sp);
    if (k == -1) {
       return 0;
@@ -207,14 +212,15 @@ int solAddUniqueSymmetric(int key, const char* spsteps, TSquarePyramid sp) {
    if (s == max_sps[k]) {
       max_sps[k] *= GROWTH_FACTOR;
       steps[k] = (char**)realloc(steps[k], max_sps[k] * sizeof(char*));
-      sps[k] = (TSquarePyramid*)realloc(sps[k], max_sps[k] * SP_SIZE * SP_SIZE * SP_SIZE * sizeof(char));
+      sps[k] = (TPlace**)realloc(sps[k], max_sps[k] * spXYZ * sizeof(TPlace));
    }
 printf("solAddUniqueSymmetric add: k %d max_keys %d s %d max_sps[k] %d %s%s", 
        k, max_keys, s, max_sps[k], spsteps, EOL);
    steps[k][s] = stepsCopy(spsteps);
+   sps[k][s] = SP_NEW(1);
    spCopy(sps[k][s], sp);
    ++sps_count[k];
-//displayWide(eUpright, PAGE_WIDTH, sp);
+//displayWide(ePyramid, PAGE_WIDTH, sp);
    return 1;
 }
 
@@ -232,6 +238,18 @@ void displayKey(int key, EDisplayShape eShape, int pageWidth) {
 void solDisplay(int key, EDisplayShape eShape, int pageWidth) {
    displayKey(key, eShape, pageWidth);
    displayWide(eShape, pageWidth, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int solCountForCount(int count) {
+   int found = 0;
+   int k;
+   for (k = 0; keys[k]; ++k) {
+      if (setCount(keys[k]) == count) {
+         found += sps_count[k];
+      }
+   }
+   return found;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

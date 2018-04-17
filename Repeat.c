@@ -9,21 +9,23 @@
 #include "Solve.h"
 #include "Display.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-#define SHAPE eUpright
-#define PAGE_WIDTH 80
+#define PAGE_WIDTH 65
 #define AS_INDEX(x) (2 * x + 1)
 
+///////////////////////////////////////////////////////////////////////////////
 char repeat[ePresences][MAX_PATHS][e2dDimensions][eSigns][eSigns] = {0};
 
 ///////////////////////////////////////////////////////////////////////////////
 void findRepeat() {
+   int maxSps = 16;
+   TPlace* sps = SP_NEW(maxSps);
    int pc;
-   for (pc = eGrey; pc < ePresences; ++pc) {
+   for (pc = 0; pc < ePresences; ++pc) {
       EPlane plane;
       for (plane = e001; plane < ePlanes; ++plane) {
-         // use every other sp to allow overflow
-         TSquarePyramid sps[2 * PLANE_ORIENTATIONS * MAX_PATHS + 1];
+         // use every other sp to allow overflow 
          int distinct = 0;
          int path = 0;
          for (path = 0; pieces[pc][path]; ++path) {
@@ -33,16 +35,23 @@ void findRepeat() {
                   continue;
                }
                TPosition pos = {2, 2, 2};
-               spClear(sps[AS_INDEX(distinct)]);
-               spClear(sps[AS_INDEX(distinct) - 1]);
-               spClear(sps[AS_INDEX(distinct) + 1]);
-               SP_SET(sps[AS_INDEX(distinct)], pc, &pos);
-               walk(pc, pieces[pc][path], or, pos, sps[AS_INDEX(distinct)]);
+               while (AS_INDEX(distinct) + 1 >= maxSps) {
+                  maxSps *= 2;
+                  sps = SP_EXTEND(maxSps, sps);
+               }
+               spClear(sps + SPS(AS_INDEX(distinct) - 1));
+               spClear(sps + SPS(AS_INDEX(distinct)));
+               spClear(sps + SPS(AS_INDEX(distinct) + 1));
+               SP_SET(sps + SPS(AS_INDEX(distinct)), pc, &pos);
+               walk(pc, pieces[pc][path], or, pos, sps + spXYZ * AS_INDEX(distinct));
                int eq;
                for (eq = distinct - 1; eq >= 0; --eq) {
-                  if (spEqual(sps[AS_INDEX(distinct)], sps[AS_INDEX(eq)])
-                   && spEqual(sps[AS_INDEX(distinct) - 1], sps[AS_INDEX(eq) - 1])
-                   && spEqual(sps[AS_INDEX(distinct) + 1], sps[AS_INDEX(eq) + 1])) {
+                  if (spEqual(sps + SPS(AS_INDEX(distinct)), 
+                              sps + SPS(AS_INDEX(eq)))
+                   && spEqual(sps + SPS(AS_INDEX(distinct) - 1), 
+                              sps + SPS(AS_INDEX(eq) - 1))
+                   && spEqual(sps + SPS(AS_INDEX(distinct) + 1), 
+                              sps + SPS(AS_INDEX(eq) + 1))) {
                      break;
                   }
                }
@@ -71,4 +80,5 @@ if (por->plane
 //         displayWideRowRange(eCube, PAGE_WIDTH, 25, 33, 0);
       }
    }
+   free(sps);
 }

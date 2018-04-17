@@ -13,81 +13,101 @@
 #include <string.h>
 #include <stdio.h>
 
-#define LO_LIMIT(z) ((z + 1) / 2)
-#define HI_LIMIT(z) ((z + 2) / 2)
+#define ZOFFSET(z) (spXY * (MARGIN + z))
+#define YOFFSET(y) (spX * (MARGIN + y))
+
+int spHeight = 0;
+int spX = 0;
+int spXY = 0;
+int spXYZ = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
-void spClear(TSquarePyramid sp) {
-   memset(sp, 0, SP_SIZE * SP_SIZE * SP_SIZE);
+void spSetHeight(int height) {
+   spHeight = height;
+   spX = spHeight + MARGIN * 2;
+   spXY = spX * spX;
+   spXYZ = spX * spXY;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spInit(TSquarePyramid sp) {
-   memset(sp, -1, SP_SIZE * SP_SIZE * SP_SIZE);
+void spClear(TPlace* sp) {
+   memset(sp, 0, spXYZ);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void spInit(TPlace* sp) {
+   memset(sp, -1, spXYZ);
    int z;
-   for (z = MARGIN; z < MARGIN + HEIGHT; ++z) {
+   for (z = 0; z < spHeight; ++z) {
+      int zoffset = ZOFFSET(z);
       int y;
-      for (y = MARGIN; y <= z; ++y) {
+      for (y = 0; y <= z; ++y) {
+         int yoffset = YOFFSET(y);
          int x;
-         for (x = MARGIN; x <= z; ++x) {
-            sp[z][y][x] = 0;
+         for (x = 0; x <= z; ++x) {
+            sp[zoffset + yoffset + MARGIN + x] = 0;
          }
       }
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spEnumerate(TSquarePyramid sp) {
+void spEnumerate(TPlace* sp) {
    int c = -25;
    int z;
-   for (z = MARGIN; z < MARGIN + HEIGHT; ++z) {
+   for (z = 0; z < spHeight; ++z) {
+      int zoffset = ZOFFSET(z);
       int y;
-      for (y = MARGIN; y <= z; ++y) {
+      for (y = 0; y <= z; ++y) {
+         int yoffset = YOFFSET(y);
          int x;
-         for (x = MARGIN; x <= z; ++x) {
-            sp[z][y][x] = c++;
+         for (x = 0; x <= z; ++x) {
+            sp[zoffset + yoffset + MARGIN + x] = c++;
          }
       }
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-PSquarePyramid spCopy(TSquarePyramid dst, const TSquarePyramid src) {
-   return memcpy(dst, src, SP_SIZE * SP_SIZE * SP_SIZE);
+TPlace* spCopy(TPlace* dst, const TPlace* src) {
+   return memcpy(dst, src, spXYZ);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int spEqual(const TSquarePyramid sp1, const TSquarePyramid sp2) {
-   return 0 == memcmp(sp1, sp2, SP_SIZE * SP_SIZE * SP_SIZE);
+int spEqual(const TPlace* sp1, const TPlace* sp2) {
+   return 0 == memcmp(sp1, sp2, spXYZ);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char* spRowToString(char* str, int y, int z, const TSquarePyramid sp) {
-   y += MARGIN;
-   z += MARGIN;
+char* spRowToString(char* str, int y, int z, const TPlace* sp) {
+   int zoffset = ZOFFSET(z);
+   int yoffset = YOFFSET(y);
+//printf("z %d zoffset %d y %d yoffset %d%s", z, zoffset, y, yoffset, EOL);
    int x;
-   for (x = MARGIN; x <= z; ++x) {
-      *str++ = GLYPH(sp[z][y][x]);
+   for (x = 0; x <= z; ++x) {
+      *str++ = GLYPH(sp[zoffset + yoffset + MARGIN + x]);
    }
    return str;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char* spWholeRowToString(char* str, int y, int z, const TSquarePyramid sp) {
+char* spWholeRowToString(char* str, int y, int z, const TPlace* sp) {
+   int zoffset = ZOFFSET(z - MARGIN);
+   int yoffset = YOFFSET(y - MARGIN);
    int x;
-   for (x = 0; x < SP_SIZE; ++x) {
-      *str++ = GLYPH(sp[z][y][x]);
+   for (x = 0; x < spX; ++x) {
+      *str++ = GLYPH(sp[zoffset + yoffset + x]);
    }
    return str;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spFind(TPosition* pos, char c, const TSquarePyramid sp) {
+void spFind(TPosition* pos, TPlace c, const TPlace* sp) {
    // find the potentially symmetrical central spots first
    int z;
-   for (z = 0; z < HEIGHT; z += 2) {
+   for (z = 0; z < spHeight; z += 2) {
       int z2 = z / 2;
-      if (sp[MARGIN + z][MARGIN + z2][MARGIN + z2] == c) {
+      if (sp[SP_XYZ(z2, z2, z)] == c) {
          pos->d[eX] = z2;
          pos->d[eY] = z2;
          pos->d[eZ] = z;
@@ -95,18 +115,21 @@ void spFind(TPosition* pos, char c, const TSquarePyramid sp) {
       }
    }
    int r;
-   for (r = 0; r < (HEIGHT + 1) / 2; ++r) {
-      for (z = r + 1; z < HEIGHT; ++z) {
+   for (r = 0; r < (spHeight + 1) / 2; ++r) {
+      for (z = r + 1; z < spHeight; ++z) {
          int o = (z - 1) / 2 - r;
          int l = z / 2 + r + 1;
          if (o < 0) {
             continue;
          }
+         int zoffset = ZOFFSET(z);
          int x;
          int y;
+         int yoffset;
          y = o;
+         yoffset = YOFFSET(y);
          for (x = o; x < l; ++x) {
-            if (sp[MARGIN + z][MARGIN + y][MARGIN + x] == c) {
+            if (sp[zoffset + yoffset + MARGIN + x] == c) {
                pos->d[eX] = x;
                pos->d[eY] = y;
                pos->d[eZ] = z;
@@ -114,8 +137,9 @@ void spFind(TPosition* pos, char c, const TSquarePyramid sp) {
             }
          }
          y = l;
+         yoffset = YOFFSET(y);
          for (x = l; x > o; --x) {
-            if (sp[MARGIN + z][MARGIN + y][MARGIN + x] == c) {
+            if (sp[zoffset + yoffset + MARGIN + x] == c) {
                pos->d[eX] = x;
                pos->d[eY] = y;
                pos->d[eZ] = z;
@@ -124,7 +148,7 @@ void spFind(TPosition* pos, char c, const TSquarePyramid sp) {
          }
          x = l;
          for (y = o; y < l; ++y) {
-            if (sp[MARGIN + z][MARGIN + y][MARGIN + x] == c) {
+            if (sp[zoffset + YOFFSET(y) + MARGIN + x] == c) {
                pos->d[eX] = x;
                pos->d[eY] = y;
                pos->d[eZ] = z;
@@ -133,7 +157,7 @@ void spFind(TPosition* pos, char c, const TSquarePyramid sp) {
          }
          x = o;
          for (y = l; y > o; --y) {
-            if (sp[MARGIN + z][MARGIN + y][MARGIN + x] == c) {
+            if (sp[zoffset + YOFFSET(y) + MARGIN + x] == c) {
                pos->d[eX] = x;
                pos->d[eY] = y;
                pos->d[eZ] = z;
@@ -149,23 +173,25 @@ void spFind(TPosition* pos, char c, const TSquarePyramid sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ERotation spEqualRotate(const TSquarePyramid sp1, const TSquarePyramid sp2) {
-   if (sp1[MARGIN][MARGIN][MARGIN]
-    != sp2[MARGIN][MARGIN][MARGIN]) {
+ERotation spEqualRotate(const TPlace* sp1, const TPlace* sp2) {
+   int origin = SP_XYZ(MARGIN, MARGIN, MARGIN);
+   if (sp1[origin] != sp2[origin]) {
       return e0;
    }
-   if (sp1[MARGIN][MARGIN][MARGIN] == eAbsent
-    && sp2[MARGIN][MARGIN][MARGIN] == eAbsent) {
+   if (sp1[origin] == eAbsent && sp2[origin] == eAbsent) {
       return e90;
    }
    int z;
-   for (z = 1; z < HEIGHT; ++z) {
+   for (z = 1; z < spHeight; ++z) {
+      int zoffset = ZOFFSET(z);
       int y;
       for (y = 0; y <= z; ++y) {
+         int yoffset = YOFFSET(y);
+         int zyoffset = YOFFSET(z - y);
          int x;
          for (x = 0; x <= z; ++x) {
-            if (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
-             != sp2[MARGIN + z][MARGIN + (z - y)][MARGIN + (z - x)]) {
+            if (sp1[zoffset + yoffset + MARGIN + x]
+             != sp2[zoffset + zyoffset + MARGIN + (z - x)]) {
 //printf("180(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z,           GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   (z - x), (z - y), GLYPH(sp2[MARGIN + z][MARGIN + (z - y)][MARGIN + (z - x)]), EOL);
@@ -174,15 +200,18 @@ ERotation spEqualRotate(const TSquarePyramid sp1, const TSquarePyramid sp2) {
          }
       }
    }
-   for (z = 1; z < HEIGHT; ++z) {
+   for (z = 1; z < spHeight; ++z) {
+      int zoffset = ZOFFSET(z);
       int y;
       for (y = 0; y <= z; ++y) {
+         int yoffset = YOFFSET(y);
+         int zyoffset = YOFFSET(z - y);
          int x;
          for (x = 0; x <= z; ++x) {
-            if (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
-             != sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + y]
-             || sp1[MARGIN + z][MARGIN + y][MARGIN + x]
-             != sp2[MARGIN + z][MARGIN + x][MARGIN + (z - y)]) {
+            if (sp1[zoffset + yoffset + MARGIN + x]
+             != sp2[zoffset + YOFFSET(z - x) + MARGIN + y]
+             || sp1[zoffset + yoffset + MARGIN + x]
+             != sp2[zoffset + YOFFSET(x) + MARGIN + (z - y)]) {
 //printf("90(%d, %d, %d) %c ?= (%d, %d) %c (%d, %d) %c%s", 
 //   x, y, z,    GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   y, (z - x), GLYPH(sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + y]),
@@ -196,24 +225,27 @@ ERotation spEqualRotate(const TSquarePyramid sp1, const TSquarePyramid sp2) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyramid sp2) {
-   if (sp1[MARGIN][MARGIN][MARGIN]
-    != sp2[MARGIN][MARGIN][MARGIN]) {
+TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
+   int origin = SP_XYZ(MARGIN, MARGIN, MARGIN);
+    if (sp1[origin] != sp2[origin]) {
       return 0;
    }
    TSetOfReflectionPlanes sorp = SET_ALL(eReflectionPlanes);
-   if (sp1[MARGIN][MARGIN][MARGIN] == eAbsent) {
+   if (sp1[origin] == eAbsent && sp2[origin] == eAbsent) {
       return sorp;
    }
    int z;
-   for (z = 1; z < HEIGHT; ++z) {
+   for (z = 1; z < spHeight; ++z) {
+      int zoffset = ZOFFSET(z);
       int y;
       for (y = 0; y <= z; ++y) {
+         int yoffset = YOFFSET(y);
+         int zyoffset = YOFFSET(z - y);
          int x;
          for (x = 0; x <= z; ++x) {
             if (SET_HAS(sorp, e100Reflection)
-             && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
-              != sp2[MARGIN + z][MARGIN + y][MARGIN + z - x])) {
+             && (sp1[zoffset + yoffset + MARGIN + x]
+              != sp2[zoffset + yoffset + MARGIN + z - x])) {
 //printf("100(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z,  GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   z - x, y, GLYPH(sp2[MARGIN + z][MARGIN + y][MARGIN + z - x]), EOL);
@@ -223,8 +255,8 @@ TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyr
                }
             }
             if (SET_HAS(sorp, e010Reflection)
-             && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
-              != sp2[MARGIN + z][MARGIN + z - y][MARGIN + x])) {
+             && (sp1[zoffset + yoffset + MARGIN + x]
+              != sp2[zoffset + zyoffset + MARGIN + x])) {
 //printf("010(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z,  GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   x, z - y, GLYPH(sp2[MARGIN + z][MARGIN + z - y][MARGIN + x]), EOL);
@@ -234,8 +266,8 @@ TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyr
                }
             }
             if (SET_HAS(sorp, e110Reflection)
-             && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
-              != sp2[MARGIN + z][MARGIN + x][MARGIN + y])) {
+             && (sp1[zoffset + yoffset + MARGIN + x]
+              != sp2[zoffset + YOFFSET(x) + MARGIN + y])) {
 //printf("110(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z, GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   y, x,    GLYPH(sp2[MARGIN + z][MARGIN + x][MARGIN + y]), EOL);
@@ -245,8 +277,8 @@ TSetOfReflectionPlanes spEqualReflect(const TSquarePyramid sp1, const TSquarePyr
                }
             }
             if (SET_HAS(sorp, e1T0Reflection)
-             && (sp1[MARGIN + z][MARGIN + y][MARGIN + x]
-              != sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + (z - y)])) {
+             && (sp1[zoffset + yoffset + MARGIN + x]
+              != sp2[zoffset + YOFFSET(z - x) + MARGIN + (z - y)])) {
 //printf("1T0(%d, %d, %d) %c != (%d, %d) %c%s", 
 //   x, y, z,          GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
 //   (z - y), (z - x), GLYPH(sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + (z - y)]), EOL);

@@ -12,8 +12,8 @@
 #include "SquarePyramid.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve();
-int walk(EPresence, const char*, EOrientation, TPosition, PSquarePyramid);
+int solve(int fill, int use);
+int walk(EPresence, const char*, EOrientation, TPosition, TPlace*);
 
 void testSpFind();
 void testPathSymmetry(EOrientation);

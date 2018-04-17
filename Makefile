@@ -28,4 +28,4 @@ $(GPROF_OBJDIR) :
 	mkdir $(GPROF_OBJDIR)
 
 clean:
-	-rm -Rf $(OBJDIR) $(GPROF_OBJDIR) *~ *.o core *.bak *.tmp *.coredump
+	-rm -Rf $(OBJDIR) $(GPROF_OBJDIR) *~ *.o core *.bak *.tmp *.stackdump *.coredump
