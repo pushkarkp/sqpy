@@ -12,7 +12,7 @@
 #include "SquarePyramid.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(int fill, int use);
+int solve(int useOnce);
 int walk(EPresence, const char*, EOrientation, TPosition, TPlace*);
 
 void testSpFind();

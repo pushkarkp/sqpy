@@ -21,8 +21,7 @@
 #define SHAPE ePyramid
 #define PAGE_WIDTH 65
 
-int completeFill = 0;
-int completeUse = 0;
+int useOnce = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 int walk(EPresence pc, const char* path, EOrientation or, TPosition pos, TPlace* sp) {
@@ -107,10 +106,11 @@ int search(EPresence pc, TSetOfPresences used, TPosition* pos, const char* steps
 //            }
             TPosition newpos;
             spFind(&newpos, eAbsent, newsp);
-            if (completeFill && newpos.d[eX] == -1
-             && solAddUniqueSymmetric(newused, newsteps, newsp)) {
-               solutions = 1;
-             } else {
+            if (newpos.d[eX] == -1) {
+               if (solAddUniqueSymmetric(newused, newsteps, newsp)) {
+                  solutions = 1;
+               }
+            } else {
                int next_solutions = 0;
                int togo = 0;
                int fork = 0;
@@ -129,11 +129,10 @@ int search(EPresence pc, TSetOfPresences used, TPosition* pos, const char* steps
                      next_solutions += s;
                   }
                }
-               if (fork || !togo) {
-                  if (solAddUniqueSymmetric(newused, newsteps, newsp)
-                   && !togo && completeUse) {
+               if (fork || (!togo && useOnce)) {
+                  if (solAddUniqueSymmetric(newused, newsteps, newsp)) {
                      next_solutions = 1;
-                   }
+                  }
                }
                solutions += next_solutions;
             }
@@ -230,9 +229,8 @@ void testSpFind() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(int fill, int use) {
-   completeFill = fill;
-   completeUse = use;
+int solve(int once) {
+   useOnce = once;
    int solutions = 0;
    TPlace* sp = SP_NEW(1);
    TPosition pos = {0, 0, 0};

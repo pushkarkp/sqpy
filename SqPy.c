@@ -17,14 +17,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("$ sqpy [-a] [-f] [-[-h <height>] [-p | -f | -s [<orientation>] | -o [<piece>] [<path>]]%s", EOL);
-   printf(" -f                     allow leftover spaces", EOL);
-   printf(" -a                     allow leftover pieces", EOL);
+   printf("$ sqpy [-a] [-[-h <height>] [-p | -f | -s [<orientation>] | -o [<piece>] [<path>]]%s", EOL);
+   printf(" -u                     stop when pieces all used, even if space remains%s", EOL);
    printf(" -h <height>            specify the pyramid height%s", EOL);
    printf(" -p                     show the pyramid%s", EOL);
    printf(" -l                     show the order of path start locations%s", EOL);
    printf(" -s [<orientation>]     show symmetries%s", EOL);
-   printf(" -o  [<piece>] [<path>] show %s", EOL);
+   printf(" -o [<piece>] [<path>]  show %s", EOL);
    printf("                        show the solutions%s", EOL);
    exit(0);
 }
@@ -86,19 +85,14 @@ void testPyramid() {
 
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char** argv) {
-   int fill = 1;
-   int use = 1;
+   int useOnce = 0;
    spSetHeight(5);
    initDisplay();
    int i;
    for (i = 1; argv[i] != NULL && argv[i][0] == '-'; ++i) {
       switch (argv[i][1]) {
-      case 'f': {
-         fill = 0;
-         break;
-      }
-      case 'a': {
-         use = 0;
+      case 'u': {
+         useOnce = 1;
          break;
       }
       case 'h': {
@@ -156,6 +150,6 @@ int main(int argc, char** argv) {
    }
    setPathMaxLength();
    findRepeat();
-   printf("solutions %d%s", solve(fill, use), EOL);
+   printf("solutions %d%s", solve(useOnce), EOL);
    return 0;
 }
