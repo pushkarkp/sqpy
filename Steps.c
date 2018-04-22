@@ -26,7 +26,7 @@ char* stepToString(EPresence pc, const TPosition* pos, int path, EOrientation or
    char* step = (char*)malloc(STEP_SIZE + pathMaxLength);
    sprintf(step, 
            "%c%1d%1d%1d%s%02d", 
-           GLYPH(pc), pos->d[eX], pos->d[eY], pos->d[eZ], pieces[pc][path], or);
+           GLYPH(pc), pos[eX], pos[eY], pos[eZ], pieces[pc][path], or);
    return step;
 }
 

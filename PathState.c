@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* psRead(TPosition* pos, const char* path, TPosition* ps) {
+const char* psRead(TPosition* pos, const char* path, TPosition ps[][eDimensions]) {
    EPositionStore eStore = ePositionStores;
    switch (*path) {
       case '.': eStore = eDot; break;
@@ -18,10 +18,10 @@ const char* psRead(TPosition* pos, const char* path, TPosition* ps) {
    if (eStore == ePositionStores) {
       return path;
    }
-   if (ps[eStore].d[eX] == -1) {
-      ps[eStore] = *pos;
+   if (ps[eStore][eX] == -1) {
+      POS_COPY(ps[eStore], pos);
    } else {
-      *pos = ps[eStore];
+      POS_COPY(pos, ps[eStore]);
    }
    return path + 1;
 }

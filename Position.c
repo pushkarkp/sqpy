@@ -39,7 +39,6 @@ const char* signToString(ESign s) {
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* posToString(char* buf, const TPosition* p) {
-   sprintf(buf, "(%d,%d,%d)", 
-           p->d[eX], p->d[eY], p->d[eZ]);
+   sprintf(buf, "(%d,%d,%d)", p[eX], p[eY], p[eZ]);
    return buf;
 }

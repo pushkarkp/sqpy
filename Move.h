@@ -10,16 +10,11 @@
 #include "Orientation.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-typedef struct {
-   int d[eDimensions];
-} TMove;
+typedef int TMove;
 const char* moveToString(char*, const TMove*);
-typedef TMove TMoves[ePlanes][e2dDimensions][eSigns];
 
 ///////////////////////////////////////////////////////////////////////////////
-extern const TMoves moves;
-
-///////////////////////////////////////////////////////////////////////////////
+#define MOVE_BUF_SIZE 16
 int charToMove(const TMove**, int, EOrientation);
 void step(TPosition*, const TMove*);
 

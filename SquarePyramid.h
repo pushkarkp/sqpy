@@ -23,8 +23,8 @@ extern int spXYZ;
 #define SP_NEW(i) ((TPlace*)malloc(SPS(i)))
 #define SP_EXTEND(i, sps) ((TPlace*)realloc(sps, SPS(i)))
 #define SP_XYZ(x, y, z) (((MARGIN + z) * spXY + (MARGIN + y) * spX + (MARGIN + x)) * sizeof(TPlace))
-#define SP_GET(p, sp) ((sp)[SP_XYZ((p)->d[eX], (p)->d[eY], (p)->d[eZ])])
-#define SP_SET(sp, c, p) ((sp)[SP_XYZ((p)->d[eX], (p)->d[eY], (p)->d[eZ])] = (c))
+#define SP_GET(p, sp) ((sp)[SP_XYZ((p)[eX], (p)[eY], (p)[eZ])])
+#define SP_SET(sp, c, p) ((sp)[SP_XYZ((p)[eX], (p)[eY], (p)[eZ])] = (c))
 
 void spSetHeight(int);
 int spGetOffset(int x, int y, int z);

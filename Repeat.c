@@ -34,7 +34,7 @@ void findRepeat() {
                if (orients[or].plane != plane) {
                   continue;
                }
-               TPosition pos = {2, 2, 2};
+               TPosition pos[eDimensions] = {2, 2, 2};
                while (AS_INDEX(distinct) + 1 >= maxSps) {
                   maxSps *= 2;
                   sps = SP_EXTEND(maxSps, sps);
@@ -42,7 +42,7 @@ void findRepeat() {
                spClear(sps + SPS(AS_INDEX(distinct) - 1));
                spClear(sps + SPS(AS_INDEX(distinct)));
                spClear(sps + SPS(AS_INDEX(distinct) + 1));
-               SP_SET(sps + SPS(AS_INDEX(distinct)), pc, &pos);
+               SP_SET(sps + SPS(AS_INDEX(distinct)), pc, pos);
                walk(pc, pieces[pc][path], or, pos, sps + spXYZ * AS_INDEX(distinct));
                int eq;
                for (eq = distinct - 1; eq >= 0; --eq) {

@@ -12,9 +12,9 @@
 typedef enum{eDot, eComma, ePositionStores} EPositionStore;
 
 ///////////////////////////////////////////////////////////////////////////////
-#define PS_INIT(ps) \
-   memset((ps), -1, sizeof(TPosition) * ePositionStores)
+#define PS_INIT(ps) memset((ps), -1, sizeof(TPosition) * eDimensions * ePositionStores)
 
-const char* psRead(TPosition*, const char*, TPosition*);
+///////////////////////////////////////////////////////////////////////////////
+const char* psRead(TPosition*, const char*, TPosition[][eDimensions]);
 
 #endif

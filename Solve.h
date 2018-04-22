@@ -13,7 +13,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 int solve(int useOnce);
-int walk(EPresence, const char*, EOrientation, TPosition, TPlace*);
+int walk(EPresence, const char*, EOrientation, const TPosition*, TPlace*);
 
 void testSpFind();
 void testPathSymmetry(EOrientation);

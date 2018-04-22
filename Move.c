@@ -5,12 +5,13 @@
  */
 
 #include "Move.h"
+#include "Display.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-const TMoves moves = { // Planes
+const TMove moves[ePlanes][e2dDimensions][eSigns][eDimensions] = { // Planes
    { // e001 Dimensions
       { // eX Signs
          {1, 0, 0},
@@ -45,8 +46,7 @@ const TMoves moves = { // Planes
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* moveToString(char* buf, const TMove* m) {
-   sprintf(buf, "(%d, %d, %d)", 
-           m->d[eX], m->d[eY], m->d[eZ]);
+   sprintf(buf, "(%d, %d, %d)",  m[eX], m[eY], m[eZ]);
    return buf;
 }
 
@@ -74,10 +74,10 @@ int charToMove(const TMove** pmove, int c, EOrientation or) {
    int count = c - ((c < 'n') ? BELOW : ABOVE);
    // minus reverses sign
    int sign = SIGN_AS_INT(por->fwd[dim]);
-//printf("count %d sign %d ((sign * count) < 0) ? eMinus : ePlus %s ", count, sign, signToString((sign * count) < 0 ? eMinus : ePlus));
-   *pmove = &moves[por->plane][dim][(sign * count) < 0 ? eMinus : ePlus];
-//char buf[16];
-//printf("%s%s", moveToString(buf, *pmove), EOL);
+   *pmove = moves[por->plane][dim][(sign * count) < 0 ? eMinus : ePlus];
+//char buf[MOVE_BUF_SIZE];
+//printf("count %d sign %d (sign * count) ? %s %s%s", 
+//       count, sign, signToString((sign * count) < 0 ? eMinus : ePlus), moveToString(buf, *pmove), EOL);
    return abs(count);
 }
 
@@ -85,6 +85,6 @@ int charToMove(const TMove** pmove, int c, EOrientation or) {
 void step(TPosition* p, const TMove* m) {
    int i;
    for (i = 0; i < eDimensions; ++i) {
-      p->d[i] += m->d[i];
+      p[i] += m[i];
    }
 }

@@ -108,9 +108,9 @@ void spFind(TPosition* pos, TPlace c, const TPlace* sp) {
    for (z = 0; z < spHeight; z += 2) {
       int z2 = z / 2;
       if (sp[SP_XYZ(z2, z2, z)] == c) {
-         pos->d[eX] = z2;
-         pos->d[eY] = z2;
-         pos->d[eZ] = z;
+         pos[eX] = z2;
+         pos[eY] = z2;
+         pos[eZ] = z;
          return;
       }
    }
@@ -130,9 +130,9 @@ void spFind(TPosition* pos, TPlace c, const TPlace* sp) {
          yoffset = YOFFSET(y);
          for (x = o; x < l; ++x) {
             if (sp[zoffset + yoffset + MARGIN + x] == c) {
-               pos->d[eX] = x;
-               pos->d[eY] = y;
-               pos->d[eZ] = z;
+               pos[eX] = x;
+               pos[eY] = y;
+               pos[eZ] = z;
                return;
             }
          }
@@ -140,35 +140,35 @@ void spFind(TPosition* pos, TPlace c, const TPlace* sp) {
          yoffset = YOFFSET(y);
          for (x = l; x > o; --x) {
             if (sp[zoffset + yoffset + MARGIN + x] == c) {
-               pos->d[eX] = x;
-               pos->d[eY] = y;
-               pos->d[eZ] = z;
+               pos[eX] = x;
+               pos[eY] = y;
+               pos[eZ] = z;
                return;
             }
          }
          x = l;
          for (y = o; y < l; ++y) {
             if (sp[zoffset + YOFFSET(y) + MARGIN + x] == c) {
-               pos->d[eX] = x;
-               pos->d[eY] = y;
-               pos->d[eZ] = z;
+               pos[eX] = x;
+               pos[eY] = y;
+               pos[eZ] = z;
                return;
             }
          }
          x = o;
          for (y = l; y > o; --y) {
             if (sp[zoffset + YOFFSET(y) + MARGIN + x] == c) {
-               pos->d[eX] = x;
-               pos->d[eY] = y;
-               pos->d[eZ] = z;
+               pos[eX] = x;
+               pos[eY] = y;
+               pos[eZ] = z;
                return;
             }
          }
       }
    }
-   pos->d[eX] = -1;
-   pos->d[eY] = -1;
-   pos->d[eZ] = -1;
+   pos[eX] = -1;
+   pos[eY] = -1;
+   pos[eZ] = -1;
    return;
 }
 

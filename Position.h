@@ -15,11 +15,11 @@ const char* dimToString(EDimension);
 typedef enum {ePlus, eMinus, eSigns} ESign;
 const char* signToString(ESign);
 #define SIGN_AS_INT(eSign) (-((eSign) * 2 - 1))
+struct TPosSpace { int x; int y; int z; };
+#define POS_COPY(d, s) { *(struct TPosSpace*)(d) = *(struct TPosSpace*)(s); }
 
 ///////////////////////////////////////////////////////////////////////////////
-typedef struct {
-   int d[eDimensions];
-} TPosition;
+typedef int TPosition;
 const char* posToString(char*, const TPosition*);
 #define POS_BUF_SIZE 10
 
