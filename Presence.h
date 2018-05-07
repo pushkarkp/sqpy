@@ -7,19 +7,13 @@
 #define PresenceH
 
 ///////////////////////////////////////////////////////////////////////////////
-typedef enum {
-   eMargin = -1,
-   eAbsent, 
-   eGrey, ePinkPurple, eLightBlue, eDarkGreen, eYellow, eDarkBlue, 
-   eRed, ePink, eBluePurple, eLightGreen, eOrange, eWhite,
-   ePresences} EPresence;
-const char* presToString(EPresence);
+typedef enum { eMargin = -1, eAbsent, eFirstPiece } EPresence;
 #define PIECE(c) (c - '`')
 #define GLYPH(i) (i + '`')
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef int TSetOfPresences;
 const char* sopToString(char* buf, TSetOfPresences);
-#define SOP_BUF_SIZE (ePresences + 1)
+#define SOP_BUF_SIZE (pieceCount + 1)
 
 #endif

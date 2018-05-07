@@ -6,28 +6,38 @@
 
 #include "Repeat.h"
 #include "Orientation.h"
-#include "Solve.h"
-#include "Display.h"
+#include "Piece.h"
+//#include "Display.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define PAGE_WIDTH 65
 #define AS_INDEX(x) (2 * x + 1)
 
 ///////////////////////////////////////////////////////////////////////////////
-char repeat[ePresences][MAX_PATHS][e2dDimensions][eSigns][eSigns] = {0};
+TPathRepeat** repeat = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 void findRepeat() {
+   repeat = (TPathRepeat**)malloc(pieceCount * sizeof(TPathRepeat*));
+   repeat[0] = 0;
+   int pc;
+   for (int pc = 1; pc < pieceCount; ++pc) {
+      int paths;
+      for (paths = 0; pieces[pc][paths]; ++paths) {}
+      repeat[pc] = (TPathRepeat*)malloc(paths * sizeof(TPathRepeat));
+      memset(*repeat[pc], 0, paths * sizeof(TPathRepeat));
+   }
    int maxSps = 16;
    TPlace* sps = SP_NEW(maxSps);
-   int pc;
-   for (pc = 0; pc < ePresences; ++pc) {
+   for (pc = 0; pc < pieceCount; ++pc) {
       EPlane plane;
       for (plane = e001; plane < ePlanes; ++plane) {
          // use every other sp to allow overflow 
          int distinct = 0;
-         int path = 0;
+         int path;
          for (path = 0; pieces[pc][path]; ++path) {
             EOrientation or;
             for (or = 0; or < eOrientations; ++or) {

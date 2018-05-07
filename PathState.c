@@ -5,11 +5,12 @@
  */
 
 #include "PathState.h"
+
 #include <string.h>
 #include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* psRead(TPosition* pos, const char* path, TPosition ps[][eDimensions]) {
+TPath psRead(TPosition* pos, TPath path, TPosition ps[][eDimensions]) {
    EPositionStore eStore = ePositionStores;
    switch (*path) {
       case '.': eStore = eDot; break;

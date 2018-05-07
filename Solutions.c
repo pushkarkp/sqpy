@@ -5,8 +5,8 @@
  */
 
 #include "Solutions.h"
+#include "Piece.h"
 #include "Steps.h"
-#include "Presence.h"
 #include "SetOf.h"
 
 #include <stdlib.h>

@@ -6,14 +6,11 @@
 #ifndef SolveH
 #define SolveH
 
-#include "Piece.h"
-#include "Position.h"
 #include "Orientation.h"
-#include "SquarePyramid.h"
+#include "Presence.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(int useOnce);
-int walk(EPresence, const char*, EOrientation, const TPosition*, TPlace*);
+int solve(int pc, int useOnce);
 
 void testSpFind();
 void testPathSymmetry(EOrientation);

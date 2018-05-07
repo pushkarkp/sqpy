@@ -14,16 +14,16 @@
 #define STEP_SIZE 7
 
 ///////////////////////////////////////////////////////////////////////////////
-// returns size in multiples of (STEP_SIZE + pathMaxLength)
+// returns size in multiples of (STEP_SIZE + maxPathLength)
 int getUnitSize(int len) {
-   int f = len / (STEP_SIZE + pathMaxLength) 
-         + (len % (STEP_SIZE + pathMaxLength) ? 1 : 0);
-   return f * (STEP_SIZE + pathMaxLength);
+   int f = len / (STEP_SIZE + maxPathLength) 
+         + (len % (STEP_SIZE + maxPathLength) ? 1 : 0);
+   return f * (STEP_SIZE + maxPathLength);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 char* stepToString(EPresence pc, const TPosition* pos, int path, EOrientation or) {
-   char* step = (char*)malloc(STEP_SIZE + pathMaxLength);
+   char* step = (char*)malloc(STEP_SIZE + maxPathLength);
    sprintf(step, 
            "%c%1d%1d%1d%s%02d", 
            GLYPH(pc), pos[eX], pos[eY], pos[eZ], pieces[pc][path], or);

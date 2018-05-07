@@ -7,12 +7,23 @@
 #define PieceH
 
 #include "Presence.h"
+#include "SquarePyramid.h"
+#include "Position.h"
+#include "Orientation.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-#define MAX_PATHS 5
-typedef const char* TPiece[MAX_PATHS + 1];
-extern const TPiece pieces[ePresences];
-extern int pathMaxLength;
-void setPathMaxLength();
+typedef const char* TPath;
+typedef const char** TPiece;
+extern const TPiece* pieces;
+extern int pieceCount;
+extern int maxPathLength;
+extern int* pieceMaxInstances;
 
+///////////////////////////////////////////////////////////////////////////////
+char* getPiece(int, const char**);
+char* readPieces(const char*);
+
+int walk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
+int* dupPieceInstanceCounts(int*);
+int sumPieceInstanceCounts(int*);
 #endif

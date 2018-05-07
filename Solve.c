@@ -8,9 +8,8 @@
 #include "Solutions.h"
 #include "Steps.h"
 #include "Repeat.h"
-#include "PathState.h"
-#include "Orientation.h"
-#include "Move.h"
+#include "Piece.h"
+#include "Position.h"
 #include "SetOf.h"
 #include "Display.h"
 
@@ -22,29 +21,6 @@
 #define PAGE_WIDTH 65
 
 int useOnce = 0;
-
-///////////////////////////////////////////////////////////////////////////////
-int walk(EPresence pc, const char* path, EOrientation or, const TPosition* p, TPlace* sp) {
-   TPosition ps[ePositionStores][eDimensions] = {{-1, -1, -1}, {-1, -1, -1}};
-   TPosition pos[eDimensions];
-   POS_COPY(pos, p);
-   for (; *path; ++path) {
-      path = psRead(pos, path, ps);
-      const TMove* pmove;
-      int count = charToMove(&pmove, *path, or);
-      int i;
-      for (i = 0; i < count; ++i) {
-         step(pos, pmove);
-         if (SP_GET(pos, sp) != eAbsent) {
-            return 0;
-         }
-         if (pc != eAbsent) {
-            SP_SET(sp, pc, pos);
-         }
-      }
-   }
-   return 1;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 TSetOfOrientations getSkip(const TPosition* p, TPlace* sp) {
@@ -77,7 +53,7 @@ TSetOfOrientations getSkip(const TPosition* p, TPlace* sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int search(EPresence pc, TSetOfPresences used, const TPosition* pos, const char* steps, TPlace* sp, TSetOfOrientations skip) {
+int search(EPresence pc, int* used, const TPosition* pos, const char* steps, TPlace* sp, TSetOfOrientations skip) {
    int solutions = 0;
    TPlace* newsp = SP_NEW(1);
    int path;
@@ -86,7 +62,7 @@ int search(EPresence pc, TSetOfPresences used, const TPosition* pos, const char*
       for (or = 0; or < eOrientations; ++or) {
          if (skip) {
 //char* step = stepToString(pc, pos, path, or);
-//printf("%s: %s %s %s %s%s", steps, step, presToString(pc), (SET_HAS(skip, or) ? "skip" : "chek"), orToString(or), EOL);
+//printf("%s: %s %c %s %s%s", steps, step, GLYPH(pc), (SET_HAS(skip, or) ? "skip" : "chek"), orToString(or), EOL);
 //free(step);
             if (SET_HAS(skip, or)) {
                continue;
@@ -98,17 +74,20 @@ int search(EPresence pc, TSetOfPresences used, const TPosition* pos, const char*
             spCopy(newsp, sp);
             SP_SET(newsp, pc, pos);
             walk(pc, pieces[pc][path], or, pos, newsp);
-            TSetOfPresences newused = SET_WITH(used, pc);
+            int* newused = dupPieceInstanceCounts(used);
+            ++newused[pc];
             char* newsteps = catStep(steps, stepToString(pc, pos, path, or));
-//            if (!solIsUniqueSymmetric(newused, newsteps, newsp)) {
+            if (!solIsUniqueSymmetric(sumPieceInstanceCounts(newused), newsteps, newsp)) {
 //               displayWide(ePyramid, PAGE_WIDTH, 0);
 //               display1(ePyramid, newsp);
-//               continue;
-//            }
+               continue;
+            }
+            displayWide(ePyramid, PAGE_WIDTH, 0);
+            display1(ePyramid, newsp);
             TPosition newpos[eDimensions];
             spFind(newpos, eAbsent, newsp);
             if (newpos[eX] == -1) {
-               if (solAddUniqueSymmetric(newused, newsteps, newsp)) {
+               if (solAddUniqueSymmetric(sumPieceInstanceCounts(newused), newsteps, newsp)) {
                   solutions = 1;
                }
             } else {
@@ -120,8 +99,8 @@ int search(EPresence pc, TSetOfPresences used, const TPosition* pos, const char*
                   newskip = getSkip(newpos, newsp);
                }
                EPresence next;
-               for (next = eGrey; next < ePresences; ++next) {
-                  if (!SET_HAS(newused, next)) {
+               for (next = eFirstPiece; next < pieceCount; ++next) {
+                  if (newused[next] < pieceMaxInstances[next]) {
                      ++togo;
                      int s = search(next, newused, newpos, newsteps, newsp, newskip);
                      if (s && next_solutions) {
@@ -131,12 +110,13 @@ int search(EPresence pc, TSetOfPresences used, const TPosition* pos, const char*
                   }
                }
                if (fork || (!togo && useOnce)) {
-                  if (solAddUniqueSymmetric(newused, newsteps, newsp)) {
-                     next_solutions = 1;
+                  if (solAddUniqueSymmetric(sumPieceInstanceCounts(newused), newsteps, newsp)) {
+                     next_solutions = !fork;
                   }
                }
                solutions += next_solutions;
             }
+            free(newused);
             free(newsteps);
          }
       }
@@ -147,10 +127,7 @@ int search(EPresence pc, TSetOfPresences used, const TPosition* pos, const char*
 
 ///////////////////////////////////////////////////////////////////////////////
 void testPieceOrientations(EPresence pc, const char* path) {
-   if (!pc || pc >= ePresences) {
-      pc = eOrange;
-   }
-   printf("%c %s %s%s", GLYPH(pc), presToString(pc), path, EOL);
+   printf("%c %s%s", GLYPH(pc), path, EOL);
    printf("Orientation    Symmetry%s", EOL);
    TPlace* sp = SP_NEW(1);
    TPosition pos[eDimensions] = {2, 2, 2};
@@ -191,7 +168,7 @@ void testPathSymmetry(EOrientation or) {
    TPosition mid[eDimensions] = {2, 2, 4};
    TPosition *pos = (or < 8) ? mid : top;
    int pc;
-   for (pc = eGrey; pc < ePresences; ++pc) {
+   for (pc = eFirstPiece; pc < pieceCount; ++pc) {
       int path;
       for (path = 0; pieces[pc][path]; ++path) {
          spInit(sp);
@@ -199,8 +176,8 @@ void testPathSymmetry(EOrientation or) {
             SP_SET(sp, pc, pos);
             walk(pc, pieces[pc][path], or, pos, sp);
             char buf[16];
-            printf("%s %s rotation %s reflection %s%s", 
-                   presToString(pc), pieces[pc][path], 
+            printf("%c %s rotation %s reflection %s%s", 
+                   GLYPH(pc), pieces[pc][path], 
                    rotationToString(spEqualRotate(sp, sp)), 
                    sorpToString(buf, spEqualReflect(sp, sp)),
                    EOL);
@@ -230,23 +207,27 @@ void testSpFind() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(int once) {
+int solve(int pc, int once) {
    useOnce = once;
    int solutions = 0;
    TPlace* sp = SP_NEW(1);
    TPosition pos[eDimensions] = {0, 0, 0};
-   int pc = eLightBlue;
-   for (pc = eGrey; pc < ePresences; ++pc) {
-      printf("%s (%c)%s",  presToString(pc), GLYPH(pc), EOL);
+   int end = pc + 1;
+   if (pc == eAbsent) {
+      pc = eFirstPiece;
+      end = pieceCount;
+   }
+   for (; pc < end; ++pc) {
+      printf("%c%s",  GLYPH(pc), EOL);
       solInit();
       TSetOfPresences used = 0;
       spInit(sp);
-      int sol = search(pc, used, pos, "", sp, getSkip(pos, sp));
+      int sol = search(pc, pieceMaxInstances, pos, "", sp, getSkip(pos, sp));
       solutions += sol;
       displayWide(SHAPE, PAGE_WIDTH, 0);
-      printf("%s sol %d%s",  presToString(pc), sol, EOL);
+      printf("%c sol %d%s",  GLYPH(pc), sol, EOL);
       int i;
-      for (i = 1; i < ePresences; ++i) {
+      for (i = 1; i < pieceCount; ++i) {
          int count = solCountForCount(i);
          if (count > 0) {
             printf("%d pieces: %d%s", i, count, EOL);
