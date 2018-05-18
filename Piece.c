@@ -17,12 +17,14 @@
 static const char const* ERROR_NO_PATH = "no path";
 static const char const* ERROR_BAD_CHAR = "bad character '%c' in path \"%s\"";
 
+TPath testPath = ".a.A";
+
 static int maxPieces = 0;
 int maxPathCount = 0;
 
 int maxPathLength = 0;
 const TPiece* pieces = 0;
-int pieceCount = 0;
+int pieceCount = 1;
 int* pieceMaxInstances = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,8 +37,8 @@ int* dupPieceInstanceCounts(int* instances) {
 int sumPieceInstanceCounts(int* instances) {
    int sum = 0;
    int pc;
-   for (pc = eFirstPiece; pc > pieceCount; ++pc) {
-         sum += instances[pc];
+   for (pc = eFirstPiece; pc < pieceCount; ++pc) {
+      sum += instances[pc];
    }
    return sum;
 }
@@ -47,12 +49,11 @@ TPiece addPiece(int pathCount, int times) {
       maxPieces = maxPieces ? maxPieces * 2 : 4;
       pieces = (const TPiece*)realloc((TPiece*)pieces, maxPieces * sizeof(TPiece));
       pieceMaxInstances = (int*)realloc(pieceMaxInstances, maxPieces * sizeof(int));
-      if (pieceCount == 0) {
+      if (pieceCount == 1) {
          // eAbsent
-         ((TPiece*)pieces)[pieceCount] = (const TPiece)malloc(sizeof(TPiece));
-         ((TPiece*)pieces)[pieceCount][0] = 0;
-         pieceMaxInstances[pieceCount] = 0;
-         pieceCount = 1;
+         ((TPiece*)pieces)[0] = (const TPiece)malloc(sizeof(TPiece));
+         ((TPiece*)pieces)[0][0] = 0;
+         pieceMaxInstances[0] = 0;
       }
    }
    if (pathCount > maxPathCount) {

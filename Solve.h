@@ -7,13 +7,11 @@
 #define SolveH
 
 #include "Orientation.h"
-#include "Presence.h"
+#include "Piece.h"
+#include "Topics.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(int pc, int useOnce);
-
-void testSpFind();
-void testPathSymmetry(EOrientation);
-void testPieceOrientations(EPresence, const char* path);
+int solve(EPresence pc, int useOnce, TSetOfTopics);
+void testOrientations(EPresence, TPath, TSetOfOrientations);
 
 #endif

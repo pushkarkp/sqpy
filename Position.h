@@ -21,6 +21,7 @@ struct TPosSpace { int x; int y; int z; };
 ///////////////////////////////////////////////////////////////////////////////
 typedef int TPosition;
 const char* posToString(char*, const TPosition*);
-#define POS_BUF_SIZE 10
+// "(nn,nn,nn)0"
+#define POS_BUF_SIZE 11
 
 #endif

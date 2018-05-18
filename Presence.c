@@ -11,10 +11,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 const char* sopToString(char* buf, TSetOfPresences sop) {
    char* p = buf;
-   int i;
-   for (i = 0; i < pieceCount; ++i) {
-      if (SET_HAS(sop, i)) {
-         *p++ = GLYPH(i);
+   int pc;
+   for (pc = eFirstPiece; pc < pieceCount; ++pc) {
+      if (SET_HAS(sop, pc)) {
+         *p++ = GLYPH(pc);
       }
    }
    *p = 0;

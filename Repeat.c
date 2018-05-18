@@ -7,32 +7,29 @@
 #include "Repeat.h"
 #include "Orientation.h"
 #include "Piece.h"
-//#include "Display.h"
+#include "Display.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define PAGE_WIDTH 65
 #define AS_INDEX(x) (2 * x + 1)
 
 ///////////////////////////////////////////////////////////////////////////////
 TPathRepeat** repeat = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
-void findRepeat() {
+void findRepeat(int displayRepeat) {
    repeat = (TPathRepeat**)malloc(pieceCount * sizeof(TPathRepeat*));
    repeat[0] = 0;
+   int maxSps = 16;
+   TPlace* sps = SP_NEW(maxSps);
    int pc;
-   for (int pc = 1; pc < pieceCount; ++pc) {
+   for (pc = eFirstPiece; pc < pieceCount; ++pc) {
       int paths;
       for (paths = 0; pieces[pc][paths]; ++paths) {}
       repeat[pc] = (TPathRepeat*)malloc(paths * sizeof(TPathRepeat));
       memset(*repeat[pc], 0, paths * sizeof(TPathRepeat));
-   }
-   int maxSps = 16;
-   TPlace* sps = SP_NEW(maxSps);
-   for (pc = 0; pc < pieceCount; ++pc) {
       EPlane plane;
       for (plane = e001; plane < ePlanes; ++plane) {
          // use every other sp to allow overflow 
@@ -44,7 +41,7 @@ void findRepeat() {
                if (orients[or].plane != plane) {
                   continue;
                }
-               TPosition pos[eDimensions] = {2, 2, 2};
+               TPosition pos[eDimensions] = {spHeight / 2, spHeight / 2, spHeight / 2};
                while (AS_INDEX(distinct) + 1 >= maxSps) {
                   maxSps *= 2;
                   sps = SP_EXTEND(maxSps, sps);
@@ -65,20 +62,14 @@ void findRepeat() {
                      break;
                   }
                }
-/*char buf2[32];
-printf("%s: %s %s distinct %d eq %d", presenceToString(pc), orToString(buf2, por), pieces[pc][path], distinct, eq);
-if (por->plane) {
-   printf(" repeat %d%s", repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]], EOL);
-   displayWide(eCube, PAGE_WIDTH, sps[AS_INDEX(distinct)]);
-} else {
-   print(EOL);
-   displayWideRowRange(eCube, PAGE_WIDTH, 25, 33, sps[AS_INDEX(distinct)]);
-}
-if (por->plane
- && (eq < 0) == repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]) {
-   printf("!!%s", EOL);
-   display1(eCube, sps[AS_INDEX(distinct)]);
-}*/
+               if (displayRepeat) {
+                  if (eq == -1) {
+                     printf("%c %s %s: %d%s", GLYPH(pc), pieces[pc][path], orToString(or), distinct, EOL);
+                  } else {
+                     printf("(%c %s %s == %d)%s", GLYPH(pc), pieces[pc][path], orToString(or), eq, EOL);
+                  }
+                  displayWide(eCube, sps + SPS(AS_INDEX(distinct)));
+               }
                if (eq < 0) {
                   ++distinct;
                } else {
@@ -87,7 +78,9 @@ if (por->plane
                }
             }
          }
-//         displayWideRowRange(eCube, PAGE_WIDTH, 25, 33, 0);
+         if (displayRepeat) {
+            displayWide(eCube, 0);
+         }
       }
    }
    free(sps);

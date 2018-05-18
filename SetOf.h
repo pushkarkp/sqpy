@@ -8,6 +8,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 int setCount(int);
+int setGetSingle(int);
 #define SET_ALL(count) ((1 << (count)) - 1)
 #define SET_WITH(sop, pres) ((sop) | (1 << (pres)))
 #define SET_WITHOUT(sop, pres) ((sop) & ~(1 << (pres)))

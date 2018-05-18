@@ -17,13 +17,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#define SHAPE ePyramid
-#define PAGE_WIDTH 65
-
 int useOnce = 0;
+TSetOfTopics topics = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfOrientations getSkip(const TPosition* p, TPlace* sp) {
+TSetOfOrientations getSkip(int pc, const TPosition* p, TPlace* sp) {
    TSetOfOrientations skip = 0;
    ERotation rot = 0;
    if (ON_AXIS(p)) {
@@ -35,19 +33,20 @@ TSetOfOrientations getSkip(const TPosition* p, TPlace* sp) {
       sorp &= spEqualReflect(sp, sp);
       skip |= reflectSkip(sorp);
    }
-   if (skip) {
+   if (skip && SET_HAS(topics, eDisplaySymmetries)) {
       char posBuf[POS_BUF_SIZE];
       char sorpBuf1[SORP_BUF_SIZE];
       char sorpBuf2[SORP_BUF_SIZE];
       char soorBuf[SOOR_BUF_SIZE];
-      printf("symmetry(s) %s%s %s, %s: %s skip %s%s", 
-             posToString(posBuf, p),
-             ON_AXIS(p) ? " on axis" : "",
-             rotationToString(rot),
+      printf("Symmetries for %c at %s (%s axis)%s", 
+             GLYPH(pc), posToString(posBuf, p), ON_AXIS(p) ? "on" : "off", EOL);
+      printf("Rotations %s%s",
+             rotationToString(rot), EOL);
+      printf("Reflections %s: %s%s",
              sorpToString(sorpBuf1, onPlanes(p)),
              sorpToString(sorpBuf2, sorp),
-             soorToString(soorBuf, skip),
              EOL);
+      printf("Skip %s%s", soorToString(soorBuf, skip), EOL);
    }
    return skip;
 }
@@ -76,13 +75,19 @@ int search(EPresence pc, int* used, const TPosition* pos, const char* steps, TPl
             walk(pc, pieces[pc][path], or, pos, newsp);
             int* newused = dupPieceInstanceCounts(used);
             ++newused[pc];
+            if (pc == 1 && path == 1) {
+               char buf[POS_BUF_SIZE];
+               printf("no fit %s %s%s", posToString(buf, pos), orToString(or), EOL);
+               displayWide(ePyramid, newsp);
+            }
             char* newsteps = catStep(steps, stepToString(pc, pos, path, or));
             if (!solIsUniqueSymmetric(sumPieceInstanceCounts(newused), newsteps, newsp)) {
-//               displayWide(ePyramid, PAGE_WIDTH, 0);
-//               display1(ePyramid, newsp);
+               displayWide(ePyramid, 0);
+               printf("symmetric%s", EOL);
+               display1(ePyramid, newsp);
                continue;
             }
-            displayWide(ePyramid, PAGE_WIDTH, 0);
+            displayWide(ePyramid, 0);
             display1(ePyramid, newsp);
             TPosition newpos[eDimensions];
             spFind(newpos, eAbsent, newsp);
@@ -96,7 +101,7 @@ int search(EPresence pc, int* used, const TPosition* pos, const char* steps, TPl
                int fork = 0;
                TSetOfOrientations newskip = 0;
                if (skip) {
-                  newskip = getSkip(newpos, newsp);
+                  newskip = getSkip(pc, newpos, newsp);
                }
                EPresence next;
                for (next = eFirstPiece; next < pieceCount; ++next) {
@@ -126,11 +131,13 @@ int search(EPresence pc, int* used, const TPosition* pos, const char* steps, TPl
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void testPieceOrientations(EPresence pc, const char* path) {
-   printf("%c %s%s", GLYPH(pc), path, EOL);
-   printf("Orientation    Symmetry%s", EOL);
+int pathOrientation(EPresence givenPc, TPath path, TSetOfOrientations soor) {
+   EPresence pc = givenPc;
+   if (pc == eAbsent) {
+      pc = PIECE('x');
+   }
    TPlace* sp = SP_NEW(1);
-   TPosition pos[eDimensions] = {2, 2, 2};
+   TPosition pos[eDimensions] = {spHeight / 2, spHeight / 2, spHeight / 2};
    TSetOfOrientations skip90 = rotateSkip(e90);
    TSetOfOrientations skip180 = rotateSkip(e180);
    TSetOfOrientations skip100 = reflectSkip(SET_WITH(0, e100Reflection));
@@ -139,6 +146,9 @@ void testPieceOrientations(EPresence pc, const char* path) {
    TSetOfOrientations skip1T0 = reflectSkip(SET_WITH(0, e1T0Reflection));
    EOrientation or;
    for (or = 0; or < eOrientations; ++or) {
+      if (soor != 0 && !SET_HAS(soor, or)) {
+         continue;
+      }
       const char* isSkip = (SET_HAS(skip90, or) || SET_HAS(skip180, or) 
                          || SET_HAS(skip100, or) || SET_HAS(skip010, or) 
                          || SET_HAS(skip110, or) || SET_HAS(skip1T0, or)) ? "" : "no ";
@@ -151,87 +161,141 @@ void testPieceOrientations(EPresence pc, const char* path) {
                SET_HAS(skip1T0, or) ? "1T0 " : "",
                EOL);
       const TOrient* por = &orients[or];
-      spClear(sp); //spInit(sp);
+      spInitCube(sp); 
       SP_SET(sp, pc, pos);
-      walk(pc, path, or, pos, sp);
-      displayWideRowRange(eCube, PAGE_WIDTH, 8, 49, sp);
+      if (!walk(pc, path, or, pos, sp)) {
+         free(sp);
+         return 0;
+      }
+      if (givenPc != eAbsent) {
+         displayWide(eCube, sp);
+      }
    }
-   displayWideRowRange(eCube, PAGE_WIDTH, 8, 49, 0);
    free(sp);
+   return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void testPathSymmetry(EOrientation or) {
+void setHeight(TPath path, TSetOfOrientations soor) {
+   while (!pathOrientation(eAbsent, path, soor)) {
+      spSetHeight(spHeight + 1);
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// path &&
+//   pc == eAbsent: path (pc = 'x')
+//   pc != eAbsent: path
+// !path && pieceCount > eFirstPiece &&
+//   pc == eAbsent: everything
+//   pc != eAbsent: piece
+// !path && pieceCount == eFirstPiece (no pieces): nothing
+void testOrientations(EPresence pc, TPath path, TSetOfOrientations soor) {
+   if (pc == eAbsent && pieceCount == eFirstPiece) {
+      // pc is only used for glyph
+      pc = PIECE('x');
+   }
+   const char glyph[2] = {GLYPH(pc), 0};
+   printf("pieces: %d piece: %s path: %s%s", pieceCount - 1, pc?glyph:"all", path?path:"all", EOL);
+   printf("Orientation    Symmetry%s", EOL);
+   spSetHeight(1);
+   if (pc != eAbsent && path) {
+      setHeight(path, soor);
+      initDisplay(-1);
+      pathOrientation(pc, path, soor);
+      return;
+   }
+   for (pc = eFirstPiece; pc < pieceCount; ++pc) {
+      int p;
+      for (p = 0; pieces[pc][p]; ++p) {
+         setHeight(pieces[pc][p], soor);
+      }
+   }
+   initDisplay(-1);
+   printf("height: %d%s", spHeight, EOL);
+   for (pc = eFirstPiece; pc < pieceCount; ++pc) {
+      int p;
+      for (p = 0; pieces[pc][p]; ++p) {
+         pathOrientation(pc, pieces[pc][p], soor);
+      }
+   }
+   displayWide(eCube, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void testPathSymmetry(EPresence pc, int path, EOrientation or) {
    printf("%s%s", orToString(or), EOL);
    TPlace* sp = SP_NEW(1);
-   TPosition top[eDimensions] = {0, 0, 0};
-   TPosition mid[eDimensions] = {2, 2, 4};
-   TPosition *pos = (or < 8) ? mid : top;
-   int pc;
-   for (pc = eFirstPiece; pc < pieceCount; ++pc) {
-      int path;
-      for (path = 0; pieces[pc][path]; ++path) {
-         spInit(sp);
-         if (walk(eAbsent, pieces[pc][path], or, pos, sp)) {
-            SP_SET(sp, pc, pos);
-            walk(pc, pieces[pc][path], or, pos, sp);
-            char buf[16];
-            printf("%c %s rotation %s reflection %s%s", 
-                   GLYPH(pc), pieces[pc][path], 
-                   rotationToString(spEqualRotate(sp, sp)), 
-                   sorpToString(buf, spEqualReflect(sp, sp)),
-                   EOL);
-            displayWide(SHAPE, PAGE_WIDTH, sp);
-         }
-      }
-      displayWide(SHAPE, PAGE_WIDTH, NULL);
-   }
-   free(sp);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void testSpFind() {
-   char buf[POS_BUF_SIZE];
-   TPlace* sp = SP_NEW(1);
-   spInit(sp);
-   TPosition pos = {0};
-   int i;
-   for (i = 0; i < 56; ++i) {
-      spFind(&pos, eAbsent, sp);
-      printf("%s%s", posToString(buf, &pos), EOL);
-      SP_SET(sp, i + 'A' - 'a' + 1, &pos);
-      displayWide(ePyramid, 65, sp);
-   }
-   displayWide(ePyramid, 65, 0);
-   free(sp);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-int solve(int pc, int once) {
-   useOnce = once;
-   int solutions = 0;
-   TPlace* sp = SP_NEW(1);
-   TPosition pos[eDimensions] = {0, 0, 0};
+   typedef enum {eMiddle, eCorner, eDispositions} EDisposition;
+   const TPosition pos[ePlanes][eDispositions][eDimensions] =
+      {{{spHeight / 4, spHeight / 4, spHeight / 2}, {0, 0, 0}},
+       {{spHeight / 2, spHeight / 2, spHeight - 1}, {0, 0, spHeight - 1}}};
+   const EPlane p = (or < 8) ? e001 : e110; 
    int end = pc + 1;
    if (pc == eAbsent) {
       pc = eFirstPiece;
       end = pieceCount;
    }
    for (; pc < end; ++pc) {
+      int endp = path + 1;
+      if (path == -1) {
+         path = 0;
+         endp = 100;
+      }
+      for (; pieces[pc][path] && path < endp; ++path) {
+         spInit(sp);
+         EDisposition d;
+         for (d = eMiddle; d < eDispositions; ++d) {
+            if (walk(eAbsent, pieces[pc][path], or, pos[p][d], sp)) {
+               SP_SET(sp, pc, pos[p][d]);
+               walk(pc, pieces[pc][path], or, pos[p][d], sp);
+               char bufPos[POS_BUF_SIZE];
+               char bufSorp[SORP_BUF_SIZE];
+               printf("%c %s %s rotation %s reflection %s%s", 
+                      GLYPH(pc), pieces[pc][path], posToString(bufPos, pos[p][d]),
+                      rotationToString(spEqualRotate(sp, sp)), 
+                      sorpToString(bufSorp, spEqualReflect(sp, sp)),
+                      EOL);
+               displayWide(ePyramid, sp);
+               break;
+            }
+         }
+         if (d == eDispositions) {
+            printf("%c %s does not fit%s", GLYPH(pc), pieces[pc][path], EOL);
+         }
+      }
+      displayWide(ePyramid, NULL);
+   }
+   free(sp);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int solve(EPresence pc, int once, TSetOfTopics sot) {
+   useOnce = once;
+   topics = sot;
+   int solutions = 0;
+   TPlace* sp = SP_NEW(1);
+   TPosition pos[eDimensions] = {0, 0, 0};
+   EPresence end = pc + 1;
+   if (pc == eAbsent) {
+      pc = eFirstPiece;
+      end = pieceCount;
+   }
+   for (; pc < end; ++pc) {
       printf("%c%s",  GLYPH(pc), EOL);
-      solInit();
+      solInit(sot);
       TSetOfPresences used = 0;
       spInit(sp);
-      int sol = search(pc, pieceMaxInstances, pos, "", sp, getSkip(pos, sp));
+      int sol = search(pc, pieceMaxInstances, pos, "", sp, getSkip(pc, pos, sp));
       solutions += sol;
-      displayWide(SHAPE, PAGE_WIDTH, 0);
+      displayWide(ePyramid, 0);
       printf("%c sol %d%s",  GLYPH(pc), sol, EOL);
       int i;
-      for (i = 1; i < pieceCount; ++i) {
+      for (i = eFirstPiece; i < pieceCount; ++i) {
          int count = solCountForCount(i);
          if (count > 0) {
             printf("%d pieces: %d%s", i, count, EOL);
-            solDisplayByCount(i, SHAPE, PAGE_WIDTH);
+            solDisplayByCount(i, ePyramid);
          }
       }
    }

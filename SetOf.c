@@ -19,3 +19,18 @@ int setCount(int set) {
    }
    return count;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+int setGetSingle(int set) {
+   int found = -1;
+   int i;
+   for (i = 0; i < INT_BITS; ++i) {
+      if (SET_HAS(set, i)) {
+         if (found != -1) {
+            return -1;
+         }
+         found = i;
+      }
+   }
+   return found;
+}

@@ -14,6 +14,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 typedef const char* TPath;
 typedef const char** TPiece;
+extern TPath testPath;
 extern const TPiece* pieces;
 extern int pieceCount;
 extern int maxPathLength;

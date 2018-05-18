@@ -116,3 +116,17 @@ const char* orientToString(char* buf, const TOrient* or) {
            signToString(or->fwd[eY]));
    return buf;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+TSetOfOrientations matchOrientation(const char* s) {
+   int len = strlen(s);
+   printf("matchOrientation(%s) len %d\r\n", s, len);
+   TSetOfOrientations soo = 0;
+   EOrientation o;
+   for (o = 0; o < eOrientations; ++o) {
+      if (0 == strncasecmp(orToString(o), s, len)) {
+         soo = SET_WITH(soo, o);
+      }
+   }
+   return soo;
+}

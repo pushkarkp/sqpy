@@ -13,9 +13,11 @@
 #include <string.h>
 #include <stdio.h>
 
+///////////////////////////////////////////////////////////////////////////////
 #define ZOFFSET(z) (spXY * (MARGIN + z))
 #define YOFFSET(y) (spX * (MARGIN + y))
 
+///////////////////////////////////////////////////////////////////////////////
 int spHeight = 0;
 int spX = 0;
 int spXY = 0;
@@ -30,13 +32,25 @@ void spSetHeight(int height) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spClear(TPlace* sp) {
-   memset(sp, 0, spXYZ);
+int getPyramidVolume() {
+   int size = 0;
+   int z;
+   for (z = 0; z < spHeight; ++z) {
+      size += (z + 1) * (z + 1);
+   }
+   return size;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Clear the whole cube to absent. 
+void spClear(TPlace* sp) {
+   memset(sp, eAbsent, spXYZ);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Initialize all to eMargin with the pyramid hollowed out as eAbsent. 
 void spInit(TPlace* sp) {
-   memset(sp, -1, spXYZ);
+   memset(sp, eMargin, spXYZ);
    int z;
    for (z = 0; z < spHeight; ++z) {
       int zoffset = ZOFFSET(z);
@@ -45,7 +59,25 @@ void spInit(TPlace* sp) {
          int yoffset = YOFFSET(y);
          int x;
          for (x = 0; x <= z; ++x) {
-            sp[zoffset + yoffset + MARGIN + x] = 0;
+            sp[zoffset + yoffset + MARGIN + x] = eAbsent;
+         }
+      }
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Initialize all to eAbsent with an all round margin. 
+void spInitCube(TPlace* sp) {
+   memset(sp, eMargin, spXYZ);
+   int z;
+   for (z = 0; z < spHeight; ++z) {
+      int zoffset = ZOFFSET(z);
+      int y;
+      for (y = 0; y < spHeight; ++y) {
+         int yoffset = YOFFSET(y);
+         int x;
+         for (x = 0; x < spHeight; ++x) {
+            sp[zoffset + yoffset + MARGIN + x] = eAbsent;
          }
       }
    }
@@ -53,16 +85,14 @@ void spInit(TPlace* sp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void spEnumerate(TPlace* sp) {
-   int c = -25;
+   int c = 0;
    int z;
    for (z = 0; z < spHeight; ++z) {
-      int zoffset = ZOFFSET(z);
       int y;
       for (y = 0; y <= z; ++y) {
-         int yoffset = YOFFSET(y);
          int x;
          for (x = 0; x <= z; ++x) {
-            sp[zoffset + yoffset + MARGIN + x] = c++;
+            sp[SP_XYZ(x, y, z)] =  c++ % 26 + 1;
          }
       }
    }
@@ -82,9 +112,19 @@ int spEqual(const TPlace* sp1, const TPlace* sp2) {
 char* spRowToString(char* str, int y, int z, const TPlace* sp) {
    int zoffset = ZOFFSET(z);
    int yoffset = YOFFSET(y);
-//printf("z %d zoffset %d y %d yoffset %d%s", z, zoffset, y, yoffset, EOL);
    int x;
    for (x = 0; x <= z; ++x) {
+      *str++ = GLYPH(sp[zoffset + yoffset + MARGIN + x]);
+   }
+   return str;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+char* spCubeRowToString(char* str, int y, int z, const TPlace* sp) {
+   int zoffset = ZOFFSET(z - MARGIN);
+   int yoffset = YOFFSET(y - (2 * MARGIN));
+   int x;
+   for (x = 0; x < spX - 2; ++x) {
       *str++ = GLYPH(sp[zoffset + yoffset + MARGIN + x]);
    }
    return str;
@@ -99,6 +139,23 @@ char* spWholeRowToString(char* str, int y, int z, const TPlace* sp) {
       *str++ = GLYPH(sp[zoffset + yoffset + x]);
    }
    return str;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void spTestPyramid() {
+   TPlace* sps = SP_NEW(3);
+   spClear(&sps[SPS(0)]);
+   spInit(&sps[SPS(1)]);
+   spEnumerate(&sps[SPS(2)]);
+   displayWide(eCube, &sps[SPS(0)]);
+   displayWide(eCube, &sps[SPS(1)]);
+   displayWide(eCube, &sps[SPS(2)]);
+   displayWide(eCube, 0);
+   displayWide(ePyramid, &sps[SPS(0)]);
+   displayWide(ePyramid, &sps[SPS(1)]);
+   displayWide(ePyramid, &sps[SPS(2)]);
+   displayWide(ePyramid, 0);
+   free(sps);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -170,6 +227,24 @@ void spFind(TPosition* pos, TPlace c, const TPlace* sp) {
    pos[eY] = -1;
    pos[eZ] = -1;
    return;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void spTestOrder() {
+   int volume = getPyramidVolume();
+   TPlace* sp = SP_NEW(1);
+   spInit(sp);
+   char buf[POS_BUF_SIZE];
+   TPosition pos[eDimensions];
+   int i;
+   for (i = 0; i < volume; ++i) {
+      spFind(pos, eAbsent, sp);
+      printf("%d %s %d %c%s", i, posToString(buf, pos), SP_POS(pos), GLYPH(i % 26 + 1), EOL);
+      SP_SET(sp, i % 26 + 1, pos);
+      displayWide(ePyramid, sp);
+   }
+   displayWide(ePyramid, 0);
+   free(sp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

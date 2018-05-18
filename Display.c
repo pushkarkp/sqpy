@@ -10,26 +10,25 @@
 #include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-#define CUBE_SIZE (spHeight + 2)
-#define CUBE_ROWS_PER_LEVEL (CUBE_SIZE + 1)
 #define MAX_STORE 16
 #define MARGIN_GLYPH ' '
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* eol[eEolTypes] = {"\n", "\r", "\r\n"};
-int rows[eDisplayShapes] = {0};
-int columns[eDisplayShapes] = {0};
+static int pageWidth = 0;
+static int rows[eDisplayShapes] = {0};
 
 ///////////////////////////////////////////////////////////////////////////////
-void initDisplay() {
+void initDisplay(int pw) {
    rows[ePyramid] = 0;
    int i = 0;
    for (i = 0; i < spHeight + 2; ++i) {
       rows[ePyramid] += i;
    }
-   columns[ePyramid] = spHeight;
-   rows[eCube] = CUBE_SIZE * CUBE_ROWS_PER_LEVEL + 1;
-   columns[eCube] = CUBE_SIZE;
+   rows[eCube] = spHeight * (spHeight + 1) + 1;
+   if (pw >= 0) {
+      pageWidth = pw;
+   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,8 +54,8 @@ char* display1Line(char* str, int row, EDisplayShape shape, const TPlace* sp) {
          break;
       }
       case eCube: {
-         z = row / CUBE_ROWS_PER_LEVEL;
-         y = row % CUBE_ROWS_PER_LEVEL - 1;
+         z = row / (spHeight + 1) + 1;
+         y = row % (spHeight + 1) - 1;
          break;
       }
    }
@@ -70,10 +69,10 @@ char* display1Line(char* str, int row, EDisplayShape shape, const TPlace* sp) {
          pos = spRowToString(pos, z - y, z, sp);
       } else {
          // spX - 1 - y puts y == 0 last (at the bottom)
-         pos = spWholeRowToString(pos, spX - 1 - y, z, sp);
+         pos = spCubeRowToString(pos, spX - 1 - y, z, sp);
       }
    }
-   pos = fill(columns[shape] + 1 + str - pos, MARGIN_GLYPH, pos);
+   pos = fill(spHeight + 1 + str - pos, MARGIN_GLYPH, pos);
    *pos = 0;
    return str;
 }
@@ -85,7 +84,7 @@ void display1(EDisplayShape shape, const TPlace* sp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void display1RowRange(EDisplayShape shape, int row0, int row1, const TPlace* sp) {
-   char* buf = malloc(columns[shape] + 1);
+   char* buf = malloc(spHeight + 1);
    const int r0 = (row0 > 0) ? row0 : 0;
    const int r1 = (row1 < rows[shape]) ? row1 : rows[shape];
    int r;
@@ -96,14 +95,14 @@ void display1RowRange(EDisplayShape shape, int row0, int row1, const TPlace* sp)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int displayPage(EDisplayShape shape, int w, int h, int n, const TPlace* sps) {
-   return displayPageRowRange(shape, w, h, 0, rows[shape], n, sps);
+int displayPage(EDisplayShape shape, int h, int n, const TPlace* sps) {
+   return displayPageRowRange(shape, h, 0, rows[shape], n, sps);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int displayPageRowRange(EDisplayShape shape, int w, int h, int row0, int row1, int n, const TPlace* sps) {
-   char* buf = malloc(columns[shape] + 1);
-   const int across = w / columns[shape];
+int displayPageRowRange(EDisplayShape shape, int h, int row0, int row1, int n, const TPlace* sps) {
+   char* buf = malloc(spHeight + 1);
+   const int across = pageWidth / (spHeight + 1);
    const int down = h / rows[shape];
    const int r0 = (row0 > 0) ? row0 : 0;
    const int r1 = (row1 < rows[shape]) ? row1 : rows[shape];
@@ -125,12 +124,12 @@ int displayPageRowRange(EDisplayShape shape, int w, int h, int row0, int row1, i
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void displayWide(EDisplayShape shape, int w, const TPlace* sp) {
-   displayWideRowRange(shape, w, 0, rows[shape], sp);
+void displayWide(EDisplayShape shape, const TPlace* sp) {
+   displayWideRowRange(shape, 0, rows[shape], sp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void displayWideRowRange(EDisplayShape shape, int w, int r0, int r1, const TPlace* sp) {
+void displayWideRowRange(EDisplayShape shape, int r0, int r1, const TPlace* sp) {
    static TPlace* store = 0;
    static int stored = 0;
    if (sp) {
@@ -139,8 +138,8 @@ void displayWideRowRange(EDisplayShape shape, int w, int r0, int r1, const TPlac
       }
       spCopy(&store[SPS(stored++)], sp);
    }
-   if (!sp || stored + 1 > w / (columns[shape] + 1)) {
-      displayPageRowRange(shape, w, 1000, r0, r1, stored, store);
+   if (!sp || stored + 1 > pageWidth / (spHeight + 1)) {
+      displayPageRowRange(shape, 1000, r0, r1, stored, store);
       stored = 0;
    }
 }
