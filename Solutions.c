@@ -264,7 +264,7 @@ int solCountForCount(int count) {
    int found = 0;
    int k;
    for (k = 0; keys[k]; ++k) {
-printf("k %d has %d pieces (ox%x)%s", k,  setCount(keys[k]), keys[k], EOL);
+printf("k %d has %d pieces (0x%x)%s", k,  setCount(keys[k]), keys[k], EOL);
       if (setCount(keys[k]) == count) {
          found += sps_count[k];
       }

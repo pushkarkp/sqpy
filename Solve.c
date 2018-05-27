@@ -114,8 +114,9 @@ int search(EPresence pc, int* use, const TPosition* pos, const char* steps, TPla
                   }
                }
                if (fork || (!togo && useOnce)) {
-                  if (solAddUniqueSymmetric(pcSumInstanceCounts(newuse), newsteps, newsp)) {
-                     next_solutions = !fork;
+                  if (solAddUniqueSymmetric(pcSumInstanceCounts(newuse), newsteps, newsp)
+                   && !fork) {
+                     next_solutions = 1;
                   }
                }
                solutions += next_solutions;
