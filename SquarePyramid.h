@@ -22,7 +22,7 @@ extern int spXYZ;
 #define MARGIN 1
 #define SPS(i) ((i) * spXYZ * sizeof(TPlace))
 #define SP_NEW(i) ((TPlace*)malloc(SPS(i)))
-#define SP_EXTEND(i, sps) ((TPlace*)realloc(sps, SPS(i)))
+#define SP_EXTEND(sps, i) ((TPlace*)realloc(sps, SPS(i)))
 #define SP_XYZ(x, y, z) (((MARGIN + z) * spXY + (MARGIN + y) * spX + (MARGIN + x)) * sizeof(TPlace))
 #define SP_POS(p) SP_XYZ((p)[eX], (p)[eY], (p)[eZ])
 #define SP_GET(p, sp) ((sp)[SP_POS(p)])

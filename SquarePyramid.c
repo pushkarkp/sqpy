@@ -85,6 +85,7 @@ void spInitCube(TPlace* sp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void spEnumerate(TPlace* sp) {
+   memset(sp, eMargin, spXYZ);
    int c = 0;
    int z;
    for (z = 0; z < spHeight; ++z) {
@@ -147,14 +148,13 @@ void spTestPyramid() {
    spClear(&sps[SPS(0)]);
    spInit(&sps[SPS(1)]);
    spEnumerate(&sps[SPS(2)]);
-   displayWide(eCube, &sps[SPS(0)]);
-   displayWide(eCube, &sps[SPS(1)]);
-   displayWide(eCube, &sps[SPS(2)]);
-   displayWide(eCube, 0);
-   displayWide(ePyramid, &sps[SPS(0)]);
-   displayWide(ePyramid, &sps[SPS(1)]);
-   displayWide(ePyramid, &sps[SPS(2)]);
-   displayWide(ePyramid, 0);
+   EDisplayShape s;
+   for (s = 0; s < eDisplayShapes; ++s) {
+      displayWide(s, &sps[SPS(0)]);
+      displayWide(s, &sps[SPS(1)]);
+      displayWide(s, &sps[SPS(2)]);
+      displayWide(s, 0);
+   }
    free(sps);
 }
 
@@ -305,7 +305,7 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
     if (sp1[origin] != sp2[origin]) {
       return 0;
    }
-   TSetOfReflectionPlanes sorp = SET_ALL(eReflectionPlanes);
+   TSetOfReflectionPlanes sorp = SET_ALL_OF(eReflectionPlanes);
    if (sp1[origin] == eAbsent && sp2[origin] == eAbsent) {
       return sorp;
    }
@@ -366,4 +366,25 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
       }
    }
    return sorp;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void spTestOrientations(TSetOfOrientations soor) {
+   TPlace* sp = SP_NEW(1);
+   EOrientation or;
+   for (or = 0; or < eOrientations; ++or) {
+      if (soor != 0 && !SET_HAS(soor, or)) {
+         continue;
+      }
+      spInit(sp);
+      int z;
+      for (z = 0; z < spHeight; ++z) {
+         sp[SP_XYZ(0, 0, z)] = 'x';
+         printf("%s%s", orToString(or), EOL); 
+         displayWide(ePyramid, sp);
+         sp[SP_XYZ(0, 0, z)] = '`';
+      }
+   }
+   displayWide(ePyramid, 0);
+   free(sp);
 }

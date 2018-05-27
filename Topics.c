@@ -5,7 +5,6 @@
  */
 
 #include "Topics.h"
-#include "SetOf.h"
 #include "Display.h"
 
 #include <stdio.h>
@@ -14,13 +13,14 @@
 #include <ctype.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* displayTopicToString(EDisplayTopic t) {
+const char* displayTopicToString(int t) {
    switch (t) {
       case eDisplaySettings: return "settings";
       case eDisplayPyramid: return "pyramid";
       case eDisplayOrder: return "order";
       case eDisplayOrientations: return "orientations";
       case eDisplayRepeat: return "repeats";
+      case eDisplaySteps: return "steps";
       case eDisplayAdd: return "adding";
       case eDisplaySymmetries: return "symmetries";
       default: return "unknown";
@@ -28,26 +28,18 @@ const char* displayTopicToString(EDisplayTopic t) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* displayTopicDescription(EDisplayTopic t) {
+const char* displayTopicDescription(int t) {
    switch (t) {
       case eDisplaySettings: return "Display the setting values.";
-      case eDisplayPyramid: return "Display the pyramid, then quit.";
-      case eDisplayOrder: return "Display the order of positions at which paths are started.";
-      case eDisplayOrientations: return "Display the specified path in all z-plane orientations.";
-      case eDisplayRepeat: return "Display whether each piece path orientation is a repeat.";
+      case eDisplayPyramid: return "Display the pyramid.";
+      case eDisplayOrder: return "Display the order of the positions at which paths are started.";
+      case eDisplayOrientations: return "Display the specified path in all orientations.";
+      case eDisplayRepeat: return "Display each piece path orientation and whether it is a repeat.";
+      case eDisplaySteps: return "Display the steps ";
       case eDisplayAdd: return "Display each unique solution as it is added.";
       case eDisplaySymmetries: return "Display the symmetries found for each symmetrical partial solution.";
       default: return "unknown";
    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void listDisplayTopics() {
-   EDisplayTopic t;
-   for (t = 0; t < eDisplayTopics; ++t) {
-      printf(" %s", displayTopicToString(t));
-   }
-   printf("%s", EOL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,14 +58,15 @@ void describeDisplayTopics() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfTopics matchDisplayTopics(const char* s) {
+TSet matchDisplayTopics(const char* s) {
    int len = strlen(s);
-   TSetOfTopics sot = 0;
+   TSet sot = 0;
    EDisplayTopic t;
    for (t = 0; t < eDisplayTopics; ++t) {
       if (0 == strncasecmp(displayTopicToString(t), s, len)) {
          sot = SET_WITH(sot, t);
       }
    }
+printf("%s %d%s", setToString(sot, displayTopicToString), setCount(sot), EOL);
    return sot;
 }

@@ -3,22 +3,23 @@
  *
  * Topics.c
  */
-
 #ifndef TopicsH
 #define TopicsH
+
+#include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {
    eDisplaySettings, eDisplayPyramid, eDisplayOrder, eDisplayOrientations, 
-   eDisplayRepeat, eDisplayAdd, eDisplaySymmetries, eDisplayTopics
+   eDisplayRepeat, eDisplaySteps, eDisplayAdd, eDisplaySymmetries, 
+   eDisplayTopics
 } EDisplayTopic;
-typedef int TSetOfTopics;
+#define ALL_TOPICS 0xff
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* displayTopicToString(EDisplayTopic);
-const char* displayTopicDescription(EDisplayTopic);
-void listDisplayTopics();
+const char* displayTopicToString(int);
+const char* displayTopicDescription(int);
 void describeDisplayTopics();
-TSetOfTopics matchDisplayTopics(const char*);
+TSet matchDisplayTopics(const char*);
 
 #endif

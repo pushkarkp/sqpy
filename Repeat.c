@@ -20,6 +20,9 @@ TPathRepeat** repeat = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 void findRepeat(int displayRepeat) {
+   int height = spHeight;
+   pcSetHeight();
+   initDisplay(-1);
    repeat = (TPathRepeat**)malloc(pieceCount * sizeof(TPathRepeat*));
    repeat[0] = 0;
    int maxSps = 16;
@@ -44,13 +47,13 @@ void findRepeat(int displayRepeat) {
                TPosition pos[eDimensions] = {spHeight / 2, spHeight / 2, spHeight / 2};
                while (AS_INDEX(distinct) + 1 >= maxSps) {
                   maxSps *= 2;
-                  sps = SP_EXTEND(maxSps, sps);
+                  sps = SP_EXTEND(sps, maxSps);
                }
                spClear(sps + SPS(AS_INDEX(distinct) - 1));
                spClear(sps + SPS(AS_INDEX(distinct)));
                spClear(sps + SPS(AS_INDEX(distinct) + 1));
                SP_SET(sps + SPS(AS_INDEX(distinct)), pc, pos);
-               walk(pc, pieces[pc][path], or, pos, sps + spXYZ * AS_INDEX(distinct));
+               pcWalk(pc, pieces[pc][path], or, pos, sps + spXYZ * AS_INDEX(distinct));
                int eq;
                for (eq = distinct - 1; eq >= 0; --eq) {
                   if (spEqual(sps + SPS(AS_INDEX(distinct)), 
@@ -84,4 +87,6 @@ void findRepeat(int displayRepeat) {
       }
    }
    free(sps);
+   spSetHeight(height);
+   initDisplay(-1);
 }

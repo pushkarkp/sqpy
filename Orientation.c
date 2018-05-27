@@ -1,4 +1,4 @@
-/**
+ /**
  * Copyright 2018 Pushkar Piggott
  *
  * Orientation.c
@@ -11,7 +11,7 @@
 #include <string.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* orToString(EOrientation or) {
+const char* orToString(int or) {
    switch (or) {
       case e001XPlusPlus:
          return "001XPlusPlus";
@@ -65,21 +65,6 @@ const char* orToString(EOrientation or) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* soorToString(char* buf, TSetOfOrientations soor) {
-   *buf = 0;
-   const char* sep = "";
-   EOrientation or;
-   for (int or = 0; or < eOrientations; ++or) {
-      if (SET_HAS(soor, or)) {
-         strcat(buf, sep);
-         strcat(buf, orToString(or));
-         sep = " ";
-      }
-   }
-   return buf;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 const TOrient orients[eOrientations] = {
    {e001, eX, {ePlus, ePlus}},
    {e001, eX, {eMinus, ePlus}},
@@ -120,7 +105,6 @@ const char* orientToString(char* buf, const TOrient* or) {
 ///////////////////////////////////////////////////////////////////////////////
 TSetOfOrientations matchOrientation(const char* s) {
    int len = strlen(s);
-   printf("matchOrientation(%s) len %d\r\n", s, len);
    TSetOfOrientations soo = 0;
    EOrientation o;
    for (o = 0; o < eOrientations; ++o) {

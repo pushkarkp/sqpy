@@ -21,10 +21,12 @@ extern int maxPathLength;
 extern int* pieceMaxInstances;
 
 ///////////////////////////////////////////////////////////////////////////////
-char* getPiece(int, const char**);
-char* readPieces(const char*);
+char* pcRead(int, const char**);
 
-int walk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
-int* dupPieceInstanceCounts(int*);
-int sumPieceInstanceCounts(int*);
+int pcWalk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
+int* pcDupInstanceCounts(int*);
+int pcSumInstanceCounts(int*);
+
+void pcSetHeight();
+void pcTestOrientations(EPresence, int path, TSetOfOrientations);
 #endif

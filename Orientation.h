@@ -18,11 +18,11 @@ typedef enum {
    e1T0YPlusPlus, e1T0YMinusPlus, e1T0YPlusMinus, e1T0YMinusMinus,
    eOrientations
 } EOrientation;
-const char* orToString(EOrientation);
+const char* orToString(int);
 typedef int TSetOfOrientations;
-const char* soorToString(char*, TSetOfOrientations);
 TSetOfOrientations matchOrientation(const char*);
-#define SOOR_BUF_SIZE 336
+
+///////////////////////////////////////////////////////////////////////////////
 typedef struct {
    EPlane plane;
    EDimension align;

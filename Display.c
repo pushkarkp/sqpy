@@ -10,12 +10,12 @@
 #include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-#define MAX_STORE 16
 #define MARGIN_GLYPH ' '
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* eol[eEolTypes] = {"\n", "\r", "\r\n"};
 static int pageWidth = 0;
+static int spCount = 0;
 static int rows[eDisplayShapes] = {0};
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -133,12 +133,13 @@ void displayWideRowRange(EDisplayShape shape, int r0, int r1, const TPlace* sp) 
    static TPlace* store = 0;
    static int stored = 0;
    if (sp) {
-      if (!store) {
-         store = SP_NEW(MAX_STORE);
+      if (pageWidth / (spHeight + 1) > spCount) {
+         spCount = pageWidth / (spHeight + 1);
+         store = SP_EXTEND(store, spCount);
       }
       spCopy(&store[SPS(stored++)], sp);
    }
-   if (!sp || stored + 1 > pageWidth / (spHeight + 1)) {
+   if (!sp || stored + 1 > spCount) {
       displayPageRowRange(shape, 1000, r0, r1, stored, store);
       stored = 0;
    }

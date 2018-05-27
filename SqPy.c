@@ -23,34 +23,36 @@ static const char const* ERR_OPEN = "failed to open file \"%s\"";
 static const char const* ERR_FILE = "file error";
 static const char const* ERR_BAD_LINE = "%s on line %d \"%s\"";
 static const char const* ERR_NO_ORIENT = "no orientation matched \"%s\"";
-static const char const* ERR_NO_TOPIC = "no topic matched \"%s\"";
-static const char const* ERR_BAD_TOPIC = "more than one topic matched \"%s\"";
+static const char const* ERR_NO_TOPIC = "no display topic matched \"%s\"";
+static const char const* ERR_BAD_TOPIC = "more than one display topic matched \"%s\"";
 static int useOnce = 0;
 static int pc = eAbsent;
 static int pathIndex = -1;
 static TPath path = ".a.A";
-static TSetOfOrientations soor = 0;
+static TSet soor = 0;
 static int pageWidth = 70;
-static TSetOfTopics topics = 0;
+static TSet topics = 0;
 
 int getOptions(const char**);
 
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("$ sqpy [<file>] [-u] [-h <height>] [-p <paths> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
-   printf(" <file>                    arguments in a file and one piece per line%s", EOL);
+   printf("sqpy [<file>] [-u] [-h <height>] [-p <paths> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
+   printf(" <file>                    file contains arguments and one piece per line%s", EOL);
    printf(" -u                        stop when pieces all used, even if space remains%s", EOL);
-   printf(" -h <height> (5)           the pyramid height%s", EOL);
+   printf(" -h <height>               the pyramid height%s", EOL);
    printf(" -p <paths> [<count>]      a piece%s", EOL);
    printf(" -i <piece> (all)          the initial piece by letter or index%s", EOL);
-   printf(" -a <path or index> (.a.A) the path to orient and find symmmetries of%s", EOL);
-   printf(" -0 <orientation index>    the oriention to find symmmetries of%s", EOL);
-   printf(" -o <orientations match>   the orientions to find symmmetries of%s", EOL);
+   printf(" -a <path or index> (.a.A) the path to orient%s", EOL);
+   printf(" -0 <orientation index>    the orientation to show the paths%s", EOL);
+   printf(" -o <orientations match>   the orientations to show the paths%s", EOL);
    printf(" -g <page width> (70)      the width of the display page%s", EOL);
    printf(" -d <topics>               display one or more topics (see below)%s", EOL);
    printf("%sDisplay topics (any unique prefix matches):%s", EOL, EOL);
-   describeDisplayTopics();
+   char* str = setToString(ALL_TOPICS, displayTopicToString);
+   printf("%s%s", str, EOL);
+   free(str);
    exit(0);
 }
 
@@ -166,7 +168,7 @@ char* read(const char* fname) {
          }
          return 0;
       }
-      char* err = getPiece(argc, argv);
+      char* err = pcRead(argc, argv);
       free(argv);
       free(line);
       if (err) {
@@ -193,6 +195,10 @@ int getOptions(const char** argv) {
          useOnce = 1;
          break;
       }
+      case 's': {
+         showOrientationsSymmetry(0);
+         exit(0);
+      }
       case 'h': {
          const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1]), argv[i][1]);
          spSetHeight(strtol(n, 0, 10));
@@ -201,7 +207,7 @@ int getOptions(const char** argv) {
       }
       case 'p': {
          int len = getNextOptionOffset(argv + i) - 1;
-         char* err = getPiece(len, argv + i + 1);
+         char* err = pcRead(len, argv + i + 1);
          if (err) {
             printf("%s%s", err, EOL);
             free(err);
@@ -237,6 +243,7 @@ int getOptions(const char** argv) {
          TSetOfOrientations s = matchOrientation(v);
          if (setCount(s) == 0) {
             printf(ERR_NO_ORIENT, v);
+            printf("%s", EOL);
             usage();
          }
          soor |= s;
@@ -251,11 +258,12 @@ int getOptions(const char** argv) {
       case 'd': {
          const char* v;
          while ((v = getOptionExtraValue(&i, argv)) != 0) {
-            TSetOfTopics sot = matchDisplayTopics(v);
+            TSet sot = matchDisplayTopics(v);
             if (setCount(sot) != 1) {
-               printf(sot == 0 ? ERR_NO_TOPIC : ERR_BAD_TOPIC, v);
-               printf("%sDisplay topics:", EOL);
-               listDisplayTopics();
+               printf(setCount(sot) == 0 ? ERR_NO_TOPIC : ERR_BAD_TOPIC, v);
+               char* str = setToString(ALL_TOPICS, displayTopicToString);
+               printf("%sTopics available: %s%s", EOL, str, EOL);
+               free(str);
                return 0;
             }
             topics |= sot;
@@ -272,9 +280,41 @@ int getOptions(const char** argv) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void showOptions() {
+   printf("spHeight %d useOnce %d pieces %d%s", spHeight, useOnce, pieceCount - 1, EOL);
+   if (pieceCount > 1) {
+      printf("Pieces:%s", EOL);
+   }
+   int i;
+   for (i = eFirstPiece; i < pieceCount; ++i) {
+       printf(" %c:", GLYPH(i));
+      int p;
+      for (p = 0; pieces[i][p]; ++p) {
+         printf(" %s", pieces[i][p]);
+      }
+      printf("%s", EOL);
+   }
+   if (pc != 0) {
+      printf(" initial piece %d (%c)%s", pc, GLYPH(pc), EOL);
+   }
+   if (pathIndex != -1) {
+      printf(" path %d (%s)%s", pathIndex, pieces[pc][pathIndex], EOL);
+   }
+   if (soor != 0) {
+      char* str = setToString(soor, orToString);
+      printf("orientations: %s%s", str, EOL);
+      free(str);
+   }
+   printf("page width %d%s", pageWidth, EOL);
+   if (topics) {
+      char* str = setToString(topics, displayTopicToString);
+      printf("Topics: %s%s", str, EOL);
+      free(str);
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 int main(int argc, const char** argv) {
-   spSetHeight(5);
-   initDisplay(pageWidth);
    int i = 1;
    if (argv[i] && argv[i][0] != '-') {
       char* err = read(argv[i]);
@@ -288,36 +328,16 @@ int main(int argc, const char** argv) {
    if (!getOptions(&argv[i])) {
       return 0;
    }
+   if (pieceCount == eFirstPiece) {
+      const char* argvp[2] = {path, 0};
+      pcRead(1, argvp);
+   }
+   if (spHeight == 0) {
+      pcSetHeight();
+      initDisplay(pageWidth);
+   }
    if (SET_HAS(topics, eDisplaySettings)) {
-      printf("spHeight %d useOnce %d pieces %d", spHeight, useOnce, pieceCount - 1);
-      if (pc == 0) {
-         printf(" all pieces");
-      } else {
-         printf(" initial piece %d (%c)", pc, GLYPH(pc));
-      }
-      if (path) {
-         printf(" path %s%s", path, EOL);
-      } else if (pc != 0 && pathIndex != -1) {
-         printf(" path %d (%s)%s", pathIndex, pieces[pc][pathIndex], EOL);
-      } else {
-         printf(" all paths%s", EOL);
-      }
-      if (soor != 0) {
-         char buf[SOOR_BUF_SIZE];
-         printf("orientations: %s%s", soorToString(buf, soor), EOL);
-      }
-      if (pieceCount > 1) {
-         printf("Pieces:%s", EOL);
-      }
-      for (i = eFirstPiece; i < pieceCount; ++i) {
-          printf(" %c:", GLYPH(i));
-         int p;
-         for (p = 0; pieces[i][p]; ++p) {
-            printf(" %s", pieces[i][p]);
-         }
-         printf("%s", EOL);
-      }
-      printf("page width %d%s", pageWidth, EOL);
+      showOptions();
    }
    if (SET_HAS(topics, eDisplayPyramid)) {
       spTestPyramid();
@@ -328,13 +348,14 @@ int main(int argc, const char** argv) {
       exit(0);
    }
    if (SET_HAS(topics, eDisplayOrientations)) {
-      if (pathIndex != -1 && pc != eAbsent) {
-         path = pieces[pc][pathIndex];
-      }
-      testOrientations(pc, path, soor);
+      pcTestOrientations(pc, pathIndex, soor);
       exit(0);
    }
-   findRepeat(SET_HAS(topics, eDisplayRepeat));
-   printf("solutions %d%s", solve(pc, useOnce, topics), EOL);
+   if (SET_HAS(topics, eDisplayRepeat)) {
+      findRepeat(1);
+      exit(0);
+   }
+   findRepeat(0);
+   printf("Total solutions %d%s", solve(pc, useOnce, topics), EOL);
    return 0;
 }

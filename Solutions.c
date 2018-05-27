@@ -19,7 +19,7 @@
 #define GROWTH_FACTOR 2
 
 ///////////////////////////////////////////////////////////////////////////////
-static TSetOfTopics topics = 0;
+static TSet topics = 0;
 static int max_keys = 0;
 static int* keys = 0;
 static int* max_sps = 0;
@@ -65,7 +65,7 @@ void addKey(int key, int k) {
       zeroAllFrom(k);
    }
    if (!keys[k]) {
-//printf("addKey(key %d k %d) keys[k] %d%s", key, k, keys[k], EOL);
+//printf("addKey(key %d (0x%x) k %d) keys[k] %d%s", key, key, k, keys[k], EOL);
       keys[k] = key;
       max_sps[k] = INITIAL_SPS;
       sps_count[k] = 0;
@@ -105,7 +105,7 @@ int findSymmetricSp(ERotation* prot, TSetOfReflectionPlanes* psorp, int k, const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void solInit(TSetOfTopics sot) {
+void solInit(TSet sot) {
    topics = sot;
    max_keys = INITIAL_KEYS;
    if (keys) {
@@ -134,14 +134,17 @@ void solInit(TSetOfTopics sot) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void solShowKeys(int k) {
-   char buf[SOP_BUF_SIZE];
+void solShowSetKeys(int k, FSetElementToString toString) {
    if (k == -1) {
       for (k = 0; keys[k]; ++k) {
-         printf("%s %d%s", sopToString(buf, keys[k]), sps_count[k], EOL);
+         char* strsop = setToString(keys[k], toString);
+         printf("%s %d%s", strsop, sps_count[k], EOL);
+         free(strsop);
       }
    } else {
-      printf("%s %d%s", sopToString(buf, keys[k]), sps_count[k], EOL);
+      char* strsop = setToString(keys[k], toString);
+      printf("%s %d%s", strsop, sps_count[k], EOL);
+      free(strsop);
    }
 }
 
@@ -182,7 +185,10 @@ int findUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    }
    int s = findSp(k, sp);
    if (s < sps_count[k]) {
-printf("findUniqueSymmetric() duplicate: k %d s %d %s; %s%s", k, s, steps[k][s], spsteps, EOL);
+      displayWide(ePyramid, 0);
+      printf("findUniqueSymmetric() found duplicate: k %d s %d %s; %s%s", 
+             k, s, steps[k][s], spsteps, EOL);
+      display1(ePyramid, sp);
       return -1;
    }
    ERotation rot = 0;
@@ -190,7 +196,16 @@ printf("findUniqueSymmetric() duplicate: k %d s %d %s; %s%s", k, s, steps[k][s],
    s = findSymmetricSp(&rot, &sorp, k, sp);
    if (s < sps_count[k]) {
       catSteps(&steps[k][s], rot, sorp, spsteps);
-printf("findUniqueSymmetric() symmetric: k %d s %d %s%s", k, s, steps[k][s], EOL);
+      if (SET_HAS(topics, eDisplaySymmetries)) {
+         displayWide(ePyramid, 0);
+         const char* strsteps =
+            SET_HAS(topics, eDisplaySteps)
+            ? steps[k][s] : "";
+         printf("symmetric with existing (on left): k %d s %d %s%s", k, s, strsteps, EOL);
+         displayWide(ePyramid, sps[k][s]);
+         displayWide(ePyramid, sp);
+         displayWide(ePyramid, 0);
+      }
       return -1;
    }
    return k;
@@ -204,6 +219,7 @@ int solIsUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
 ///////////////////////////////////////////////////////////////////////////////
 int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    int k = findUniqueSymmetric(key, spsteps, sp);
+   printf("solAddUniqueSymmetric add: k %d %s%s", k, spsteps, EOL);
    if (k == -1) {
       return 0;
    }
@@ -216,9 +232,9 @@ int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) 
       steps[k] = (char**)realloc(steps[k], max_sps[k] * sizeof(char*));
       sps[k] = (TPlace**)realloc(sps[k], max_sps[k] * spXYZ * sizeof(TPlace));
    }
+   //printf("solAddUniqueSymmetric add: k %d i %d %s%s", k, s, spsteps, EOL);
    if (SET_HAS(topics, eDisplayAdd)) {
-      printf("solAddUniqueSymmetric add: k %d i %d %s%s", 
-             k, s, spsteps, EOL);
+      printf("Add: %s%s", spsteps, EOL);
    }
    steps[k][s] = stepsCopy(spsteps);
    sps[k][s] = SP_NEW(1);
@@ -248,6 +264,7 @@ int solCountForCount(int count) {
    int found = 0;
    int k;
    for (k = 0; keys[k]; ++k) {
+printf("k %d has %d pieces (ox%x)%s", k,  setCount(keys[k]), keys[k], EOL);
       if (setCount(keys[k]) == count) {
          found += sps_count[k];
       }

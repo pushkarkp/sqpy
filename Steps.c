@@ -6,6 +6,7 @@
 
 #include "Steps.h"
 #include "Piece.h"
+#include "SetOf.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -22,11 +23,11 @@ int getUnitSize(int len) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char* stepToString(EPresence pc, const TPosition* pos, int path, EOrientation or) {
+char* stepToString(EPresence pc, const TPosition* pos, const char* path, EOrientation or) {
    char* step = (char*)malloc(STEP_SIZE + maxPathLength);
    sprintf(step, 
            "%c%1d%1d%1d%s%02d", 
-           GLYPH(pc), pos[eX], pos[eY], pos[eZ], pieces[pc][path], or);
+           GLYPH(pc), pos[eX], pos[eY], pos[eZ], path, or);
    return step;
 }
 
@@ -54,13 +55,8 @@ void catSteps(char** steps, ERotation rot, TSetOfReflectionPlanes sorp, const ch
       strrot = rotationToString(rot);
       lenrot = strlen(strrot) + 1;
    }
-   char sorpBuf[SORP_BUF_SIZE];
-   const char* strsorp = "";
-   int lensorp = 0;
-   if (sorp) {
-      strsorp = sorpToString(sorpBuf, sorp);
-      lensorp = strlen(strsorp) + 1;
-   }
+   char* strsorp = setToString(sorp, orToString);
+   int lensorp = strlen(strsorp) + 1;
    // add 3 for "; " and terminator
    *steps = (char*)realloc(*steps, getUnitSize(lensteps + 3 + lenrot + lensorp + strlen(newsteps)));
    char* addsteps = *steps + lensteps;
@@ -77,6 +73,7 @@ void catSteps(char** steps, ERotation rot, TSetOfReflectionPlanes sorp, const ch
       *(addsteps - 1) = ' ';
    }
    strcpy(addsteps, newsteps);
+   free(strsorp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -6,12 +6,10 @@
 #ifndef SolveH
 #define SolveH
 
-#include "Orientation.h"
-#include "Piece.h"
-#include "Topics.h"
+#include "Presence.h"
+#include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(EPresence pc, int useOnce, TSetOfTopics);
-void testOrientations(EPresence, TPath, TSetOfOrientations);
+int solve(EPresence pc, int useOnce, TSet);
 
 #endif

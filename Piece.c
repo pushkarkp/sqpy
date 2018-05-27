@@ -7,7 +7,9 @@
 #include "Piece.h"
 #include "PathState.h"
 #include "Move.h"
+#include "Steps.h"
 #include "Display.h"
+#include "SetOf.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,8 +18,6 @@
 
 static const char const* ERROR_NO_PATH = "no path";
 static const char const* ERROR_BAD_CHAR = "bad character '%c' in path \"%s\"";
-
-TPath testPath = ".a.A";
 
 static int maxPieces = 0;
 int maxPathCount = 0;
@@ -28,13 +28,13 @@ int pieceCount = 1;
 int* pieceMaxInstances = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
-int* dupPieceInstanceCounts(int* instances) {
-   return memcpy((int*)malloc(pieceCount * sizeof(int)),
-                 instances, pieceCount);
+int* pcDupInstanceCounts(int* instances) {
+   int size = pieceCount * sizeof(int);
+   return memcpy((int*)malloc(size), instances, size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int sumPieceInstanceCounts(int* instances) {
+int pcSumInstanceCounts(int* instances) {
    int sum = 0;
    int pc;
    for (pc = eFirstPiece; pc < pieceCount; ++pc) {
@@ -66,7 +66,7 @@ TPiece addPiece(int pathCount, int times) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char* getPiece(int pathCount, const char** argv) {
+char* pcRead(int pathCount, const char** argv) {
    int times = strtol(argv[pathCount - 1], 0, 10);
    if (times > 0 || isdigit(argv[pathCount - 1][0])) {
       --pathCount;
@@ -103,7 +103,7 @@ char* getPiece(int pathCount, const char** argv) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int walk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace* sp) {
+int pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace* sp) {
    TPosition ps[ePositionStores][eDimensions] = {{-1, -1, -1}, {-1, -1, -1}};
    TPosition pos[eDimensions];
    POS_COPY(pos, p);
@@ -124,3 +124,89 @@ int walk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace* 
    }
    return 1;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+int pathOrientation(int display, EPresence pc, TPath path, TSetOfOrientations soor) {
+   if (pc == eAbsent) {
+      pc = eFirstPiece;
+   }
+   TPlace* sp = SP_NEW(1);
+   TPosition pos[eDimensions] = {spHeight / 2, spHeight / 2, spHeight / 2};
+   EOrientation or;
+   for (or = 0; or < eOrientations; ++or) {
+      if (soor != 0 && !SET_HAS(soor, or)) {
+         continue;
+      }
+      spInitCube(sp); 
+      SP_SET(sp, pc, pos);
+      if (!pcWalk(pc, path, or, pos, sp)) {
+         free(sp);
+         return 0;
+      }
+      if (display) {
+         printf("%s %s%s", stepToString(pc, pos, path, or), orToString(or), EOL); 
+         displayWide(eCube, sp);
+      }
+   }
+   free(sp);
+   return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void pcSetHeightForPath(TPath path, TSetOfOrientations soor) {
+   while (!pathOrientation(0, eAbsent, path, soor)) {
+      spSetHeight(spHeight + 1);
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void pcSetHeight() {
+  spSetHeight(1);
+  int pc;
+  for (pc = eFirstPiece; pc < pieceCount; ++pc) {
+      int p;
+      for (p = 0; pieces[pc][p]; ++p) {
+         pcSetHeightForPath(pieces[pc][p], 0);
+      }
+   }
+   initDisplay(-1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void testOrientations(EPresence pcStart, EPresence pcEnd, TSetOfOrientations soor) {
+   EPresence pc;
+   for (pc = pcStart; pc < pcEnd; ++pc) {
+      int p;
+      for (p = 0; pieces[pc][p]; ++p) {
+         pcSetHeightForPath(pieces[pc][p], soor);
+      }
+   }
+   initDisplay(-1);
+   for (pc = pcStart; pc < pcEnd; ++pc) {
+      int p;
+      for (p = 0; pieces[pc][p]; ++p) {
+         pathOrientation(1, pc, pieces[pc][p], soor);
+      }
+   }
+   displayWide(eCube, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void pcTestOrientations(EPresence pc, int path, TSetOfOrientations soor) {
+   printf("piece: %s path: %s%s", pc ? presToString(pc) : "all", path > -1 ? pieces[pc][path] : "all", EOL);
+   pcSetHeight(1);
+   if (path == -1) {
+      EPresence pcStart = pc ? pc : eFirstPiece;
+      EPresence pcEnd = pc ? pc + 1: pieceCount;
+      testOrientations(pcStart, pcEnd, soor);
+   }  else {
+      if (pc == eAbsent) {
+         pc = eFirstPiece;
+      }
+      pcSetHeightForPath(pieces[pc][path], soor);
+      initDisplay(-1);
+      pathOrientation(1, pc, pieces[pc][path], soor);
+   }
+   displayWide(eCube, 0);
+}
+

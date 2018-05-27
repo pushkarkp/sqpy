@@ -6,43 +6,30 @@
 
 #include "Symmetry.h"
 #include "SetOf.h"
+#include "Display.h"
 
+#include <stdio.h>
 #include <string.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* rotationToString(ERotation rot) {
+const char* rotationToString(int rot) {
    switch (rot) {
       case e0: return "0";
       case e180: return "180";
       case e90: return "90";
-      default: return "unknown rotation";
+      default: return "unknown";
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* sorpToString(char* buf, TSetOfReflectionPlanes sorp) {
-   if (!sorp) {
-      return "none";
+const char* reflectionPlaneToString(int rp) { 
+   switch (rp) {
+      case e100Reflection: return "100";
+      case e010Reflection: return "010";
+      case e110Reflection: return "110";
+      case e1T0Reflection: return "1T0";
+      default: return "unknown";
    }
-   if (sorp > 15) {
-      return "unknown plane";
-   }
-   *buf = 0;
-   const char* sep = "";
-   int i;
-   for (i = 0; i < eReflectionPlanes; ++i) {
-      if (SET_HAS(sorp, i)) {
-         strcat(buf, sep);
-         sep = " ";
-         switch (i) {
-            case e100Reflection: strcat(buf, "100"); break;
-            case e010Reflection: strcat(buf, "010"); break;
-            case e110Reflection: strcat(buf, "110"); break;
-            case e1T0Reflection: strcat(buf, "1T0"); break;
-         }
-      }
-   }
-   return buf;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,9 +47,9 @@ TSetOfOrientations rotateSkip(ERotation rot) {
          e1T0XPlusPlus), e1T0XMinusPlus), e1T0XPlusMinus), e1T0XMinusMinus);
    switch (rot) {
       case e90:
-         return ~soo90 & SET_ALL(eOrientations);
+         return ~soo90 & SET_ALL_OF(eOrientations);
       case e180:
-         return ~soo180 & SET_ALL(eOrientations);
+         return ~soo180 & SET_ALL_OF(eOrientations);
       case e0:
       default:
          return 0;
@@ -131,3 +118,32 @@ TSetOfReflectionPlanes onPlanes(const TPosition* p) {
    }
    return sorp;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void showOrientationsSymmetry(TSetOfOrientations soor) {
+   printf("Orientation    Symmetry%s", EOL);
+   TSetOfOrientations skip90 = rotateSkip(e90);
+   TSetOfOrientations skip180 = rotateSkip(e180);
+   TSetOfOrientations skip100 = reflectSkip(SET_WITH(0, e100Reflection));
+   TSetOfOrientations skip010 = reflectSkip(SET_WITH(0, e010Reflection));
+   TSetOfOrientations skip110 = reflectSkip(SET_WITH(0, e110Reflection));
+   TSetOfOrientations skip1T0 = reflectSkip(SET_WITH(0, e1T0Reflection));
+   EOrientation or;
+   for (or = 0; or < eOrientations; ++or) {
+      if (soor != 0 && !SET_HAS(soor, or)) {
+         continue;
+      }
+      const char* isSkip = (SET_HAS(skip90, or) || SET_HAS(skip180, or) 
+                         || SET_HAS(skip100, or) || SET_HAS(skip010, or) 
+                         || SET_HAS(skip110, or) || SET_HAS(skip1T0, or)) ? "" : "no ";
+      printf("%s (%s%s%s%s%s%s%sskip)%s", orToString(or), isSkip, 
+               SET_HAS(skip90, or) ? "90 " : "",
+               SET_HAS(skip180, or) ? "180 " : "",
+               SET_HAS(skip100, or) ? "100 " : "",
+               SET_HAS(skip010, or) ? "010 " : "",
+               SET_HAS(skip110, or) ? "110 " : "",
+               SET_HAS(skip1T0, or) ? "1T0 " : "",
+               EOL);
+   }
+}
+
