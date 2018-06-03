@@ -7,13 +7,13 @@
 #define PieceH
 
 #include "Presence.h"
+#include "Path.h"
 #include "SquarePyramid.h"
 #include "Position.h"
 #include "Orientation.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-typedef const char* TPath;
-typedef const char** TPiece;
+typedef TPath* TPiece;
 extern TPath testPath;
 extern const TPiece* pieces;
 extern int pieceCount;
@@ -22,6 +22,7 @@ extern int* pieceMaxInstances;
 
 ///////////////////////////////////////////////////////////////////////////////
 char* pcRead(int, const char**);
+TPiece pcCreate(TPath path);
 
 int pcWalk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
 int* pcDupInstanceCounts(int*);

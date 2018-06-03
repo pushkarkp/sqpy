@@ -72,8 +72,7 @@ int search(EPresence pc, int* use, const TPosition* pos, const char* steps, TPla
          if (skip && SET_HAS(skip, or)) {
             continue;
          }
-         const TOrient* por = &orients[or];
-         if (!repeat[pc][path][por->align][por->fwd[eY]][por->fwd[eX]]
+         if (!SET_HAS(repeat[pc][path], or & OR_ON_PLANE_MASK)
           && pcWalk(eAbsent, pieces[pc][path], or, pos, sp)) {
             spCopy(newsp, sp);
             SP_SET(newsp, pc, pos);

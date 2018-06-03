@@ -44,6 +44,43 @@ int pcSumInstanceCounts(int* instances) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+TPiece pcCreate(TPath path) {
+   const int len = strlen(path);
+   if (len < 1) {
+      return 0;
+   }
+   if (pathDotCount(path) & 1) {
+printf("path '%s' contains an odd number of dots\r\n", path);
+      return 0;
+   }
+   int maxpaths = 8;
+   char** piece = (char**)malloc(maxpaths * sizeof(char*));
+   int newpaths = 0;
+   piece[newpaths++] = strdup(path);
+   printf("%s\r\n", piece[newpaths - 1]);
+   piece[newpaths++] = pathStartReversal(path);
+   printf("%s\r\n", piece[newpaths - 1]);
+   while (!pathRemoveBothEndDots(piece[newpaths - 1])) {
+      piece[newpaths] = pathNextReversal(piece[newpaths - 1]);
+      if (piece[newpaths] == 0) {
+         return 0;
+      }
+      printf("%s\r\n", piece[newpaths]);
+      ++newpaths;
+      if (newpaths > maxpaths) {
+         maxpaths *= 2;
+         piece = (char**)realloc(piece, maxpaths * sizeof(char*));
+      }
+   }
+   piece[newpaths] = 0;
+   int i;
+   for (i = 0; piece[i]; ++i) {
+      printf("%d %s\r\n", i, piece[i]);
+   }
+   return (TPiece)piece;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 TPiece addPiece(int pathCount, int times) {
    if (pieceCount >= maxPieces) {
       maxPieces = maxPieces ? maxPieces * 2 : 4;
@@ -110,10 +147,10 @@ int pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace
    for (; *path; ++path) {
       path = psRead(pos, path, ps);
       const TMove* pmove;
-      int count = charToMove(&pmove, *path, or);
+      int count = moveFromChar(&pmove, *path, or);
       int i;
       for (i = 0; i < count; ++i) {
-         step(pos, pmove);
+         moveStep(pos, pmove);
          if (SP_GET(pos, sp) != eAbsent) {
             return 0;
          }
@@ -209,4 +246,3 @@ void pcTestOrientations(EPresence pc, int path, TSetOfOrientations soor) {
    }
    displayWide(eCube, 0);
 }
-

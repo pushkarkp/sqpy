@@ -11,11 +11,11 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef int TMove;
+#define MOVE_BUF_SIZE 16
 const char* moveToString(char*, const TMove*);
 
 ///////////////////////////////////////////////////////////////////////////////
-#define MOVE_BUF_SIZE 16
-int charToMove(const TMove**, int, EOrientation);
-void step(TPosition*, const TMove*);
+int moveFromChar(const TMove**, int, EOrientation);
+void moveStep(TPosition*, const TMove*);
 
 #endif

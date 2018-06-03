@@ -5,6 +5,7 @@
  */
 
 #include "Move.h"
+#include "Path.h"
 #include "Display.h"
 
 #include <stdlib.h>
@@ -51,38 +52,21 @@ const char* moveToString(char* buf, const TMove* m) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Converts one char from a path to a move.
-// lower case -> given axis, upper -> other axis
-// [Aa].. is positive, ..[Zz] is negative
-int charToMove(const TMove** pmove, int c, EOrientation or) {
-// bit distinguishing upper and lower case
-#define SHIFT 0x20
-// last before 'a'
-#define BELOW '`'
-// first after 'z'
-#define ABOVE '{'
+int moveFromChar(const TMove** pmove, int c, EOrientation or) {
    const TOrient* por = &orients[or];
    EDimension dim = por->align;
-   if (c <= 'Z') {
-      // upper case -> other axis
+   if (PATH_STEP_IS_SIDEWAYS(c)) {
       dim = INVERT_DIM(dim);
    } 
-//printf("charToMove %c por->plane %s dim %s ", c, planeToString(por->plane), dimToString(dim));
-   // henceforth ignore case (use lower)
-   c |= SHIFT;
-   // convert char to the distance from nearest end of the alphabet
-   int count = c - ((c < 'n') ? BELOW : ABOVE);
+   int advance = PATH_STEP_ADVANCE(c);
    // minus reverses sign
    int sign = SIGN_AS_INT(por->fwd[dim]);
-   *pmove = moves[por->plane][dim][(sign * count) < 0 ? eMinus : ePlus];
-//char buf[MOVE_BUF_SIZE];
-//printf("count %d sign %d (sign * count) ? %s %s%s", 
-//       count, sign, signToString((sign * count) < 0 ? eMinus : ePlus), moveToString(buf, *pmove), EOL);
-   return abs(count);
+   *pmove = moves[por->plane][dim][(sign * advance) < 0 ? eMinus : ePlus];
+   return abs(advance);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void step(TPosition* p, const TMove* m) {
+void moveStep(TPosition* p, const TMove* m) {
    int i;
    for (i = 0; i < eDimensions; ++i) {
       p[i] += m[i];

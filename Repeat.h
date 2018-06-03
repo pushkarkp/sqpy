@@ -7,11 +7,13 @@
 #define RepeatH
 
 #include "Position.h"
+#include "Orientation.h"
+#include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-// Whether a piece path at an orientation repeats a previous path orientation.
-typedef char TPathRepeat[e2dDimensions][eSigns][eSigns];
-extern TPathRepeat** repeat;
+// Whether a piece's path at an orientation on the plane 
+// repeats a previous path orientation.
+extern TSet** repeat;
 void findRepeat();
 
 #endif

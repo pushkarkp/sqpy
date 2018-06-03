@@ -20,6 +20,8 @@ typedef enum {
 } EOrientation;
 const char* orToString(int);
 typedef int TSetOfOrientations;
+#define OR_ON_PLANE 8
+#define OR_ON_PLANE_MASK (OR_ON_PLANE - 1)
 TSetOfOrientations matchOrientation(const char*);
 
 ///////////////////////////////////////////////////////////////////////////////
