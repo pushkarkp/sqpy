@@ -206,8 +206,8 @@ int getOptions(const char** argv) {
          break;
       }
       case 'p': {
-//         pcCreate(getMandatory(getOptionValue(&i, argv), argv[i][1]));
-//         exit(0);
+         pcCreate(getMandatory(getOptionValue(&i, argv), argv[i][1]));
+         exit(0);
          int len = getNextOptionOffset(argv + i) - 1;
          char* err = pcRead(len, argv + i + 1);
          if (err) {

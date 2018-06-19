@@ -49,23 +49,48 @@ TPiece pcCreate(TPath path) {
    if (len < 1) {
       return 0;
    }
-   if (pathDotCount(path) & 1) {
-printf("path '%s' contains an odd number of dots\r\n", path);
+   if (!pathOk(path)) {
       return 0;
    }
+   const int pathDots = pathDotCount(path);
+   int repeatdots = 0;
+   int repeatdots1 = 0;
+printf("pcCreate(%s) %d dots\r\n", path, pathDots);
    int maxpaths = 8;
+   int skip = 0;
    char** piece = (char**)malloc(maxpaths * sizeof(char*));
    int newpaths = 0;
    piece[newpaths++] = strdup(path);
-   printf("%s\r\n", piece[newpaths - 1]);
-   piece[newpaths++] = pathStartReversal(path);
-   printf("%s\r\n", piece[newpaths - 1]);
    while (!pathRemoveBothEndDots(piece[newpaths - 1])) {
-      piece[newpaths] = pathNextReversal(piece[newpaths - 1]);
-      if (piece[newpaths] == 0) {
+      piece[newpaths] = pathNext(piece[newpaths - 1]);
+      if (skip) {
+         skip = 0;
+         --newpaths;
+printf("skip %s\r\n", piece[newpaths]);
+         free(piece[newpaths]);
+         piece[newpaths] = piece[newpaths + 1];
+      }
+      if (!piece[newpaths]) {
          return 0;
       }
-      printf("%s\r\n", piece[newpaths]);
+      int dots = pathDotCount(piece[newpaths]);
+      if (dots == pathDots) {
+//printf("%s dots (%d) == pathDots repeatdots %d\r\n", piece[newpaths], dots, repeatdots);
+         if (repeatdots == dots) {
+            if (strcmp(path, piece[newpaths])) {
+               return 0;
+            }
+            free(piece[newpaths]);
+            break;
+         }
+         ++repeatdots;
+      } else if (dots == pathDots + 1) {
+//printf("%s dots (%d) == pathDots + 1 repeatdots1 %d\r\n", piece[newpaths], dots, repeatdots1);
+         if (repeatdots1 != 0) {
+            skip = 1;
+         }
+         ++repeatdots1;
+      }
       ++newpaths;
       if (newpaths > maxpaths) {
          maxpaths *= 2;

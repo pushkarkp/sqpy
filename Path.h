@@ -18,9 +18,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef const char* TPath;
+int pathOk(TPath);
 int pathDotCount(TPath);
-char* pathStartReversal(TPath);
-char* pathNextReversal(TPath);
+char* pathNext(TPath);
 int pathRemoveBothEndDots(char*);
 
 #endif
