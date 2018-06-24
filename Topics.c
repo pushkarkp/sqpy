@@ -19,6 +19,7 @@ const char* displayTopicToString(int t) {
       case eDisplayPyramid: return "pyramid";
       case eDisplayOrder: return "order";
       case eDisplayOrientations: return "orientations";
+      case eDisplayPaths: return "paths";
       case eDisplayRepeat: return "repeats";
       case eDisplaySteps: return "steps";
       case eDisplayAdd: return "adding";
@@ -34,6 +35,7 @@ const char* displayTopicDescription(int t) {
       case eDisplayPyramid: return "Display the pyramid.";
       case eDisplayOrder: return "Display the order of the positions at which paths are started.";
       case eDisplayOrientations: return "Display the specified path in all orientations.";
+      case eDisplayPaths: return "Display the paths for each piece.";
       case eDisplayRepeat: return "Display each piece path orientation and whether it is a repeat.";
       case eDisplaySteps: return "Display the steps ";
       case eDisplayAdd: return "Display each unique solution as it is added.";
@@ -67,6 +69,6 @@ TSet matchDisplayTopics(const char* s) {
          sot = SET_WITH(sot, t);
       }
    }
-printf("%s %d%s", setToString(sot, displayTopicToString), setCount(sot), EOL);
+//printf("%s %d%s", setToString(sot, displayTopicToString), setCount(sot), EOL);
    return sot;
 }

@@ -21,7 +21,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 static const char const* ERR_OPEN = "failed to open file \"%s\"";
 static const char const* ERR_FILE = "file error";
-static const char const* ERR_BAD_LINE = "%s on line %d \"%s\"";
 static const char const* ERR_NO_ORIENT = "no orientation matched \"%s\"";
 static const char const* ERR_NO_TOPIC = "no display topic matched \"%s\"";
 static const char const* ERR_BAD_TOPIC = "more than one display topic matched \"%s\"";
@@ -33,7 +32,7 @@ static TSet soor = 0;
 static int pageWidth = 70;
 static TSet topics = 0;
 
-int getOptions(const char**);
+int getOptions(const char**, const char*);
 
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
@@ -81,18 +80,18 @@ const char* getOptionValue(int* pi, const char** argv) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* getMandatory(const char* v, char c) {
+const char* getMandatory(const char* v, char c, const char* prefix) {
    if (!v) {
-      printf("missing value for option '-%c'%s", c, EOL);
+      printf("%smissing value for option '-%c'%s", prefix?prefix:"", c, EOL);
       usage();
    }
    return v;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* getNumber(const char* v, char c) {
+const char* getNumber(const char* v, char c, const char* prefix) {
    if (v && !isdigit(v[0])) {
-      printf("value for option '-%c' is not a number%s", c, EOL);
+      printf("%svalue for option '-%c' is not a number%s", prefix?prefix:"", c, EOL);
       usage();
    }
    return v;
@@ -100,6 +99,7 @@ const char* getNumber(const char* v, char c) {
 
 ///////////////////////////////////////////////////////////////////////////////
 char* cutComment(char* line) {
+   for (; *line && isspace(*line); ++line) {}
    int i;
    for (i = 0; line[i]; ++i) {
       if (line[i] == '/' && line[i + 1] == '/') {
@@ -111,34 +111,36 @@ char* cutComment(char* line) {
 }
          
 ///////////////////////////////////////////////////////////////////////////////
-int toArgv(const char*** argv, char* line) {
+int toArgv(const char** argv, char* line, const char* opt) {
    int argc = 0;
+   if (opt) {
+      argv[argc++] = opt;
+   }
    int i;
    for (i = 0; line[i]; ++i) {
       if (isspace(line[i])) {
          line[i] = 0;
       } else if (i == 0 || line[i - 1] == 0) {
-         ++argc;
+         argv[argc++] = &line[i];
       }         
    }
-   if (argc == 0) {
-      *argv = 0;
-   } else {
-      *argv = (const char**)malloc((argc + 1) * sizeof(const char*));
-      int arg = 0;
-      if (argc) {
-         for (i = 0; ; ++i) {
-            if (line[i] && (i == 0 || line[i - 1] == 0)) {
-               (*argv)[arg++] = &line[i];
-               if (arg == argc) {
-                  break;
-               }
-            }
-         }
-      }
-      (*argv)[argc] = 0;
-   }
+   argv[argc] = 0;
    return argc;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int readPathArg(const char* path, const char* n, const char* prefix) {
+   if (!pathOk(path, prefix)) {
+      return 0;
+   }
+   TPiece pc = pcCreate(path);
+   if (!pc) {
+      printf("%sfailed to create paths from '%s'%s", prefix?prefix:"", path, EOL);
+      return 0;
+   }
+   int times = (n) ? strtol(n, 0, 10) : 1;
+   pcAdd(pc, times);
+   return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -152,30 +154,16 @@ char* read(const char* fname) {
    char lineBuf[MAX_LINE];
    int ln;
    for (ln = 1; fgets(lineBuf, MAX_LINE, f); ++ln) {
-      char* line = strdup(lineBuf);
-      cutComment(line);
-      const char** argv;
-      int argc = toArgv(&argv, line);
-      if (!argc) { 
-         continue;
-      }
-      if (argv[0][0] == '-') {
-         int ok = getOptions(argv);
-         free(argv);
-         free(line);
-         if (ok) {
-            continue;
-         }
-         return 0;
-      }
-      char* err = pcRead(argc, argv);
-      free(argv);
-      free(line);
-      if (err) {
-         char* buf = (char*)malloc((strlen(ERR_BAD_LINE) + strlen(err) + 4 + strlen(lineBuf)) * sizeof(char));
-         sprintf(buf, ERR_BAD_LINE, err, ln, lineBuf);
-         free(err);
-         return buf;
+      char prefix[16];
+      sprintf(prefix, "on line %d: ", ln);
+      char* line = lineBuf;
+      line = cutComment(line);
+      const char* opt = (line[0] && line[0] == '-') ? 0 : "-p";
+      const char* argv[16] = {0};
+      int argc = toArgv(argv, line, opt);
+      if ((argc > 1 || (argc && !opt)) 
+       && !getOptions(argv, prefix)) { 
+         break;
       }
    }
    if (!feof(f)) {
@@ -187,7 +175,7 @@ char* read(const char* fname) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int getOptions(const char** argv) {
+int getOptions(const char** argv, const char* prefix) {
    int i;
    for (i = 0; argv[i] != NULL && argv[i][0] == '-'; ++i) {
       switch (argv[i][1]) {
@@ -197,29 +185,24 @@ int getOptions(const char** argv) {
       }
       case 's': {
          showOrientationsSymmetry(0);
-         exit(0);
+         return 0;
       }
       case 'h': {
-         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1]), argv[i][1]);
+         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1], prefix), argv[i][1], prefix);
          spSetHeight(strtol(n, 0, 10));
          initDisplay(pageWidth);
          break;
       }
       case 'p': {
-         pcCreate(getMandatory(getOptionValue(&i, argv), argv[i][1]));
-         exit(0);
-         int len = getNextOptionOffset(argv + i) - 1;
-         char* err = pcRead(len, argv + i + 1);
-         if (err) {
-            printf("%s%s", err, EOL);
-            free(err);
+         const char* path = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
+         const char* n = getNumber(getOptionExtraValue(&i, argv), argv[i - 1][1], prefix);
+         if (!readPathArg(path, n, prefix)) {
             return 0;
          }
-         i += len;
          break;
       }
       case 'i': {
-         const char* n = getMandatory(getOptionValue(&i, argv), argv[i][1]);
+         const char* n = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
          pc = strtol(n, 0, 10);
          if (pc == 0 && n[0] != '0') {
             pc = PIECE(n[0]);
@@ -227,7 +210,7 @@ int getOptions(const char** argv) {
          break;
       }
       case 'a': {
-         const char* n = getMandatory(getOptionValue(&i, argv), argv[i][1]);
+         const char* n = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
          if (strtol(n, 0, 10) != 0 || n[0] == '0') {
             pathIndex = strtol(n, 0, 10);
          } else {
@@ -236,12 +219,12 @@ int getOptions(const char** argv) {
          break;
       }
       case '0': {
-         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1]), argv[i][1]);
+         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1], prefix), argv[i][1], prefix);
          soor = SET_WITH(soor, strtol(n, 0, 10));
          break;
       }
       case 'o': {
-         const char* v = getMandatory(getOptionValue(&i, argv), argv[i][1]);
+         const char* v = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
          TSetOfOrientations s = matchOrientation(v);
          if (setCount(s) == 0) {
             printf(ERR_NO_ORIENT, v);
@@ -252,7 +235,7 @@ int getOptions(const char** argv) {
          break;
       }
       case 'g': {
-         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1]), argv[i][1]);
+         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1], prefix), argv[i][1], prefix);
          pageWidth = strtol(n, 0, 10);
          initDisplay(pageWidth);
          break;
@@ -327,7 +310,7 @@ int main(int argc, const char** argv) {
          return 0;
       }
    }
-   if (!getOptions(&argv[i])) {
+   if (!getOptions(&argv[i], 0)) {
       return 0;
    }
    if (pieceCount == eFirstPiece) {
@@ -340,6 +323,10 @@ int main(int argc, const char** argv) {
    }
    if (SET_HAS(topics, eDisplaySettings)) {
       showOptions();
+   }
+   if (SET_HAS(topics, eDisplayPaths)) {
+      pcDisplayAll();
+      exit(0);
    }
    if (SET_HAS(topics, eDisplayPyramid)) {
       spTestPyramid();

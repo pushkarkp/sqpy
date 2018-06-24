@@ -25,23 +25,6 @@ int makeStep(int sideways, int advance) {
 #define ONE_MORE_THAN(c) makeStep(PATH_STEP_IS_SIDEWAYS(c), PATH_STEP_ADVANCE(c) + ONE_OF_ADVANCE(c))
 
 ///////////////////////////////////////////////////////////////////////////////
-int pathOk(TPath path) {
-   const int len = strlen(path);
-   if (len < 1) {
-      printf("empty path%s", EOL);
-      return 0;
-   }
-   int i;
-   for (i = 0; i < len; ++i) {
-      if (path[i] == '.' && path[i + 1] == '.') {
-         printf("path '%s' contains adjacent dots%s", path, EOL);
-         return 0;
-      }
-   }
-   return 1;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 void cut(int first, int count, char* path) {
 printf("cut(%d %d %s)%s", first, count, path, EOL);
    int len = strlen(path);
@@ -167,6 +150,34 @@ int pathRemoveBothEndDots(char* path) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+int pathOk(TPath path, const char* prefix) {
+   const int len = strlen(path);
+   if (len < 1) {
+      printf("%sempty path%s", prefix?prefix:"", EOL);
+      return 0;
+   }
+   if (pathDotCount(path) == 1) {
+      printf("%spath '%s' contains only one dot%s", prefix?prefix:"", path, EOL);
+      return 0;
+   }
+   int i;
+   for (i = 0; i < len; ++i) {
+      if (path[i] != '.'
+       && (path[i] < 'A' || path[i] > 'z'
+        || (path[i] > 'Z' && path[i] < 'a'))) {
+         printf("%spath '%s' contains illegal character '%c' (%d)%s", 
+                prefix?prefix:"", path, path[i], (int)path[i], EOL);
+         return 0;
+      }
+      if (path[i] == '.' && path[i + 1] == '.') {
+         printf("$spath '%s' contains adjacent dots%s", prefix?prefix:"", path, EOL);
+         return 0;
+      }
+   }
+   return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 char* startReversal(TPath path) {
 //printf("startReversal(%s)\r\n", path);
    char* newpath = (char*)malloc((strlen(path) + 4) * sizeof(char));
@@ -174,9 +185,17 @@ char* startReversal(TPath path) {
    newpath[1] = ONE_BACKWARDS_OF(path[0]);
    newpath[2] = '.';
    if (abs(PATH_STEP_ADVANCE(path[0])) == 1) {
-   newpath[3] = 0;
-printf("startReversal %s %s\r\n", newpath, path + 1);
-      strcpy(newpath + 2, path + 1);
+      if (path[1] == 0) {
+         newpath[0] = newpath[1];
+         newpath[1] = 0;
+//printf("startReversal %s\r\n", newpath);
+         return newpath;
+      }
+      newpath[3] = 0;
+//printf("startReversal %s %s -> ", newpath, path + 1);
+      int start = (path[1] == '.') ? 2 : 3;
+      strcpy(newpath + start, path + 1);
+//printf("%s\r\n", newpath);
       return newpath;
    }
    newpath[3] = ONE_LESS_THAN(path[0]);
@@ -186,7 +205,7 @@ printf("startReversal %s %s\r\n", newpath, path + 1);
 
 ///////////////////////////////////////////////////////////////////////////////
 char* pathNext(TPath path) {
-printf("pathNext(%s) %d dots\r\n", path, pathDotCount(path));
+printf("pathNext(%s)\r\n", path);
    if (path[0] != '.') {
       return startReversal(path);
    }

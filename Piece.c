@@ -44,18 +44,55 @@ int pcSumInstanceCounts(int* instances) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TPiece pcCreate(TPath path) {
-   const int len = strlen(path);
-   if (len < 1) {
-      return 0;
+int pcCountPaths(TPiece pc) {
+   int i;
+   int pathCount = 0;
+   for (i = 0; pc[i]; ++i) {
+      ++pathCount;
    }
-   if (!pathOk(path)) {
+   return pathCount;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void extendPieces(int pathCount) {
+   if (pathCount > maxPathCount) {
+      maxPathCount = pathCount;
+   }
+   if (pieceCount >= maxPieces) {
+      maxPieces = maxPieces ? maxPieces * 2 : 4;
+      pieces = (const TPiece*)realloc((TPiece*)pieces, maxPieces * sizeof(TPiece));
+      pieceMaxInstances = (int*)realloc(pieceMaxInstances, maxPieces * sizeof(int));
+      if (pieceCount == 1) {
+         // eAbsent
+         ((TPiece*)pieces)[0] = (const TPiece)malloc(sizeof(TPiece));
+         ((TPiece*)pieces)[0][0] = 0;
+         pieceMaxInstances[0] = 0;
+      }
+   }
+   ++pieceCount;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+char* pcCheckPath(TPath path) {
+   return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void pcAdd(TPiece pc, int times) {
+   extendPieces(pcCountPaths(pc));
+   ((TPiece*)pieces)[pieceCount - 1] = pc;
+   pieceMaxInstances[pieceCount - 1] = times;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TPiece pcCreate(TPath path) {
+   if (!pathOk(path, 0)) {
       return 0;
    }
    const int pathDots = pathDotCount(path);
    int repeatdots = 0;
    int repeatdots1 = 0;
-printf("pcCreate(%s) %d dots\r\n", path, pathDots);
+//printf("pcCreate(%s) %d dots\r\n", path, pathDots);
    int maxpaths = 8;
    int skip = 0;
    char** piece = (char**)malloc(maxpaths * sizeof(char*));
@@ -75,20 +112,32 @@ printf("skip %s\r\n", piece[newpaths]);
       }
       int dots = pathDotCount(piece[newpaths]);
       if (dots == pathDots) {
-//printf("%s dots (%d) == pathDots repeatdots %d\r\n", piece[newpaths], dots, repeatdots);
          if (repeatdots == dots) {
+printf("%s -> %s dots (%d) == pathDots == repeatdots, finished\r\n", piece[newpaths - 1], piece[newpaths], dots);
+            if (!dots) {
+               // accept a/A/z/Z -> z/Z/a/A
+               ++newpaths;
+            } else {
+               if (strcmp(path, piece[newpaths])) {
+                  return 0;
+               }
+               free(piece[newpaths]);
+            }
+            break;
+         }
+         ++repeatdots;
+      } else if (dots == pathDots + 1) {
+printf("%s dots (%d) == pathDots + 1 repeatdots1 %d\r\n", piece[newpaths], dots, repeatdots1);
+         if (repeatdots1 == dots) {
+printf("%s -> %s dots (%d) == pathDots + 1 == repeatdots1, finished\r\n", piece[newpaths - 1], piece[newpaths], dots);
             if (strcmp(path, piece[newpaths])) {
+printf("%s fail\r\n", piece[newpaths]);
                return 0;
             }
             free(piece[newpaths]);
             break;
          }
-         ++repeatdots;
-      } else if (dots == pathDots + 1) {
-//printf("%s dots (%d) == pathDots + 1 repeatdots1 %d\r\n", piece[newpaths], dots, repeatdots1);
-         if (repeatdots1 != 0) {
-            skip = 1;
-         }
+         skip = repeatdots1 != 0;
          ++repeatdots1;
       }
       ++newpaths;
@@ -98,32 +147,14 @@ printf("skip %s\r\n", piece[newpaths]);
       }
    }
    piece[newpaths] = 0;
-   int i;
-   for (i = 0; piece[i]; ++i) {
-      printf("%d %s\r\n", i, piece[i]);
-   }
    return (TPiece)piece;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 TPiece addPiece(int pathCount, int times) {
-   if (pieceCount >= maxPieces) {
-      maxPieces = maxPieces ? maxPieces * 2 : 4;
-      pieces = (const TPiece*)realloc((TPiece*)pieces, maxPieces * sizeof(TPiece));
-      pieceMaxInstances = (int*)realloc(pieceMaxInstances, maxPieces * sizeof(int));
-      if (pieceCount == 1) {
-         // eAbsent
-         ((TPiece*)pieces)[0] = (const TPiece)malloc(sizeof(TPiece));
-         ((TPiece*)pieces)[0][0] = 0;
-         pieceMaxInstances[0] = 0;
-      }
-   }
-   if (pathCount > maxPathCount) {
-      maxPathCount = pathCount;
-   }
-   ((TPiece*)pieces)[pieceCount] = (const TPiece)malloc((pathCount + 1) * sizeof(TPiece));
-   pieceMaxInstances[pieceCount] = times;
-   ++pieceCount;
+   extendPieces(pathCount);
+   ((TPiece*)pieces)[pieceCount - 1] = (const TPiece)malloc((pathCount + 1) * sizeof(TPiece));
+   pieceMaxInstances[pieceCount - 1] = times;
    return ((TPiece*)pieces)[pieceCount - 1];
 }
 
@@ -232,6 +263,24 @@ void pcSetHeight() {
       }
    }
    initDisplay(-1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void pcDisplay(TPiece p) {
+   int i;
+   for (i = 0; p[i]; ++i) {
+      printf("%s ", p[i]);
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void pcDisplayAll() {
+   int i;
+   // skip 0, the empty path
+   for (i = 1; i < pieceCount; ++i) {
+      pcDisplay(pieces[i]);
+      printf("%s", EOL);
+   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

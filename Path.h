@@ -18,7 +18,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef const char* TPath;
-int pathOk(TPath);
+int pathOk(TPath, const char* errorPrefix);
 int pathDotCount(TPath);
 char* pathNext(TPath);
 int pathRemoveBothEndDots(char*);

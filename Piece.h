@@ -22,11 +22,16 @@ extern int* pieceMaxInstances;
 
 ///////////////////////////////////////////////////////////////////////////////
 char* pcRead(int, const char**);
+char* pcCheckPath(TPath path);
 TPiece pcCreate(TPath path);
+void pcAdd(TPiece pc, int times);
 
 int pcWalk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
 int* pcDupInstanceCounts(int*);
 int pcSumInstanceCounts(int*);
+
+void pcDisplay(TPiece);
+void pcDisplayAll();
 
 void pcSetHeight();
 void pcTestOrientations(EPresence, int path, TSetOfOrientations);

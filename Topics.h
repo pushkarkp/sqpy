@@ -11,7 +11,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {
    eDisplaySettings, eDisplayPyramid, eDisplayOrder, eDisplayOrientations, 
-   eDisplayRepeat, eDisplaySteps, eDisplayAdd, eDisplaySymmetries, 
+   eDisplayPaths, eDisplayRepeat, eDisplaySteps, eDisplayAdd, eDisplaySymmetries, 
    eDisplayTopics
 } EDisplayTopic;
 #define ALL_TOPICS 0xff
