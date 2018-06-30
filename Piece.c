@@ -9,6 +9,7 @@
 #include "Move.h"
 #include "Steps.h"
 #include "Display.h"
+#include "Topics.h"
 #include "SetOf.h"
 
 #include <stdio.h>
@@ -89,32 +90,32 @@ TPiece pcCreate(TPath path) {
    if (!pathOk(path, 0)) {
       return 0;
    }
-   const int pathDots = pathDotCount(path);
-   int repeatdots = 0;
-   int repeatdots1 = 0;
-//printf("pcCreate(%s) %d dots\r\n", path, pathDots);
+   const int pathMarkers = pathMarkerCount(path);
+   int repeatmarkers = 0;
+   int repeatmarkers1 = 0;
+//printf("pcCreate(%s) %d markers\r\n", path, pathMarkers);
    int maxpaths = 8;
    int skip = 0;
    char** piece = (char**)malloc(maxpaths * sizeof(char*));
    int newpaths = 0;
    piece[newpaths++] = strdup(path);
-   while (!pathRemoveBothEndDots(piece[newpaths - 1])) {
+   while (!pathRemoveBothEndMarkers(piece[newpaths - 1])) {
       piece[newpaths] = pathNext(piece[newpaths - 1]);
       if (skip) {
          skip = 0;
          --newpaths;
-printf("skip %s\r\n", piece[newpaths]);
+//printf("skip %s\r\n", piece[newpaths]);
          free(piece[newpaths]);
          piece[newpaths] = piece[newpaths + 1];
       }
       if (!piece[newpaths]) {
          return 0;
       }
-      int dots = pathDotCount(piece[newpaths]);
-      if (dots == pathDots) {
-         if (repeatdots == dots) {
-printf("%s -> %s dots (%d) == pathDots == repeatdots, finished\r\n", piece[newpaths - 1], piece[newpaths], dots);
-            if (!dots) {
+      int markers = pathMarkerCount(piece[newpaths]);
+      if (markers == pathMarkers) {
+         if (repeatmarkers == markers) {
+//printf("%s -> %s markers (%d) == pathMarkers == repeatmarkers, finished\r\n", piece[newpaths - 1], piece[newpaths], markers);
+            if (!markers) {
                // accept a/A/z/Z -> z/Z/a/A
                ++newpaths;
             } else {
@@ -125,20 +126,20 @@ printf("%s -> %s dots (%d) == pathDots == repeatdots, finished\r\n", piece[newpa
             }
             break;
          }
-         ++repeatdots;
-      } else if (dots == pathDots + 1) {
-printf("%s dots (%d) == pathDots + 1 repeatdots1 %d\r\n", piece[newpaths], dots, repeatdots1);
-         if (repeatdots1 == dots) {
-printf("%s -> %s dots (%d) == pathDots + 1 == repeatdots1, finished\r\n", piece[newpaths - 1], piece[newpaths], dots);
+         ++repeatmarkers;
+      } else if (markers == pathMarkers + 1) {
+//printf("%s markers (%d) == pathMarkers + 1 repeatmarkers1 %d\r\n", piece[newpaths], markers, repeatmarkers1);
+         if (repeatmarkers1 == markers) {
+//printf("%s -> %s markers (%d) == pathMarkers + 1 == repeatmarkers1, finished\r\n", piece[newpaths - 1], piece[newpaths], markers);
             if (strcmp(path, piece[newpaths])) {
-printf("%s fail\r\n", piece[newpaths]);
+//printf("%s fail\r\n", piece[newpaths]);
                return 0;
             }
             free(piece[newpaths]);
             break;
          }
-         skip = repeatdots1 != 0;
-         ++repeatdots1;
+         skip = repeatmarkers1 != 0;
+         ++repeatmarkers1;
       }
       ++newpaths;
       if (newpaths > maxpaths) {
@@ -196,7 +197,7 @@ char* pcRead(int pathCount, const char** argv) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace* sp) {
+EPresence pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace* sp) {
    TPosition ps[ePositionStores][eDimensions] = {{-1, -1, -1}, {-1, -1, -1}};
    TPosition pos[eDimensions];
    POS_COPY(pos, p);
@@ -207,19 +208,21 @@ int pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace
       int i;
       for (i = 0; i < count; ++i) {
          moveStep(pos, pmove);
-         if (SP_GET(pos, sp) != eAbsent) {
-            return 0;
+         EPresence ePresence = SP_GET(pos, sp);
+         if (ePresence != eAbsent) {
+            //printf("%s %d: %c%s", path, i, GLYPH(ePresence), EOL);
+            return ePresence;
          }
          if (pc != eAbsent) {
             SP_SET(sp, pc, pos);
          }
       }
    }
-   return 1;
+   return eAbsent;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int pathOrientation(int display, EPresence pc, TPath path, TSetOfOrientations soor) {
+int pcPathOrientation(TSet topics, EPresence pc, TPath path, TSetOfOrientations soor) {
    if (pc == eAbsent) {
       pc = eFirstPiece;
    }
@@ -232,13 +235,26 @@ int pathOrientation(int display, EPresence pc, TPath path, TSetOfOrientations so
       }
       spInitCube(sp); 
       SP_SET(sp, pc, pos);
-      if (!pcWalk(pc, path, or, pos, sp)) {
+      EPresence p = pcWalk(pc, path, or, pos, sp);
+      if (p != eAbsent) {
+         printf("%s: %c%s", path, GLYPH(p), EOL);
+         display1Plane(spHeight / 2, sp);
          free(sp);
          return 0;
       }
-      if (display) {
-         printf("%s %s%s", stepToString(pc, pos, path, or), orToString(or), EOL); 
-         displayWide(eCube, sp);
+      if (SET_HAS(topics, eTopicOrientations)
+       || SET_HAS(topics, eTopicSteps)) {
+         if (SET_HAS(topics, eTopicSteps)) {
+            printf("%s ", stepToString(pc, pos, path, or)); 
+         }
+         if (SET_HAS(topics, eTopicOrientations)) {
+            printf("%s", orToString(or)); 
+          }
+         printf("%s", EOL); 
+      }
+      if (SET_HAS(topics, eTopicPaths)) {
+         display1Plane(spHeight / 2, sp);
+         printf("%s", EOL);
       }
    }
    free(sp);
@@ -247,7 +263,7 @@ int pathOrientation(int display, EPresence pc, TPath path, TSetOfOrientations so
 
 ///////////////////////////////////////////////////////////////////////////////
 void pcSetHeightForPath(TPath path, TSetOfOrientations soor) {
-   while (!pathOrientation(0, eAbsent, path, soor)) {
+   while (!pcPathOrientation(0, eAbsent, path, soor)) {
       spSetHeight(spHeight + 1);
    }
 }
@@ -296,7 +312,7 @@ void testOrientations(EPresence pcStart, EPresence pcEnd, TSetOfOrientations soo
    for (pc = pcStart; pc < pcEnd; ++pc) {
       int p;
       for (p = 0; pieces[pc][p]; ++p) {
-         pathOrientation(1, pc, pieces[pc][p], soor);
+         pcPathOrientation(1, pc, pieces[pc][p], soor);
       }
    }
    displayWide(eCube, 0);
@@ -316,7 +332,7 @@ void pcTestOrientations(EPresence pc, int path, TSetOfOrientations soor) {
       }
       pcSetHeightForPath(pieces[pc][path], soor);
       initDisplay(-1);
-      pathOrientation(1, pc, pieces[pc][path], soor);
+      pcPathOrientation(1, pc, pieces[pc][path], soor);
    }
    displayWide(eCube, 0);
 }

@@ -1,7 +1,7 @@
 /**
  * Copyright 2018 Pushkar Piggott
  *
- * Topics.c
+ * Topics.h
  */
 #ifndef TopicsH
 #define TopicsH
@@ -10,10 +10,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {
-   eDisplaySettings, eDisplayPyramid, eDisplayOrder, eDisplayOrientations, 
-   eDisplayPaths, eDisplayRepeat, eDisplaySteps, eDisplayAdd, eDisplaySymmetries, 
-   eDisplayTopics
-} EDisplayTopic;
+   eTopicSettings, eTopicPyramid, eTopicOrder, eTopicOrientations, 
+   eTopicPaths, eTopicRepeat, eTopicSteps, eTopicAdd, eTopicSymmetries, 
+   eTopics
+} ETopic;
 #define ALL_TOPICS 0xff
 
 ///////////////////////////////////////////////////////////////////////////////

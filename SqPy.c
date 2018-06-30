@@ -37,8 +37,8 @@ int getOptions(const char**, const char*);
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("sqpy [<file>] [-u] [-h <height>] [-p <paths> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
-   printf(" <file>                    file contains arguments and one piece per line%s", EOL);
+   printf("sqpy [-f <file>] [-u] [-h <height>] [-p <paths> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
+   printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
    printf(" -u                        stop when pieces all used, even if space remains%s", EOL);
    printf(" -h <height>               the pyramid height%s", EOL);
    printf(" -p <paths> [<count>]      a piece%s", EOL);
@@ -133,6 +133,16 @@ int readPathArg(const char* path, const char* n, const char* prefix) {
    if (!pathOk(path, prefix)) {
       return 0;
    }
+
+   int height = spHeight;
+   spSetHeight(1);
+   pcSetHeightForPath(path, SET_WITH(0, e001XPlusPlus));
+   if (!pcPathOrientation(topics, pieceCount, path, SET_WITH(0, e001XPlusPlus))) {
+      printf("%spaths '%s' self-conflicts%s", prefix?prefix:"", path, EOL);
+      return 0;
+   }
+   spSetHeight(height);
+
    TPiece pc = pcCreate(path);
    if (!pc) {
       printf("%sfailed to create paths from '%s'%s", prefix?prefix:"", path, EOL);
@@ -179,6 +189,16 @@ int getOptions(const char** argv, const char* prefix) {
    int i;
    for (i = 0; argv[i] != NULL && argv[i][0] == '-'; ++i) {
       switch (argv[i][1]) {
+      case 'f': {
+         const char* fname = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
+         char* err = read(fname);
+         if (err) {
+            printf("%s%s", err, EOL);
+            free(err);
+            return 0;
+         }
+         break;
+      }
       case 'u': {
          useOnce = 1;
          break;
@@ -301,15 +321,6 @@ void showOptions() {
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, const char** argv) {
    int i = 1;
-   if (argv[i] && argv[i][0] != '-') {
-      char* err = read(argv[i]);
-      ++i;
-      if (err) {
-         printf("%s%s", err, EOL);
-         free(err);
-         return 0;
-      }
-   }
    if (!getOptions(&argv[i], 0)) {
       return 0;
    }
@@ -321,26 +332,26 @@ int main(int argc, const char** argv) {
       pcSetHeight();
       initDisplay(pageWidth);
    }
-   if (SET_HAS(topics, eDisplaySettings)) {
+   if (SET_HAS(topics, eTopicSettings)) {
       showOptions();
    }
-   if (SET_HAS(topics, eDisplayPaths)) {
+   if (SET_HAS(topics, eTopicPaths)) {
       pcDisplayAll();
       exit(0);
    }
-   if (SET_HAS(topics, eDisplayPyramid)) {
+   if (SET_HAS(topics, eTopicPyramid)) {
       spTestPyramid();
       exit(0);
    }
-   if (SET_HAS(topics, eDisplayOrder)) {
+   if (SET_HAS(topics, eTopicOrder)) {
       spTestOrder();
       exit(0);
    }
-   if (SET_HAS(topics, eDisplayOrientations)) {
+   if (SET_HAS(topics, eTopicOrientations)) {
       pcTestOrientations(pc, pathIndex, soor);
       exit(0);
    }
-   if (SET_HAS(topics, eDisplayRepeat)) {
+   if (SET_HAS(topics, eTopicRepeat)) {
       findRepeat(1);
       exit(0);
    }

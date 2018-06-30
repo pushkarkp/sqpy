@@ -43,7 +43,7 @@ TSetOfOrientations getSkip(int pc, const TPosition* p, TPlace* sp) {
       sorp &= spEqualReflect(sp, sp);
       skip |= reflectSkip(sorp);
    }
-   if (skip && SET_HAS(topics, eDisplaySymmetries)) {
+   if (skip && SET_HAS(topics, eTopicSymmetries)) {
       char posBuf[POS_BUF_SIZE];
       printf("Symmetries for %c at %s (%s axis)%s", 
              GLYPH(pc), posToString(posBuf, p), ON_AXIS(p) ? "on" : "off", EOL);
@@ -73,7 +73,7 @@ int search(EPresence pc, int* use, const TPosition* pos, const char* steps, TPla
             continue;
          }
          if (!SET_HAS(repeat[pc][path], or & OR_ON_PLANE_MASK)
-          && pcWalk(eAbsent, pieces[pc][path], or, pos, sp)) {
+          && pcWalk(eAbsent, pieces[pc][path], or, pos, sp) == eAbsent) {
             spCopy(newsp, sp);
             SP_SET(newsp, pc, pos);
             pcWalk(pc, pieces[pc][path], or, pos, newsp);
@@ -83,7 +83,7 @@ int search(EPresence pc, int* use, const TPosition* pos, const char* steps, TPla
             if (!solIsUniqueSymmetric(pcSumInstanceCounts(newuse), newsteps, newsp)) {
                continue;
             }
-            if (SET_HAS(topics, eDisplaySteps)) {
+            if (SET_HAS(topics, eTopicSteps)) {
                printf("%s%s", newsteps, EOL);
             }
             displayWide(ePyramid, newsp);

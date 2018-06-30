@@ -83,6 +83,12 @@ void display1(EDisplayShape shape, const TPlace* sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void display1Plane(int z, const TPlace* sp) {
+   int start = (spHeight + 1) * z + 1;
+   display1RowRange(eCube, start, start + spHeight, sp);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void display1RowRange(EDisplayShape shape, int row0, int row1, const TPlace* sp) {
    char* buf = malloc(spHeight + 1);
    const int r0 = (row0 > 0) ? row0 : 0;
@@ -124,11 +130,6 @@ int displayPageRowRange(EDisplayShape shape, int h, int row0, int row1, int n, c
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void displayWide(EDisplayShape shape, const TPlace* sp) {
-   displayWideRowRange(shape, 0, rows[shape], sp);
-}
-
-///////////////////////////////////////////////////////////////////////////////
 void displayWideRowRange(EDisplayShape shape, int r0, int r1, const TPlace* sp) {
    static TPlace* store = 0;
    static int stored = 0;
@@ -143,4 +144,15 @@ void displayWideRowRange(EDisplayShape shape, int r0, int r1, const TPlace* sp) 
       displayPageRowRange(shape, 1000, r0, r1, stored, store);
       stored = 0;
    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void displayWide(EDisplayShape shape, const TPlace* sp) {
+   displayWideRowRange(shape, 0, rows[shape], sp);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void displayWidePlane(int z, const TPlace* sp) {
+   int start = (spHeight + 1) * z + 1;
+   displayWideRowRange(eCube, start, start + spHeight, sp);
 }

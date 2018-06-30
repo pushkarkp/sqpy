@@ -15,15 +15,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 const char* displayTopicToString(int t) {
    switch (t) {
-      case eDisplaySettings: return "settings";
-      case eDisplayPyramid: return "pyramid";
-      case eDisplayOrder: return "order";
-      case eDisplayOrientations: return "orientations";
-      case eDisplayPaths: return "paths";
-      case eDisplayRepeat: return "repeats";
-      case eDisplaySteps: return "steps";
-      case eDisplayAdd: return "adding";
-      case eDisplaySymmetries: return "symmetries";
+      case eTopicSettings: return "settings";
+      case eTopicPyramid: return "pyramid";
+      case eTopicOrder: return "order";
+      case eTopicOrientations: return "orientations";
+      case eTopicPaths: return "paths";
+      case eTopicRepeat: return "repeats";
+      case eTopicSteps: return "steps";
+      case eTopicAdd: return "adding";
+      case eTopicSymmetries: return "symmetries";
       default: return "unknown";
    }
 }
@@ -31,15 +31,15 @@ const char* displayTopicToString(int t) {
 ///////////////////////////////////////////////////////////////////////////////
 const char* displayTopicDescription(int t) {
    switch (t) {
-      case eDisplaySettings: return "Display the setting values.";
-      case eDisplayPyramid: return "Display the pyramid.";
-      case eDisplayOrder: return "Display the order of the positions at which paths are started.";
-      case eDisplayOrientations: return "Display the specified path in all orientations.";
-      case eDisplayPaths: return "Display the paths for each piece.";
-      case eDisplayRepeat: return "Display each piece path orientation and whether it is a repeat.";
-      case eDisplaySteps: return "Display the steps ";
-      case eDisplayAdd: return "Display each unique solution as it is added.";
-      case eDisplaySymmetries: return "Display the symmetries found for each symmetrical partial solution.";
+      case eTopicSettings: return "Display the setting values.";
+      case eTopicPyramid: return "Display the pyramid.";
+      case eTopicOrder: return "Display the order of the positions at which paths are started.";
+      case eTopicOrientations: return "Display the specified path in all orientations.";
+      case eTopicPaths: return "Display the paths for each piece.";
+      case eTopicRepeat: return "Display each piece path orientation and whether it is a repeat.";
+      case eTopicSteps: return "Display the steps ";
+      case eTopicAdd: return "Display each unique solution as it is added.";
+      case eTopicSymmetries: return "Display the symmetries found for each symmetrical partial solution.";
       default: return "unknown";
    }
 }
@@ -47,14 +47,14 @@ const char* displayTopicDescription(int t) {
 ///////////////////////////////////////////////////////////////////////////////
 void describeDisplayTopics() {
    int maxlen = 0;
-   EDisplayTopic t;
-   for (t = 0; t < eDisplayTopics; ++t) {
+   ETopic t;
+   for (t = 0; t < eTopics; ++t) {
       int len = strlen(displayTopicToString(t));
       if (len > maxlen) {
          maxlen = len;
       }
    }
-   for (t = 0; t < eDisplayTopics; ++t) {
+   for (t = 0; t < eTopics; ++t) {
       printf(" %-*s %s%s", maxlen + 1, displayTopicToString(t), displayTopicDescription(t), EOL);
    }
 }
@@ -63,8 +63,8 @@ void describeDisplayTopics() {
 TSet matchDisplayTopics(const char* s) {
    int len = strlen(s);
    TSet sot = 0;
-   EDisplayTopic t;
-   for (t = 0; t < eDisplayTopics; ++t) {
+   ETopic t;
+   for (t = 0; t < eTopics; ++t) {
       if (0 == strncasecmp(displayTopicToString(t), s, len)) {
          sot = SET_WITH(sot, t);
       }

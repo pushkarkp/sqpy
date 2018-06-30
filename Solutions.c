@@ -196,10 +196,10 @@ int findUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    s = findSymmetricSp(&rot, &sorp, k, sp);
    if (s < sps_count[k]) {
       catSteps(&steps[k][s], rot, sorp, spsteps);
-      if (SET_HAS(topics, eDisplaySymmetries)) {
+      if (SET_HAS(topics, eTopicSymmetries)) {
          displayWide(ePyramid, 0);
          const char* strsteps =
-            SET_HAS(topics, eDisplaySteps)
+            SET_HAS(topics, eTopicSteps)
             ? steps[k][s] : "";
          printf("symmetric with existing (on left): k %d s %d %s%s", k, s, strsteps, EOL);
          displayWide(ePyramid, sps[k][s]);
@@ -233,7 +233,7 @@ int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) 
       sps[k] = (TPlace**)realloc(sps[k], max_sps[k] * spXYZ * sizeof(TPlace));
    }
    //printf("solAddUniqueSymmetric add: k %d i %d %s%s", k, s, spsteps, EOL);
-   if (SET_HAS(topics, eDisplayAdd)) {
+   if (SET_HAS(topics, eTopicAdd)) {
       printf("Add: %s%s", spsteps, EOL);
    }
    steps[k][s] = stepsCopy(spsteps);

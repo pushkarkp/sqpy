@@ -16,11 +16,13 @@ extern const char* eol[eEolTypes];
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {ePyramid, eCube, eDisplayShapes} EDisplayShape;
 void initDisplay(int pageWidth);
-void display1(EDisplayShape, const TPlace* sp);
 void display1RowRange(EDisplayShape, int r0, int r1, const TPlace* sp);
+void display1(EDisplayShape, const TPlace* sp);
+void display1Plane(int z, const TPlace* sp);
 int displayPage(EDisplayShape, int h, int n, const TPlace* sps);
 int displayPageRowRange(EDisplayShape, int h, int r0, int r1, int n, const TPlace* sps);
-void displayWide(EDisplayShape, const TPlace* sp);
 void displayWideRowRange(EDisplayShape, int r0, int r1, const TPlace* sp);
+void displayWide(EDisplayShape, const TPlace* sp);
+void displayWidePlane(int z, const TPlace* sp);
 
 #endif

@@ -11,6 +11,7 @@
 #include "SquarePyramid.h"
 #include "Position.h"
 #include "Orientation.h"
+#include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef TPath* TPiece;
@@ -26,7 +27,7 @@ char* pcCheckPath(TPath path);
 TPiece pcCreate(TPath path);
 void pcAdd(TPiece pc, int times);
 
-int pcWalk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
+EPresence pcWalk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
 int* pcDupInstanceCounts(int*);
 int pcSumInstanceCounts(int*);
 
@@ -34,5 +35,7 @@ void pcDisplay(TPiece);
 void pcDisplayAll();
 
 void pcSetHeight();
+void pcSetHeightForPath(TPath, TSetOfOrientations);
+int pcPathOrientation(TSet display, EPresence, TPath, TSetOfOrientations);
 void pcTestOrientations(EPresence, int path, TSetOfOrientations);
 #endif
