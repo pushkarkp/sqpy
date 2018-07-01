@@ -10,10 +10,14 @@
 #include "Piece.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-typedef enum{eDot, eComma, ePositionStores} EPositionStore;
+typedef enum{/*eAsterisk, ePlusSign, */eComma, eDash, eDot, eSlash, ePathMarkers} EPathMarker;
+//#define PATH_MARKERS "*+,-./"
+#define MIN_MARKER ','
+#define MAX_MARKER '/'
+#define IS_MARKER(c) (c >= MIN_MARKER && c <= MAX_MARKER)
+#define MARKER_INDEX(c) (c - MIN_MARKER)
 
-///////////////////////////////////////////////////////////////////////////////
-#define PS_INIT(ps) memset((ps), -1, sizeof(TPosition) * eDimensions * ePositionStores)
+#define PATH_MARKER_STORES {{-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}}
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* psRead(TPosition*, TPath, TPosition[][eDimensions]);

@@ -33,6 +33,10 @@ char* stepToString(EPresence pc, const TPosition* pos, const char* path, EOrient
 
 ///////////////////////////////////////////////////////////////////////////////
 char* catStep(const char* steps, char* step) {
+   if (!step) {
+      static int i = 0;
+      ++i;
+   }
    int lensteps = strlen(steps);
    if (!lensteps) {
       return step;

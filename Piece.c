@@ -198,7 +198,7 @@ char* pcRead(int pathCount, const char** argv) {
 
 ///////////////////////////////////////////////////////////////////////////////
 EPresence pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace* sp) {
-   TPosition ps[ePositionStores][eDimensions] = {{-1, -1, -1}, {-1, -1, -1}};
+   TPosition ps[ePathMarkers][eDimensions] = PATH_MARKER_STORES;
    TPosition pos[eDimensions];
    POS_COPY(pos, p);
    for (; *path; ++path) {
@@ -237,8 +237,10 @@ int pcPathOrientation(TSet topics, EPresence pc, TPath path, TSetOfOrientations 
       SP_SET(sp, pc, pos);
       EPresence p = pcWalk(pc, path, or, pos, sp);
       if (p != eAbsent) {
-         printf("%s: %c%s", path, GLYPH(p), EOL);
-         display1Plane(spHeight / 2, sp);
+         if (SET_HAS(topics, eTopicPaths)) {
+            printf("%s: %c%s", path, GLYPH(p), EOL);
+            display1Plane(spHeight / 2, sp);
+         }
          free(sp);
          return 0;
       }

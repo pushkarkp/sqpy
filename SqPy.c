@@ -37,11 +37,11 @@ int getOptions(const char**, const char*);
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("sqpy [-f <file>] [-u] [-h <height>] [-p <paths> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
+   printf("sqpy [-f <file>] [-u] [-h <height>] [-p <piece> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
    printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
    printf(" -u                        stop when pieces all used, even if space remains%s", EOL);
    printf(" -h <height>               the pyramid height%s", EOL);
-   printf(" -p <paths> [<count>]      a piece%s", EOL);
+   printf(" -p <piece> [<count>]      a piece (? for help)%s", EOL);
    printf(" -i <piece> (all)          the initial piece by letter or index%s", EOL);
    printf(" -a <path or index> (.a.A) the path to orient%s", EOL);
    printf(" -0 <orientation index>    the orientation to show the paths%s", EOL);
@@ -53,6 +53,27 @@ void usage() {
    printf("%s%s", str, EOL);
    free(str);
    exit(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void describePiece() {
+   printf("A piece is a series of adjacent locations in (x, y).%s", EOL);
+   printf("Letters specify the moves between the locations.%s", EOL);
+   printf("'a' is 1, 'b' is 2, etc, 'z' is -1, 'y' is -2, etc.%s", EOL);
+   printf("Lower case is horizontal (x), upper case is vertical (y).%s", EOL);
+   printf("For example, the following is specified by AbZ:%s", EOL);
+   printf(" `````%s", EOL);
+   printf(" `eee`%s", EOL);
+   printf(" `e`e`%s", EOL);
+   printf(" `````%s", EOL);
+   printf("A marker ('.' ',' or '-') can be used to fork.%s", EOL);
+   printf("It saves and then restores the current location.%s", EOL);
+   printf("For example the following is specified by a.a.A.Z:%s", EOL);
+   printf(" `````%s", EOL);
+   printf(" ``a``%s", EOL);
+   printf(" `aaa`%s", EOL);
+   printf(" ``a``%s", EOL);
+   printf(" `````%s", EOL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -215,6 +236,10 @@ int getOptions(const char** argv, const char* prefix) {
       }
       case 'p': {
          const char* path = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
+         if (path && path[0] == '?') {
+            describePiece();
+            return 0;
+         }
          const char* n = getNumber(getOptionExtraValue(&i, argv), argv[i - 1][1], prefix);
          if (!readPathArg(path, n, prefix)) {
             return 0;

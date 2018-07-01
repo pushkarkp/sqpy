@@ -11,18 +11,14 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 TPath psRead(TPosition* pos, TPath path, TPosition ps[][eDimensions]) {
-   EPositionStore eStore = ePositionStores;
-   switch (*path) {
-      case '.': eStore = eDot; break;
-      case ',': eStore = eComma; break;
-   }
-   if (eStore == ePositionStores) {
+   EPathMarker pm = MARKER_INDEX(*path);
+   if (pm < 0 || pm >= ePathMarkers) {
       return path;
    }
-   if (ps[eStore][eX] == -1) {
-      POS_COPY(ps[eStore], pos);
+   if (ps[pm][eX] == -1) {
+      POS_COPY(ps[pm], pos);
    } else {
-      POS_COPY(pos, ps[eStore]);
+      POS_COPY(pos, ps[pm]);
    }
    return path + 1;
 }

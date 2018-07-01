@@ -5,6 +5,7 @@
  */
 
 #include "Path.h"
+#include "PathState.h"
 #include "Display.h"
 #include "SetOf.h"
 
@@ -12,12 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define MIN_MARKER '*'
-#define MAX_MARKER '/'
 #define MARKER MAX_MARKER
-#define MARKER_AS_EL(c) (c - MIN_MARKER + 1)
-#define IS_MARKER(c) (c >= MIN_MARKER && c <= MAX_MARKER)
-
 #define ONE_OF_ADVANCE(c) (PATH_STEP_IS_FORWARD(c) ? 1 : -1)
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,11 +26,6 @@ int makeStep(int sideways, int advance) {
 #define ONE_BACKWARDS_OF(c) makeStep(PATH_STEP_IS_SIDEWAYS(c), -ONE_OF_ADVANCE(c))
 #define ONE_LESS_THAN(c) makeStep(PATH_STEP_IS_SIDEWAYS(c), PATH_STEP_ADVANCE(c) - ONE_OF_ADVANCE(c))
 #define ONE_MORE_THAN(c) makeStep(PATH_STEP_IS_SIDEWAYS(c), PATH_STEP_ADVANCE(c) + ONE_OF_ADVANCE(c))
-
-///////////////////////////////////////////////////////////////////////////////
-char* pathMarkers() {
-   return "*+,-.";
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 int pathMarkerCount(TPath path) {
@@ -53,8 +44,8 @@ int pathMarkCount(TPath path) {
    int markers = 0;
    int i;
    for (i = 0; path[i]; ++i) {
-      if (IS_MARKER(path[i]) && !SET_HAS(markers, MARKER_AS_EL(path[i]))) {
-         markers = SET_WITH(markers, MARKER_AS_EL(path[i]));
+      if (IS_MARKER(path[i]) && !SET_HAS(markers, MARKER_INDEX(path[i]))) {
+         markers = SET_WITH(markers, MARKER_INDEX(path[i]));
       }
    }
    return setCount(markers);
@@ -76,7 +67,7 @@ int pathOk(TPath path, const char* prefix) {
    int more = 0;;
    int i;
    for (i = 0; i < len; ++i) {
-      if ((path[i] < MIN_MARKER || path[i] >= MAX_MARKER)
+      if ((!IS_MARKER(path[i]) || path[i] == MAX_MARKER)
        && (path[i] < 'A' || path[i] > 'Z')
        && (path[i] < 'a' || path[i] > 'z')) {
          printf("%spath '%s' contains illegal character '%c' (%d)%s", 
@@ -94,11 +85,11 @@ int pathOk(TPath path, const char* prefix) {
                    prefix?prefix:"", path, path[i], path[i + 1], EOL);
             return 0;
          }
-         if (!SET_HAS(one, MARKER_AS_EL(path[i]))) {
-            one = SET_WITH(one, MARKER_AS_EL(path[i]));
+         if (!SET_HAS(one, MARKER_INDEX(path[i]))) {
+            one = SET_WITH(one, MARKER_INDEX(path[i]));
          } else 
-         if (!SET_HAS(more, MARKER_AS_EL(path[i]))) {
-            more = SET_WITH(more, MARKER_AS_EL(path[i]));
+         if (!SET_HAS(more, MARKER_INDEX(path[i]))) {
+            more = SET_WITH(more, MARKER_INDEX(path[i]));
          }
       } else if (path[i + 1] 
               && !IS_MARKER(path[i + 1])
@@ -108,10 +99,11 @@ int pathOk(TPath path, const char* prefix) {
          return 0;
       }
    }
-   for (i = 0; i < MAX_MARKER - MIN_MARKER; ++i) {
-      if (SET_HAS(one, 1 << i) && !SET_HAS(more, 1 << i)) {
+   int c;
+   for (c = MIN_MARKER; c < MAX_MARKER; ++c) {
+      if (SET_HAS(one, MARKER_INDEX(c)) && !SET_HAS(more, MARKER_INDEX(c))) {
          printf("%spath '%s' contains only one of '%c' marker%s", 
-                prefix?prefix:"", path, i + MIN_MARKER, EOL);
+                prefix?prefix:"", path, c, EOL);
          return 0;
       }
    }
