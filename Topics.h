@@ -11,15 +11,20 @@
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {
    eTopicSettings, eTopicPyramid, eTopicOrder, eTopicOrientations, 
-   eTopicPaths, eTopicRepeat, eTopicSteps, eTopicAdd, eTopicSymmetries, 
+   eTopicPaths, eTopicRepeat, eTopicSteps, eTopicSymmetries, 
+   eTopicSearch, eTopicAdd, eTopicProgress,
    eTopics
 } ETopic;
-#define ALL_TOPICS 0xff
+#define IS_TOPIC(t) SET_HAS(displayTopics(), t)
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* displayTopicToString(int);
 const char* displayTopicDescription(int);
-void describeDisplayTopics();
-TSet matchDisplayTopics(const char*);
+void displayTopicsDescribe();
+int displayTopicsAdd(const char*);
+int displayTopics();
+void displayTopicsNone();
+void displayTopicsAll();
+void displayTopicsRevert();
 
 #endif

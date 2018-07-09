@@ -20,8 +20,11 @@ typedef enum {
 } EOrientation;
 const char* orToString(int);
 typedef int TSetOfOrientations;
-#define OR_ON_PLANE 8
-#define OR_ON_PLANE_MASK (OR_ON_PLANE - 1)
+#define OR_001_OFFSET e001XPlusPlus
+#define OR_001_COUNT e110XPlusPlus
+#define OR_110_OFFSET OR_001_COUNT
+#define OR_1T0_OFFSET e1T0XPlusPlus
+#define OR_001_SET SET_ALL_OF(OR_001_COUNT)
 TSetOfOrientations matchOrientation(const char*);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,7 +35,6 @@ typedef struct {
 } TOrient;
 const char* orientToString(char*, const TOrient*);
 #define ORIENT_BUF_SIZE 36
-#define PLANE_ORIENTATIONS (eOrientations / ePlanes)
 
 ///////////////////////////////////////////////////////////////////////////////
 extern const TOrient orients[eOrientations];

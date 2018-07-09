@@ -19,6 +19,7 @@ extern TPath testPath;
 extern const TPiece* pieces;
 extern int pieceCount;
 extern int maxPathLength;
+extern int* pieceZeroInstances;
 extern int* pieceMaxInstances;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,14 +29,16 @@ TPiece pcCreate(TPath path);
 void pcAdd(TPiece pc, int times);
 
 EPresence pcWalk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
-int* pcDupInstanceCounts(int*);
-int pcSumInstanceCounts(int*);
+int* pcDupInstanceCounts(const int*);
+int pcSumInstanceCounts(const int*);
+TSet pcInstanceCountSet(const int*);
 
 void pcDisplay(TPiece);
 void pcDisplayAll();
 
 void pcSetHeight();
 void pcSetHeightForPath(TPath, TSetOfOrientations);
-int pcPathOrientation(TSet display, EPresence, TPath, TSetOfOrientations);
+int pcPathOrientation(EPresence, TPath, TSetOfOrientations);
 void pcTestOrientations(EPresence, int path, TSetOfOrientations);
+void pcRemovePath(int pc, int path);
 #endif

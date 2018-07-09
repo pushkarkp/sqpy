@@ -10,6 +10,6 @@
 #include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(EPresence pc, int useOnce, TSet);
+int solve(EPresence pc, int useOnce);
 
 #endif

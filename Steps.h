@@ -9,12 +9,13 @@
 #include "Presence.h"
 #include "Position.h"
 #include "Orientation.h"
-#include "Symmetry.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 char* stepToString(EPresence, const TPosition*, const char* path, EOrientation);
 char* catStep(const char* steps, char* step);
-void catSteps(char** steps, ERotation, TSetOfReflectionPlanes, const char* newsteps);
+void catSteps(char**, const char* strrot, const char* strsorp, const char*);
 char* stepsCopy(const char*);
+int stepsPieceCount(const char*);
+const char* stepsLast(const char*);
 
 #endif

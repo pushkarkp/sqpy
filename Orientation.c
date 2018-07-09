@@ -61,6 +61,8 @@ const char* orToString(int or) {
          return "1T0YPlusMinus";
       case e1T0YMinusMinus:
          return "1T0YMinusMinus";
+      default:
+         return "bad orientation";
    } 
 }
 

@@ -19,6 +19,7 @@ char* setToString(TSet, FSetElementToString);
 #define SET_ALL_OF(count) ((1 << (count)) - 1)
 #define SET_WITH(set, el) ((set) | (1 << (el)))
 #define SET_WITHOUT(set, el) ((set) & ~(1 << (el)))
-#define SET_HAS(set, el) ((set) & ((1 << el)))
+#define SET_HAS(set, el) ((set) & (1 << (el)))
+#define SET_NOT(set, count) (~(set) & SET_ALL_OF(count))
 
 #endif

@@ -30,7 +30,6 @@ static int pathIndex = -1;
 static TPath path = ".a.A";
 static TSet soor = 0;
 static int pageWidth = 70;
-static TSet topics = 0;
 
 int getOptions(const char**, const char*);
 
@@ -47,9 +46,9 @@ void usage() {
    printf(" -0 <orientation index>    the orientation to show the paths%s", EOL);
    printf(" -o <orientations match>   the orientations to show the paths%s", EOL);
    printf(" -g <page width> (70)      the width of the display page%s", EOL);
-   printf(" -d <topics>               display one or more topics (see below)%s", EOL);
+   printf(" -d <topics>               display one or more topics (see below,, ? for help)%s", EOL);
    printf("%sDisplay topics (any unique prefix matches):%s", EOL, EOL);
-   char* str = setToString(ALL_TOPICS, displayTopicToString);
+   char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString);
    printf("%s%s", str, EOL);
    free(str);
    exit(0);
@@ -58,22 +57,25 @@ void usage() {
 ///////////////////////////////////////////////////////////////////////////////
 void describePiece() {
    printf("A piece is a series of adjacent locations in (x, y).%s", EOL);
-   printf("Letters specify the moves between the locations.%s", EOL);
+   printf("A path uses letters to specify the moves between locations.%s", EOL);
    printf("'a' is 1, 'b' is 2, etc, 'z' is -1, 'y' is -2, etc.%s", EOL);
    printf("Lower case is horizontal (x), upper case is vertical (y).%s", EOL);
-   printf("For example, the following is specified by AbZ:%s", EOL);
+   printf("For example, \"AbZ\" specifies the following:%s", EOL);
    printf(" `````%s", EOL);
    printf(" `eee`%s", EOL);
    printf(" `e`e`%s", EOL);
    printf(" `````%s", EOL);
    printf("A marker ('.' ',' or '-') can be used to fork.%s", EOL);
    printf("It saves and then restores the current location.%s", EOL);
-   printf("For example the following is specified by a.a.A.Z:%s", EOL);
+   printf("For example, \"a.a.A.Z\" specifies the following:%s", EOL);
    printf(" `````%s", EOL);
    printf(" ``a``%s", EOL);
    printf(" `aaa`%s", EOL);
    printf(" ``a``%s", EOL);
    printf(" `````%s", EOL);
+   printf("A user path must start at an end, ie not with a marker.%s", EOL);
+   printf("Sqpy uses the extra marker ('/') for intermediate paths.%s", EOL);
+   printf("For example, \"/zZ/aZ\" starts 'e' above in the middle.%s", EOL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -158,8 +160,8 @@ int readPathArg(const char* path, const char* n, const char* prefix) {
    int height = spHeight;
    spSetHeight(1);
    pcSetHeightForPath(path, SET_WITH(0, e001XPlusPlus));
-   if (!pcPathOrientation(topics, pieceCount, path, SET_WITH(0, e001XPlusPlus))) {
-      printf("%spaths '%s' self-conflicts%s", prefix?prefix:"", path, EOL);
+   if (!pcPathOrientation(pieceCount, path, SET_WITH(0, e001XPlusPlus))) {
+      printf("%spath '%s' self-conflicts%s", prefix?prefix:"", path, EOL);
       return 0;
    }
    spSetHeight(height);
@@ -208,7 +210,7 @@ char* read(const char* fname) {
 ///////////////////////////////////////////////////////////////////////////////
 int getOptions(const char** argv, const char* prefix) {
    int i;
-   for (i = 0; argv[i] != NULL && argv[i][0] == '-'; ++i) {
+   for (i = 0; argv[i] && argv[i][0] == '-'; ++i) {
       switch (argv[i][1]) {
       case 'f': {
          const char* fname = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
@@ -286,17 +288,22 @@ int getOptions(const char** argv, const char* prefix) {
          break;
       }
       case 'd': {
+         int j = i;
+         const char* h = getOptionValue(&j, argv);
+         if (!strcmp(h, "?")) {
+            displayTopicsDescribe();
+            return 0;
+         }
          const char* v;
          while ((v = getOptionExtraValue(&i, argv)) != 0) {
-            TSet sot = matchDisplayTopics(v);
-            if (setCount(sot) != 1) {
-               printf(setCount(sot) == 0 ? ERR_NO_TOPIC : ERR_BAD_TOPIC, v);
-               char* str = setToString(ALL_TOPICS, displayTopicToString);
+            int t = displayTopicsAdd(v);
+            if (t != 1) {
+               printf(t == 0 ? ERR_NO_TOPIC : ERR_BAD_TOPIC, v);
+               char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString);
                printf("%sTopics available: %s%s", EOL, str, EOL);
                free(str);
                return 0;
             }
-            topics |= sot;
          }
          break;
       }
@@ -336,8 +343,8 @@ void showOptions() {
       free(str);
    }
    printf("page width %d%s", pageWidth, EOL);
-   if (topics) {
-      char* str = setToString(topics, displayTopicToString);
+   if (displayTopics() != 0) {
+      char* str = setToString(displayTopics(), displayTopicToString);
       printf("Topics: %s%s", str, EOL);
       free(str);
    }
@@ -357,30 +364,27 @@ int main(int argc, const char** argv) {
       pcSetHeight();
       initDisplay(pageWidth);
    }
-   if (SET_HAS(topics, eTopicSettings)) {
+   if (IS_TOPIC(eTopicSettings)) {
       showOptions();
    }
-   if (SET_HAS(topics, eTopicPaths)) {
-      pcDisplayAll();
-      exit(0);
-   }
-   if (SET_HAS(topics, eTopicPyramid)) {
+   if (IS_TOPIC(eTopicPyramid)) {
       spTestPyramid();
-      exit(0);
    }
-   if (SET_HAS(topics, eTopicOrder)) {
+   if (IS_TOPIC(eTopicOrder)) {
       spTestOrder();
-      exit(0);
    }
-   if (SET_HAS(topics, eTopicOrientations)) {
+   if (IS_TOPIC(eTopicPaths)) {
+      pcDisplayAll();
+   }
+   if (IS_TOPIC(eTopicOrientations)) {
       pcTestOrientations(pc, pathIndex, soor);
-      exit(0);
    }
-   if (SET_HAS(topics, eTopicRepeat)) {
+   if (IS_TOPIC(eTopicRepeat)) {
       findRepeat(1);
-      exit(0);
    }
-   findRepeat(0);
-   printf("Total solutions %d%s", solve(pc, useOnce, topics), EOL);
+   if (IS_TOPIC(eTopicSearch)) {
+      findRepeat(0);
+      printf("Total solutions %d%s", solve(pc, useOnce), EOL);
+   }
    return 0;
 }

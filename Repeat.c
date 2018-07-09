@@ -6,6 +6,7 @@
 
 #include "Repeat.h"
 #include "Piece.h"
+#include "Topics.h"
 #include "Display.h"
 
 #include <stdio.h>
@@ -20,10 +21,6 @@ void findRepeat(int displayRepeat) {
    int height = spHeight;
    pcSetHeight();
    initDisplay(-1);
-   const int level = spHeight + 1;
-   const int skip = (spHeight - 1) / 2;
-   const int startr = skip * level;
-   const int endr = (skip + 1) * level + 1;
    repeat = (TSet**)malloc(pieceCount * sizeof(TSet*));
    repeat[0] = 0;
    int maxSps = 4;
@@ -37,8 +34,10 @@ void findRepeat(int displayRepeat) {
       int path;
       for (path = 0; pieces[pc][path]; ++path) {
          repeat[pc][path] = 0;
+         int d = distinct;
          EOrientation or;
-         for (or = 0; or < OR_ON_PLANE; ++or) {
+         // test only 001 plane 
+         for (or = 0; or < OR_001_COUNT; ++or) {
             TPosition pos[eDimensions] = {spHeight / 2, spHeight / 2, spHeight / 2};
             while (distinct >= maxSps) {
                maxSps *= 2;
@@ -56,24 +55,36 @@ void findRepeat(int displayRepeat) {
             }
             if (displayRepeat) {
                if (eq == -1) {
-                  printf("%c %s %s: %d%s", GLYPH(pc), pieces[pc][path], orToString(or), distinct, EOL);
+                  printf("%c:%s:%s(%d)[%d]%s", GLYPH(pc), pieces[pc][path], orToString(or), or, distinct, EOL);
                } else {
-                  printf("(%c %s %s == %d)%s", GLYPH(pc), pieces[pc][path], orToString(or), eq, EOL);
+                  printf("(%c:%s:%s(%d) == [%d])%s", GLYPH(pc), pieces[pc][path], orToString(or), or, eq, EOL);
                }
-               displayWideRowRange(eCube, startr, endr, sps + SPS(distinct));
+               displayWidePlane(spHeight / 2, sps + SPS(distinct));
             }
             if (eq < 0) {
                ++distinct;
             } else {
-               repeat[pc][path] = SET_WITH(repeat[pc][path], or & OR_ON_PLANE_MASK);
+               // duplicate 001 plane results in other planes
+               repeat[pc][path] = SET_WITH(SET_WITH(SET_WITH(
+                                           repeat[pc][path], 
+                                           OR_001_OFFSET + or),
+                                           OR_110_OFFSET + or),
+                                           OR_1T0_OFFSET + or);
             }
          }
-         if (displayRepeat && repeat[pc][path]) {
-            printf("repeat %s%s", setToString(repeat[pc][path], orToString), EOL);
+         if (displayRepeat) {
+            displayWidePlane(spHeight / 2, 0);
          }
-      }
-      if (displayRepeat) {
-         displayWideRowRange(eCube, startr, endr, 0);
+         if (displayRepeat && repeat[pc][path]) {
+            char* r = (repeat[pc][path] == SET_ALL_OF(eOrientations))
+                    ? strdup("all (removed)")
+                    : setToString(repeat[pc][path] & OR_001_SET, orToString);
+            printf("%c:%s repeats: %s%s%s", GLYPH(pc), pieces[pc][path], r, EOL, EOL);
+            free(r);
+         }
+         if (distinct == d) {
+            pcRemovePath(pc, path);
+         }
       }
    }
    free(sps);

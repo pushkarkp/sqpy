@@ -7,20 +7,20 @@
 #define SolutionsH
 
 #include "SquarePyramid.h"
-#include "Topics.h"
 #include "Display.h"
 #include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-void solInit(TSet);
+void solInit();
 int solGetCount(int key);
 const TPlace* solGet(int key, int);
-int solIsUnique(int key, const const TPlace*);
+int solIsUnique(int key, const TPlace*);
 int solIsUniqueSymmetric(int key, const char*, const TPlace*);
 int solAddUniqueSymmetric(int key, const char*, const TPlace*);
+int solMaxPieceCount();
+int solCountForPieceCount(int);
 void solDisplay(int key, EDisplayShape);
-int solCountForCount(int count);
-void solDisplayByCount(int count, EDisplayShape);
+void solDisplayByPieceCount(int, EDisplayShape);
 void solShowSetKeys(int k, FSetElementToString);
 
 #endif

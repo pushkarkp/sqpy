@@ -7,6 +7,7 @@
 #include "Solutions.h"
 #include "Piece.h"
 #include "Steps.h"
+#include "Topics.h"
 #include "SetOf.h"
 
 #include <stdlib.h>
@@ -19,7 +20,6 @@
 #define GROWTH_FACTOR 2
 
 ///////////////////////////////////////////////////////////////////////////////
-static TSet topics = 0;
 static int max_keys = 0;
 static int* keys = 0;
 static int* max_sps = 0;
@@ -105,8 +105,7 @@ int findSymmetricSp(ERotation* prot, TSetOfReflectionPlanes* psorp, int k, const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void solInit(TSet sot) {
-   topics = sot;
+void solInit() {
    max_keys = INITIAL_KEYS;
    if (keys) {
       int k;
@@ -178,7 +177,7 @@ int solIsUnique(int key, const const TPlace* sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int findUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
+int findUniqueSymmetric(int key, const char* spsteps, const TPlace* sp) {
    int k = findKey(key);
    if (!keys[k]) {
       return k;
@@ -186,8 +185,7 @@ int findUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    int s = findSp(k, sp);
    if (s < sps_count[k]) {
       displayWide(ePyramid, 0);
-      printf("findUniqueSymmetric() found duplicate: k %d s %d %s; %s%s", 
-             k, s, steps[k][s], spsteps, EOL);
+      printf("Duplicate: k %d s %d %s; %s%s", k, s, steps[k][s], spsteps, EOL);
       display1(ePyramid, sp);
       return -1;
    }
@@ -195,33 +193,44 @@ int findUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    TSetOfReflectionPlanes sorp = 0;
    s = findSymmetricSp(&rot, &sorp, k, sp);
    if (s < sps_count[k]) {
-      catSteps(&steps[k][s], rot, sorp, spsteps);
-      if (SET_HAS(topics, eTopicSymmetries)) {
+      const char* strrot = (rot) ? rotationToString(rot) : "";
+      char* strsorp = setToString(sorp, orToString);
+      catSteps(&steps[k][s], strrot, strsorp, spsteps);
+      if (IS_TOPIC(eTopicSymmetries)) {
          displayWide(ePyramid, 0);
-         const char* strsteps =
-            SET_HAS(topics, eTopicSteps)
-            ? steps[k][s] : "";
-         printf("symmetric with existing (on left): k %d s %d %s%s", k, s, strsteps, EOL);
+         printf("Symmetric with existing (on left) (k %d s %d): ", k, s);
+         if (IS_TOPIC(eTopicSteps)) {
+            printf("%s%s", steps[k][s], EOL);
+         } else {
+            printf("%s %s%s", strrot, strsorp, EOL);
+         }
          displayWide(ePyramid, sps[k][s]);
          displayWide(ePyramid, sp);
          displayWide(ePyramid, 0);
       }
+      free(strsorp);
       return -1;
    }
    return k;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solIsUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
+int solIsUniqueSymmetric(int key, const char* spsteps, const TPlace* sp) {
    return findUniqueSymmetric(key, spsteps, sp) != -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) {
    int k = findUniqueSymmetric(key, spsteps, sp);
-   printf("solAddUniqueSymmetric add: k %d %s%s", k, spsteps, EOL);
    if (k == -1) {
       return 0;
+   }
+   if (IS_TOPIC(eTopicAdd)) {
+      const char* strsteps =
+         IS_TOPIC(eTopicSteps)
+         ? spsteps : "";
+      printf("Add: %s%s", strsteps, EOL);
+      displayWide(ePyramid, sp);
    }
    if (!keys[k]) {
       addKey(key, k);
@@ -232,14 +241,11 @@ int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) 
       steps[k] = (char**)realloc(steps[k], max_sps[k] * sizeof(char*));
       sps[k] = (TPlace**)realloc(sps[k], max_sps[k] * spXYZ * sizeof(TPlace));
    }
-   //printf("solAddUniqueSymmetric add: k %d i %d %s%s", k, s, spsteps, EOL);
-   if (SET_HAS(topics, eTopicAdd)) {
-      printf("Add: %s%s", spsteps, EOL);
-   }
    steps[k][s] = stepsCopy(spsteps);
    sps[k][s] = SP_NEW(1);
    spCopy(sps[k][s], sp);
    ++sps_count[k];
+//printf("solAddUniqueSymmetric() add: k %d keys[k] 0x%x sps_count[k] %d %s%s", k, keys[k], sps_count[k], spsteps, EOL);
    return 1;
 }
 
@@ -248,9 +254,36 @@ void displayKey(int key, EDisplayShape eShape) {
    int k = findKey(key);
    int i;
    for (i = 0; i < sps_count[k]; ++i) {
-      printf("%s%s", steps[k][i], EOL);
+      if (IS_TOPIC(eTopicSteps)) {
+         printf("%s%s", steps[k][i], EOL);
+      }
       displayWide(eShape, sps[k][i]);
    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int solMaxPieceCount() {
+   int max = 0;
+   int k;
+   for (k = 0; keys[k]; ++k) {
+      int n = setCount(keys[k]);
+      if (n > max) {
+         max = n;
+      }
+   }
+   return max;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int solCountForPieceCount(int n) {
+   int found = 0;
+   int k;
+   for (k = 0; keys[k]; ++k) {
+      if (setCount(keys[k]) == n) {
+         found += sps_count[k];
+      }
+   }
+   return found;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -260,23 +293,10 @@ void solDisplay(int key, EDisplayShape eShape) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solCountForCount(int count) {
-   int found = 0;
+void solDisplayByPieceCount(int n, EDisplayShape eShape) {
    int k;
    for (k = 0; keys[k]; ++k) {
-printf("k %d has %d pieces (0x%x)%s", k,  setCount(keys[k]), keys[k], EOL);
-      if (setCount(keys[k]) == count) {
-         found += sps_count[k];
-      }
-   }
-   return found;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void solDisplayByCount(int count, EDisplayShape eShape) {
-   int k;
-   for (k = 0; keys[k]; ++k) {
-      if (setCount(keys[k]) == count) {
+      if (setCount(keys[k]) == n) {
          displayKey(keys[k], eShape);
       }
    }
