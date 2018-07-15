@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static int useOnce = 0;
+static int fill = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 int countUse(int* use) {
@@ -118,7 +118,7 @@ printf("continue (duplicate)\r\n");
                }
                EPresence next;
                for (next = eFirstPiece; next < pieceCount; ++next) {
-                  if (newused[next] < pieceMaxInstances[next]) {
+                  if (fill || newused[next] < pieceMaxInstances[next]) {
                      ++togo;
                      int s = search(next, newused, newpos, newsteps, newsp, newskip);
                      if (s && next_solutions) {
@@ -127,7 +127,7 @@ printf("continue (duplicate)\r\n");
                      next_solutions += s;
                   }
                }
-               if (fork || (!togo && useOnce)) {
+               if (fork || togo == 0) {
                   if (solAddUniqueSymmetric(pcSumInstanceCounts(newused), newsteps, newsp)
                    && !fork) {
                      next_solutions = 1;
@@ -145,8 +145,8 @@ printf("continue (duplicate)\r\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(EPresence pc, int once) {
-   useOnce = once;
+int solve(EPresence pc, int f) {
+   fill = f;
    int solutions = 0;
    TPlace* sp = SP_NEW(1);
    TPosition pos[eDimensions] = {0, 0, 0};

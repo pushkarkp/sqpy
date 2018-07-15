@@ -14,58 +14,73 @@
 const char* orToString(int or) {
    switch (or) {
       case e001XPlusPlus:
-         return "001XPlusPlus";
+         return "001x++";
       case e001XMinusPlus:
-         return "001XMinusPlus";
+         return "001x-+";
       case e001XPlusMinus:
-         return "001XPlusMinus"; 
+         return "001x+-"; 
       case e001XMinusMinus:
-         return "001XMinusMinus";
+         return "001x--";
       case e001YPlusPlus:
-         return "001YPlusPlus";
+         return "001y++";
       case e001YMinusPlus:
-         return "001YMinusPlus";
+         return "001y-+";
       case e001YPlusMinus:
-         return "001YPlusMinus";
+         return "001y+-";
       case e001YMinusMinus:
-         return "001YMinusMinus";
+         return "001y--";
       case e110XPlusPlus:
-         return "110XPlusPlus";
+         return "110x++";
       case e110XMinusPlus:
-         return "110XMinusPlus";
+         return "110x-+";
       case e110XPlusMinus:
-         return "110XPlusMinus";
+         return "110x+-";
       case e110XMinusMinus:
-         return "110XMinusMinus";
+         return "110x--";
       case e110YPlusPlus:
-         return "110YPlusPlus";
+         return "110y++";
       case e110YMinusPlus:
-         return "110YMinusPlus";
+         return "110y-+";
       case e110YPlusMinus:
-         return "110YPlusMinus";
+         return "110y+-";
       case e110YMinusMinus:
-         return "110YMinusMinus";
+         return "110y--";
       case e1T0XPlusPlus:
-         return "1T0XPlusPlus";
+         return "1T0x++";
       case e1T0XMinusPlus:
-         return "1T0XMinusPlus";
+         return "1T0x-+";
       case e1T0XPlusMinus:
-         return "1T0XPlusMinus";
+         return "1T0x+-";
       case e1T0XMinusMinus:
-         return "1T0XMinusMinus";
+         return "1T0x--";
       case e1T0YPlusPlus:
-         return "1T0YPlusPlus";
+         return "1T0y++";
       case e1T0YMinusPlus:
-         return "1T0YMinusPlus";
+         return "1T0y-+";
       case e1T0YPlusMinus:
-         return "1T0YPlusMinus";
+         return "1T0y+-";
       case e1T0YMinusMinus:
-         return "1T0YMinusMinus";
+         return "1T0y--";
       default:
          return "bad orientation";
    } 
 }
 
+///////////////////////////////////////////////////////////////////////////////
+EOrientation stringToOr(const char* s) {
+   EPlane plane = stringToPlane(s);
+   EDimension dim = charToDim(s[3]);
+   ESign sign[2] = {charToSign(s[5]), charToSign(s[4])};
+   if (plane == -1 || dim == -1
+    || sign[0] == -1 || sign[1] == -1) {
+      return -1;
+   }
+   return plane * 2 * eSigns * eSigns
+        + dim * eSigns * eSigns
+        + sign[0] * eSigns
+        + sign[1];
+}
+ 
 ///////////////////////////////////////////////////////////////////////////////
 const TOrient orients[eOrientations] = {
    {e001, eX, {ePlus, ePlus}},
@@ -96,7 +111,7 @@ const TOrient orients[eOrientations] = {
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* orientToString(char* buf, const TOrient* or) {
-   sprintf(buf, "%s %s (%s, %s)", 
+   sprintf(buf, "%s%s%s%s", 
            planeToString(or->plane),
            dimToString(or->align),
            signToString(or->fwd[eX]),
@@ -106,6 +121,9 @@ const char* orientToString(char* buf, const TOrient* or) {
 
 ///////////////////////////////////////////////////////////////////////////////
 TSetOfOrientations matchOrientation(const char* s) {
+   if (!s) {
+      return 0;
+   }
    int len = strlen(s);
    TSetOfOrientations soo = 0;
    EOrientation o;

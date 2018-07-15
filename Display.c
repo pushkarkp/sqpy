@@ -29,6 +29,7 @@ void initDisplay(int pw) {
    if (pw >= 0) {
       pageWidth = pw;
    }
+//printf("rows[ePyramid] %d rows[eCube] %d\r\n", rows[ePyramid], rows[eCube]);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

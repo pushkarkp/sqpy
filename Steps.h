@@ -9,6 +9,7 @@
 #include "Presence.h"
 #include "Position.h"
 #include "Orientation.h"
+#include "SquarePyramid.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 char* stepToString(EPresence, const TPosition*, const char* path, EOrientation);
@@ -17,5 +18,7 @@ void catSteps(char**, const char* strrot, const char* strsorp, const char*);
 char* stepsCopy(const char*);
 int stepsPieceCount(const char*);
 const char* stepsLast(const char*);
-
+int stepOk(const char*);
+int stepsOk(const char*);
+TPlace* parseSteps(const char*);
 #endif

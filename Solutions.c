@@ -193,8 +193,17 @@ int findUniqueSymmetric(int key, const char* spsteps, const TPlace* sp) {
    TSetOfReflectionPlanes sorp = 0;
    s = findSymmetricSp(&rot, &sorp, k, sp);
    if (s < sps_count[k]) {
-      const char* strrot = (rot) ? rotationToString(rot) : "";
-      char* strsorp = setToString(sorp, orToString);
+      const char* strrothead = "";
+      const char* strrot = "";
+      if (rot) {
+         strrothead = " rotation ";
+         strrot = rotationToString(rot);
+      }
+      char* strsorphead = "";
+      char* strsorp = setToString(sorp, reflectionPlaneToString);
+      if (sorp) {
+         strsorphead = " reflection ";
+      }
       catSteps(&steps[k][s], strrot, strsorp, spsteps);
       if (IS_TOPIC(eTopicSymmetries)) {
          displayWide(ePyramid, 0);
@@ -202,7 +211,7 @@ int findUniqueSymmetric(int key, const char* spsteps, const TPlace* sp) {
          if (IS_TOPIC(eTopicSteps)) {
             printf("%s%s", steps[k][s], EOL);
          } else {
-            printf("%s %s%s", strrot, strsorp, EOL);
+            printf("%s%s%s%s%s", strrothead, strrot, strsorphead, strsorp, EOL);
          }
          displayWide(ePyramid, sps[k][s]);
          displayWide(ePyramid, sp);

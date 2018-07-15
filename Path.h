@@ -18,8 +18,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef const char* TPath;
-int pathOk(TPath, const char* errorPrefix);
-int pathMarkerCount(TPath);
+int pathOk(TPath);
+int pathOkForPiece(TPath, const char* errorPrefix);
+int pathMarkersCount(TPath);
+int pathMarkerCount(TPath, int marker);
 char* pathNext(TPath);
 int pathRemoveBothEndMarkers(char*);
 

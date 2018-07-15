@@ -6,11 +6,14 @@
 
 #include "Steps.h"
 #include "Piece.h"
+#include "Path.h"
 #include "SetOf.h"
+#include "Display.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define STEP_SIZE 7
 
@@ -26,8 +29,8 @@ int getUnitSize(int len) {
 char* stepToString(EPresence pc, const TPosition* pos, const char* path, EOrientation or) {
    char* step = (char*)malloc(STEP_SIZE + maxPathLength);
    sprintf(step, 
-           "%c%1d%1d%1d%s%02d", 
-           GLYPH(pc), pos[eX], pos[eY], pos[eZ], path, or);
+           "%c%1d%1d%1d%02d%s", 
+           GLYPH(pc), pos[eX], pos[eY], pos[eZ], or, path);
    return step;
 }
 
@@ -102,4 +105,76 @@ const char* stepsLast(const char* steps) {
       }
    }
    return last;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+char** eachStep(char* steps) {
+   int n = stepsPieceCount(steps);
+   char** step = (char**)malloc((n + 1) * sizeof(char*));
+   int s = 0;
+   step[s++] = steps;
+   int i;
+   for (i = 1; steps[i]; ++i) {
+      if (steps[i] == ' ') {
+         steps[i] = 0;
+      } else if (steps[i - 1] == 0) {
+         step[s++] = steps + i;
+      }
+   }
+   step[s++] = 0;
+   return step;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int stepOk(const char* step) {
+   int c = 0;
+   if (!isalpha(step[c])) {
+      return 0;
+   }
+   for (++c; isdigit(step[c]); ++c) {}
+   if (c != 6) {
+      return 0;
+   }
+   if (!pathOk(step + 6)) {
+      return 0;
+   }
+   return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int stepsOk(const char* given) {
+   char* steps = strdup(given);
+   char** step = eachStep(steps);
+   int i;
+   for (i = 0; step[i]; ++i) {
+      if (!stepOk(step[i])) {
+         return 0;
+      }
+   }
+   return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TPlace* parseSteps(const char* given) {
+   char* steps = strdup(given);
+   char** step = eachStep(steps);
+   TPlace* sp = SP_NEW(1);
+   spInit(sp);
+   int i;
+   for (i = 0; step[i]; ++i) {
+      EPresence pc = PIECE(step[i][0]);
+      TPosition pos[eDimensions] = {step[i][1] - '0', step[i][2] - '0', step[i][3] - '0'};
+      EOrientation or = (step[i][4] - '0') * 10 + step[i][5] - '0';
+      TPath path = step[i] + 6;
+      if (eAbsent != SP_GET(pos, sp)
+       || eAbsent != pcWalk(pc, path, or, pos, sp)) {
+         free(sp);
+         sp = 0;
+         break;
+      }
+      SP_SET(sp, pc, pos);
+   }
+   free(steps);
+   free(step);
+   return sp;
 }

@@ -28,7 +28,7 @@ int makeStep(int sideways, int advance) {
 #define ONE_MORE_THAN(c) makeStep(PATH_STEP_IS_SIDEWAYS(c), PATH_STEP_ADVANCE(c) + ONE_OF_ADVANCE(c))
 
 ///////////////////////////////////////////////////////////////////////////////
-int pathMarkerCount(TPath path) {
+int pathMarkersCount(TPath path) {
    int markers = 0;
    int i;
    for (i = 0; path[i]; ++i) {
@@ -40,34 +40,55 @@ int pathMarkerCount(TPath path) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int pathMarkCount(TPath path) {
-   int markers = 0;
+int pathCharCount(TPath path, char c) {
+   int chars = 0;
+   int i;
+   for (i = 0; path[i]; ++i) {
+      if (path[i] == c) {
+         ++chars;
+      }
+   }
+   return chars;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TSet pathMarkers(TPath path) {
+   TSet markers = 0;
    int i;
    for (i = 0; path[i]; ++i) {
       if (IS_MARKER(path[i]) && !SET_HAS(markers, MARKER_INDEX(path[i]))) {
          markers = SET_WITH(markers, MARKER_INDEX(path[i]));
       }
    }
-   return setCount(markers);
+   return markers;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int pathOk(TPath path, const char* prefix) {
+int isPathOk(TPath path, int forPiece, const char* prefix) {
    const int len = strlen(path);
    if (len < 1) {
       printf("%sempty path%s", prefix?prefix:"", EOL);
       return 0;
    }
-   if (pathMarkerCount(path) == 1) {
-      printf("%spath '%s' contains only one of marker '%c'%s", 
-             prefix?prefix:"", path, MARKER, EOL);
+   if (forPiece && IS_MARKER(path[0])) {
+      printf("%spath '%s' starts with a marker%s", 
+             prefix?prefix:"", path, EOL);
       return 0;
+   }
+   TSet markers = pathMarkers(path);
+   int i;
+   for (i = 0; i < MARKER; ++i) {
+      if (SET_HAS(markers, i)
+       && pathCharCount(path, AS_MARKER(i)) == 1) {
+         printf("%spath '%s' contains only one of marker '%c'%s", 
+                prefix?prefix:"", path, AS_MARKER(i), EOL);
+         return 0;
+       }
    }
    int one = 0;;
    int more = 0;;
-   int i;
    for (i = 0; i < len; ++i) {
-      if ((!IS_MARKER(path[i]) || path[i] == MAX_MARKER)
+      if ((!IS_MARKER(path[i]) || (forPiece && path[i] == MAX_MARKER))
        && (path[i] < 'A' || path[i] > 'Z')
        && (path[i] < 'a' || path[i] > 'z')) {
          printf("%spath '%s' contains illegal character '%c' (%d)%s", 
@@ -108,6 +129,16 @@ int pathOk(TPath path, const char* prefix) {
       }
    }
    return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int pathOkForPiece(TPath path, const char* prefix) {
+   return isPathOk(path, 1, prefix);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int pathOk(TPath path) {
+   return isPathOk(path, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -271,7 +302,6 @@ char* pathNext(TPath path) {
       printf("path '%s' is too short%s", path, EOL);
       return 0;
    }
-   int markers = pathMarkerCount(path);
    int marker = nextMarker(path + 2) + 2;
    if (!path[marker]) {
       return 0;

@@ -16,6 +16,7 @@ typedef enum{/*eAsterisk, ePlusSign, */eComma, eDash, eDot, eSlash, ePathMarkers
 #define MAX_MARKER '/'
 #define IS_MARKER(c) (c >= MIN_MARKER && c <= MAX_MARKER)
 #define MARKER_INDEX(c) (c - MIN_MARKER)
+#define AS_MARKER(i) (i + MIN_MARKER)
 
 #define PATH_MARKER_STORES {{-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}}
 

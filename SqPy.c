@@ -7,6 +7,8 @@
 #include "Piece.h"
 #include "Repeat.h"
 #include "Solve.h"
+#include "Solutions.h"
+#include "Steps.h"
 #include "Display.h"
 #include "Topics.h"
 #include "SetOf.h"
@@ -24,10 +26,16 @@ static const char const* ERR_FILE = "file error";
 static const char const* ERR_NO_ORIENT = "no orientation matched \"%s\"";
 static const char const* ERR_NO_TOPIC = "no display topic matched \"%s\"";
 static const char const* ERR_BAD_TOPIC = "more than one display topic matched \"%s\"";
-static int useOnce = 0;
+static const char const* ERR_BAD_PLAY = "bad play \"%s\"";
+static const char const* ERR_UNPLAYABLE = "failed to play \"%s\"";
+static const char const* ERR_EXTRA_PLAY = "too many plays";
+static int compare = 0;
+static int search = 0;
+static int fill = 0;
+static char* play[2] = {0};
 static int pc = eAbsent;
 static int pathIndex = -1;
-static TPath path = ".a.A";
+static TPath path = "aA";
 static TSet soor = 0;
 static int pageWidth = 70;
 
@@ -36,17 +44,21 @@ int getOptions(const char**, const char*);
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("sqpy [-f <file>] [-u] [-h <height>] [-p <piece> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
-   printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
-   printf(" -u                        stop when pieces all used, even if space remains%s", EOL);
+   printf("sqpy [-f <file>] [-s [fill]] [-y <play>  [<play>]...] [-h <height>] [-p <piece> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>] [-k [<prefix>]]%s", EOL);
    printf(" -h <height>               the pyramid height%s", EOL);
+   printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
+   printf(" -s [fill]                 search for and display complete pyramids%s", EOL);
+   printf("     fill                  ignore instance counts and fill pyramid%s", EOL);
+   printf(" -y <play> [<play>]...     plays (? for help), two sets of plays are compared%s", EOL);
+   printf(" -c                        compare two solutions (specified with -y)%s", EOL);
    printf(" -p <piece> [<count>]      a piece (? for help)%s", EOL);
    printf(" -i <piece> (all)          the initial piece by letter or index%s", EOL);
-   printf(" -a <path or index> (.a.A) the path to orient%s", EOL);
+   printf(" -a <path or index> (aA    the path to orient%s", EOL);
    printf(" -0 <orientation index>    the orientation to show the paths%s", EOL);
    printf(" -o <orientations match>   the orientations to show the paths%s", EOL);
    printf(" -g <page width> (70)      the width of the display page%s", EOL);
-   printf(" -d <topics>               display one or more topics (see below,, ? for help)%s", EOL);
+   printf(" -d <topics>               display one or more topics (see below, ? for help)%s", EOL);
+   printf(" -k [<prefix>]             display symmetries for which the matching orientation are skipped%s", EOL);
    printf("%sDisplay topics (any unique prefix matches):%s", EOL, EOL);
    char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString);
    printf("%s%s", str, EOL);
@@ -76,6 +88,16 @@ void describePiece() {
    printf("A user path must start at an end, ie not with a marker.%s", EOL);
    printf("Sqpy uses the extra marker ('/') for intermediate paths.%s", EOL);
    printf("For example, \"/zZ/aZ\" starts 'e' above in the middle.%s", EOL);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void describePlay() {
+   printf("A play is a short string describing the deployment of a piece.%s", EOL);
+   printf("It consists of a piece letter, a three digit location,%s", EOL);
+   printf("a two digit orientation index and a path.%s", EOL);
+   printf("The path may start with a marker.%s", EOL);
+   printf("The path may contain the extra marker ('/').%s", EOL);
+   printf("For example, \"b00008/a/A\":%s", EOL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -153,7 +175,7 @@ int toArgv(const char** argv, char* line, const char* opt) {
 
 ///////////////////////////////////////////////////////////////////////////////
 int readPathArg(const char* path, const char* n, const char* prefix) {
-   if (!pathOk(path, prefix)) {
+   if (!pathOkForPiece(path, prefix)) {
       return 0;
    }
 
@@ -165,6 +187,7 @@ int readPathArg(const char* path, const char* n, const char* prefix) {
       return 0;
    }
    spSetHeight(height);
+   initDisplay(-1);
 
    TPiece pc = pcCreate(path);
    if (!pc) {
@@ -222,12 +245,46 @@ int getOptions(const char** argv, const char* prefix) {
          }
          break;
       }
-      case 'u': {
-         useOnce = 1;
+      case 's': {
+         search = 1;
+         const char* f = getOptionValue(&i, argv);
+         if (f && 0 == strcasecmp(f, "fill")) {
+            fill = 1;
+         }
          break;
       }
-      case 's': {
-         showOrientationsSymmetry(0);
+      case 'y': {
+         if (play[1]) {
+            printf(ERR_EXTRA_PLAY);
+            printf(EOL);
+            return 0;
+         }
+         const char* p;
+         int g = play[0] ? 1 : 0;
+         for (p = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
+              p;
+              p = getOptionExtraValue(&i, argv)) {
+            if (!stepOk(p)) {
+               if (p[0] != '?') {
+                  printf(ERR_BAD_PLAY, p);
+                  printf(EOL);
+               }
+               describePlay();
+               return 0;
+            }
+            if (!play[g]) {
+               play[g] = strdup(p);
+            } else {
+               int len = strlen(play[g]);
+               play[g] = (char*)realloc(play[g], len + strlen(p) + 2);
+               play[g][len] = ' ';
+               strcpy(play[g] + len + 1, p);
+            }
+         }
+         break;
+      }
+      case 'k': {
+         showOrientationsSymmetry(matchOrientation(getOptionValue(&i, argv)));
          return 0;
       }
       case 'h': {
@@ -289,7 +346,7 @@ int getOptions(const char** argv, const char* prefix) {
       }
       case 'd': {
          int j = i;
-         const char* h = getOptionValue(&j, argv);
+         const char* h = getMandatory(getOptionValue(&j, argv), argv[i][1], prefix);
          if (!strcmp(h, "?")) {
             displayTopicsDescribe();
             return 0;
@@ -318,7 +375,9 @@ int getOptions(const char** argv, const char* prefix) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void showOptions() {
-   printf("spHeight %d useOnce %d pieces %d%s", spHeight, useOnce, pieceCount - 1, EOL);
+   printf("search %s, fill %s, spHeight %d, pieces %d, page width %d.%s", 
+          search?"true":"false", fill?"true":"false", 
+          spHeight, pieceCount - 1, pageWidth, EOL);
    if (pieceCount > 1) {
       printf("Pieces:%s", EOL);
    }
@@ -332,20 +391,25 @@ void showOptions() {
       printf("%s", EOL);
    }
    if (pc != 0) {
-      printf(" initial piece %d (%c)%s", pc, GLYPH(pc), EOL);
+      printf("initial piece %c.%s", GLYPH(pc), EOL);
+   }
+   if (play[0]) {
+      printf("Play 1: %s.%s", play[0], EOL);
+      if (play[1]) {
+         printf("Play 2: %s.%s", play[1], EOL);
+      }
    }
    if (pathIndex != -1) {
-      printf(" path %d (%s)%s", pathIndex, pieces[pc][pathIndex], EOL);
+      printf("path %d (%s).%s", pathIndex, pieces[pc][pathIndex], EOL);
    }
    if (soor != 0) {
       char* str = setToString(soor, orToString);
-      printf("orientations: %s%s", str, EOL);
+      printf("orientations: %s.%s", str, EOL);
       free(str);
    }
-   printf("page width %d%s", pageWidth, EOL);
    if (displayTopics() != 0) {
       char* str = setToString(displayTopics(), displayTopicToString);
-      printf("Topics: %s%s", str, EOL);
+      printf("Topics: %s.%s", str, EOL);
       free(str);
    }
 }
@@ -357,8 +421,7 @@ int main(int argc, const char** argv) {
       return 0;
    }
    if (pieceCount == eFirstPiece) {
-      const char* argvp[2] = {path, 0};
-      pcRead(1, argvp);
+      readPathArg(path, "1", 0);
    }
    if (spHeight == 0) {
       pcSetHeight();
@@ -376,15 +439,31 @@ int main(int argc, const char** argv) {
    if (IS_TOPIC(eTopicPaths)) {
       pcDisplayAll();
    }
+   if (play[0]) {
+      solInit();
+      int i;
+      for (i = 0; play[i]; ++i) {
+         TPlace* sp = parseSteps(play[i]);
+         if (!sp) {
+            printf(ERR_UNPLAYABLE, play[i]); 
+         } else {
+            solAddUniqueSymmetric(i, play[i], sp);
+            free(sp);
+         }
+         free(play[i]);
+      }
+      displayWide(ePyramid, 0);
+      return 0;
+   }
    if (IS_TOPIC(eTopicOrientations)) {
       pcTestOrientations(pc, pathIndex, soor);
    }
    if (IS_TOPIC(eTopicRepeat)) {
       findRepeat(1);
    }
-   if (IS_TOPIC(eTopicSearch)) {
+   if (search) {
       findRepeat(0);
-      printf("Total solutions %d%s", solve(pc, useOnce), EOL);
+      printf("Total solutions %d%s", solve(pc, fill), EOL);
    }
    return 0;
 }

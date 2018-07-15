@@ -23,8 +23,6 @@ extern int* pieceZeroInstances;
 extern int* pieceMaxInstances;
 
 ///////////////////////////////////////////////////////////////////////////////
-char* pcRead(int, const char**);
-char* pcCheckPath(TPath path);
 TPiece pcCreate(TPath path);
 void pcAdd(TPiece pc, int times);
 

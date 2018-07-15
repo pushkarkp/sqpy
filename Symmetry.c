@@ -34,34 +34,24 @@ const char* reflectionPlaneToString(int rp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 TSetOfOrientations rotateSkip(ERotation rot) {
-   static TSetOfOrientations soo90 = 
+   static TSetOfOrientations soo[eRotations] = {
+      SET_ALL_OF(eOrientations),
       SET_WITH(SET_WITH(SET_WITH(SET_WITH(SET_WITH(SET_WITH(0,
        e001XPlusPlus), e001XMinusPlus),
-       e110XPlusPlus), e110XMinusPlus), e110XPlusMinus), e110XMinusMinus);
-   static TSetOfOrientations soo180 = 
+       e110XPlusPlus), e110XMinusPlus), e110XPlusMinus), e110XMinusMinus),
       SET_WITH(SET_WITH(SET_WITH(SET_WITH(
       SET_WITH(SET_WITH(SET_WITH(SET_WITH(
       SET_WITH(SET_WITH(SET_WITH(SET_WITH(0,
          e001XPlusPlus), e001XMinusPlus), e001YPlusPlus), e001YMinusPlus),
          e110XPlusPlus), e110XMinusPlus), e110XPlusMinus), e110XMinusMinus), 
-         e1T0XPlusPlus), e1T0XMinusPlus), e1T0XPlusMinus), e1T0XMinusMinus);
-   switch (rot) {
-      case e90:
-         return ~soo90 & SET_ALL_OF(eOrientations);
-      case e180:
-         return ~soo180 & SET_ALL_OF(eOrientations);
-      case e0:
-      default:
-         return 0;
+         e1T0XPlusPlus), e1T0XMinusPlus), e1T0XPlusMinus), e1T0XMinusMinus)
+   };
+   if (rot < 0 || rot >= eRotations) {
+      return 0;
    }
+   return SET_NOT(soo[rot], eOrientations);
 }
 
-/* e001XPlusPlus, e001XMinusPlus, e001XPlusMinus, e001XMinusMinus,
-   e001YPlusPlus, e001YMinusPlus, e001YPlusMinus, e001YMinusMinus,
-   e110XPlusPlus, e110XMinusPlus, e110XPlusMinus, e110XMinusMinus,
-   e110YPlusPlus, e110YMinusPlus, e110YPlusMinus, e110YMinusMinus,
-   e1T0XPlusPlus, e1T0XMinusPlus, e1T0XPlusMinus, e1T0XMinusMinus,
-   e1T0YPlusPlus, e1T0YMinusPlus, e1T0YPlusMinus, e1T0YMinusMinus,*/
 ///////////////////////////////////////////////////////////////////////////////
 TSetOfOrientations reflectSkip(TSetOfReflectionPlanes sorp) {
    static TSetOfOrientations soo[eReflectionPlanes] = {

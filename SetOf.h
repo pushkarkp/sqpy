@@ -14,7 +14,7 @@ int setGetMax(TSet);
 int setGetSingle(TSet);
 char* setToString(TSet, FSetElementToString);
 #define SET_ALL 0xffffffff
-#define SET_MAX_SIZE 32
+#define SET_MAX_SIZE (sizeof(TSet) * 8)
 #define SET_LAST 0x80000000
 #define SET_ALL_OF(count) ((1 << (count)) - 1)
 #define SET_WITH(set, el) ((set) | (1 << (el)))

@@ -5,7 +5,7 @@
  */
 
 #include "SquarePyramid.h"
-#include "Presence.h"   // GLYPH
+#include "Presence.h"
 #include "SetOf.h"
 #include "Display.h"
 
@@ -29,6 +29,7 @@ void spSetHeight(int height) {
    spX = spHeight + MARGIN * 2;
    spXY = spX * spX;
    spXYZ = spX * spXY;
+//printf("spHeight %d spXYZ %d\r\n", spHeight, spXYZ);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -253,9 +254,9 @@ ERotation spEqualRotate(const TPlace* sp1, const TPlace* sp2) {
    if (sp1[origin] != sp2[origin]) {
       return e0;
    }
-   if (sp1[origin] == eAbsent && sp2[origin] == eAbsent) {
-      return e90;
-   }
+//   if (sp1[origin] == eAbsent && sp2[origin] == eAbsent) {
+//      return e90;
+//   }
    int z;
    for (z = 1; z < spHeight; ++z) {
       int zoffset = ZOFFSET(z);
@@ -267,9 +268,9 @@ ERotation spEqualRotate(const TPlace* sp1, const TPlace* sp2) {
          for (x = 0; x <= z; ++x) {
             if (sp1[zoffset + yoffset + MARGIN + x]
              != sp2[zoffset + zyoffset + MARGIN + (z - x)]) {
-//printf("180(%d, %d, %d) %c != (%d, %d) %c%s", 
-//   x, y, z,           GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
-//   (z - x), (z - y), GLYPH(sp2[MARGIN + z][MARGIN + (z - y)][MARGIN + (z - x)]), EOL);
+printf("180: (%d, %d, %d) %c != (%d, %d, %d) %c%s", 
+   x, y, z,             GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
+   (z - x), (z - y), z, GLYPH(sp2[zoffset + zyoffset + MARGIN + (z - x)]), EOL);
                return e0;
             }
          }
@@ -287,10 +288,10 @@ ERotation spEqualRotate(const TPlace* sp1, const TPlace* sp2) {
              != sp2[zoffset + YOFFSET(z - x) + MARGIN + y]
              || sp1[zoffset + yoffset + MARGIN + x]
              != sp2[zoffset + YOFFSET(x) + MARGIN + (z - y)]) {
-//printf("90(%d, %d, %d) %c ?= (%d, %d) %c (%d, %d) %c%s", 
-//   x, y, z,    GLYPH(sp1[MARGIN + z][MARGIN + y][MARGIN + x]),
-//   y, (z - x), GLYPH(sp2[MARGIN + z][MARGIN + (z - x)][MARGIN + y]),
-//   (z - y), x, GLYPH(sp2[MARGIN + z][MARGIN + x][MARGIN + (z - y)]), EOL);
+printf("90: (%d, %d, %d) %c != (%d, %d) %c (%d, %d) %c%s", 
+   x, y, z,    GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
+   y, (z - x), GLYPH(sp2[zoffset + YOFFSET(z - x) + MARGIN + y]),
+   (z - y), x, GLYPH(sp2[zoffset + YOFFSET(x) + MARGIN + (z - y)]), EOL);
                return e180;
             }
          }

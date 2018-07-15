@@ -89,11 +89,6 @@ void extendPieces(int pathCount) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char* pcCheckPath(TPath path) {
-   return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 void pcAdd(TPiece pc, int times) {
    extendPieces(pcCountPaths(pc));
    ((TPiece*)pieces)[pieceCount - 1] = pc;
@@ -103,10 +98,10 @@ void pcAdd(TPiece pc, int times) {
 
 ///////////////////////////////////////////////////////////////////////////////
 TPiece pcCreate(TPath path) {
-   if (!pathOk(path, 0)) {
+   if (!pathOkForPiece(path, 0)) {
       return 0;
    }
-   const int pathMarkers = pathMarkerCount(path);
+   const int pathMarkers = pathMarkersCount(path);
    int repeatmarkers = 0;
    int repeatmarkers1 = 0;
 //printf("pcCreate(%s) %d markers\r\n", path, pathMarkers);
@@ -127,7 +122,7 @@ TPiece pcCreate(TPath path) {
       if (!piece[newpaths]) {
          return 0;
       }
-      int markers = pathMarkerCount(piece[newpaths]);
+      int markers = pathMarkersCount(piece[newpaths]);
       if (markers == pathMarkers) {
          if (repeatmarkers == markers) {
 //printf("%s -> %s markers (%d) == pathMarkers == repeatmarkers, finished\r\n", piece[newpaths - 1], piece[newpaths], markers);
@@ -176,43 +171,6 @@ TPiece addPiece(int pathCount, int times) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-char* pcRead(int pathCount, const char** argv) {
-   int times = strtol(argv[pathCount - 1], 0, 10);
-   if (times > 0 || isdigit(argv[pathCount - 1][0])) {
-      --pathCount;
-   } else {
-      times = 1;
-   }
-   if (pathCount < 1) {
-       return strdup(ERROR_NO_PATH);
-   }
-   TPiece pc = addPiece(pathCount, times);
-   int i;
-   for (i = 0; i < pathCount; ++i) {
-      int len = strlen(argv[i]);
-      if (len > maxPathLength) {
-         maxPathLength = len;
-      }
-      pc[i] = (const char*)malloc((len + 1) * sizeof(char));
-      strcpy(((char*)pc[i]), argv[i]);
-   }
-   pc[pathCount] = 0;
-   for (i = 0; i < pathCount; ++i) {
-      int j;
-      for (j = 0; pc[i][j]; ++j) {
-         if (pc[i][j] != '.' && pc[i][j] != ','
-          && (pc[i][j] < 'a' || pc[i][j] > 'z')
-          && (pc[i][j] < 'A' || pc[i][j] > 'Z')) {
-            char* err = (char*)malloc((strlen(ERROR_BAD_CHAR) + strlen(pc[i])) * sizeof(char));
-            sprintf(err, ERROR_BAD_CHAR, pc[i][j], pc[i]);
-            return err;
-         }
-      }
-   }
-   return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 EPresence pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace* sp) {
    TPosition ps[ePathMarkers][eDimensions] = PATH_MARKER_STORES;
    TPosition pos[eDimensions];
@@ -226,7 +184,10 @@ EPresence pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, 
          moveStep(pos, pmove);
          EPresence ePresence = SP_GET(pos, sp);
          if (ePresence != eAbsent) {
-            //printf("%s %d: %c%s", path, i, GLYPH(ePresence), EOL);
+            if (0) {
+               char buf[POS_BUF_SIZE];
+               printf("%s %d: %s %c%s", path, i, posToString(buf, pos), GLYPH(ePresence), EOL);
+            }
             return ePresence;
          }
          if (pc != eAbsent) {

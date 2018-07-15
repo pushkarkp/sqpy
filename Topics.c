@@ -27,7 +27,6 @@ const char* displayTopicToString(int t) {
       case eTopicRepeat: return "repeats";
       case eTopicSteps: return "steps";
       case eTopicSymmetries: return "symmetries";
-      case eTopicSearch: return "search";
       case eTopicAdd: return "adding";
       case eTopicProgress: return "progress";
       default: return "unknown";
@@ -45,7 +44,6 @@ const char* displayTopicDescription(int t) {
       case eTopicRepeat: return "Display each piece path orientation and whether it is a repeat.";
       case eTopicSteps: return "Display the steps for baths.";
       case eTopicSymmetries: return "Display the symmetries found for each symmetrical partial solution.";
-      case eTopicSearch: return "Search for and display complete pyramids.";
       case eTopicAdd: return "Display each unique solution as it is added.";
       case eTopicProgress: return "Display search progress.";
       default: return "unknown";
