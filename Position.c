@@ -10,35 +10,32 @@
 #include <stdio.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* planeToString(EPlane p) {
+int planeToChar(EPlane p) {
    switch (p) {
-      case e001: return "001";
-      case e110: return "110";
-      case e1T0: return "1T0";
-      default: return "Unknown plane";
+      case e001: return 'z';
+      case e110: return 'b';
+      case e1T0: return 'd';
+      default: return ' ';
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-EPlane stringToPlane(const char* s) {
-   if (strncmp("001", s, 3) == 0) {
-      return e001;
-   } else if (strncmp("110", s, 3) == 0) {
-      return e110;
-   } else if (strncmp("1T0", s, 3) == 0) {
-      return e1T0;
-   } else {
-      return -1;
+EPlane charToPlane(int c) {
+   switch (c) {
+      case 'z': return e001;
+      case 'b': return e110;
+      case 'd': return e1T0;
+      default: return -1;
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* dimToString(EDimension dim) {
+int dimToChar(EDimension dim) {
    switch (dim) {
-      case eX: return "x";
-      case eY: return "y";
-      case eZ: return "z";
-      default: return "Unknown dimension";
+      case eX: return 'x';
+      case eY: return 'y';
+      case eZ: return 'z';
+      default: return ' ';
    }
 }
 
@@ -53,11 +50,11 @@ EDimension charToDim(int c) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* signToString(ESign s) {
+int signToChar(ESign s) {
    switch (s) {
-      case ePlus: return "+";
-      case eMinus: return "-";
-      default: return "Unknown sign";
+      case ePlus: return '+';
+      case eMinus: return '-';
+      default: return ' ';
    }
 }
 

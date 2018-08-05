@@ -11,77 +11,6 @@
 #include <string.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-const char* orToString(int or) {
-   switch (or) {
-      case e001XPlusPlus:
-         return "001x++";
-      case e001XMinusPlus:
-         return "001x-+";
-      case e001XPlusMinus:
-         return "001x+-"; 
-      case e001XMinusMinus:
-         return "001x--";
-      case e001YPlusPlus:
-         return "001y++";
-      case e001YMinusPlus:
-         return "001y-+";
-      case e001YPlusMinus:
-         return "001y+-";
-      case e001YMinusMinus:
-         return "001y--";
-      case e110XPlusPlus:
-         return "110x++";
-      case e110XMinusPlus:
-         return "110x-+";
-      case e110XPlusMinus:
-         return "110x+-";
-      case e110XMinusMinus:
-         return "110x--";
-      case e110YPlusPlus:
-         return "110y++";
-      case e110YMinusPlus:
-         return "110y-+";
-      case e110YPlusMinus:
-         return "110y+-";
-      case e110YMinusMinus:
-         return "110y--";
-      case e1T0XPlusPlus:
-         return "1T0x++";
-      case e1T0XMinusPlus:
-         return "1T0x-+";
-      case e1T0XPlusMinus:
-         return "1T0x+-";
-      case e1T0XMinusMinus:
-         return "1T0x--";
-      case e1T0YPlusPlus:
-         return "1T0y++";
-      case e1T0YMinusPlus:
-         return "1T0y-+";
-      case e1T0YPlusMinus:
-         return "1T0y+-";
-      case e1T0YMinusMinus:
-         return "1T0y--";
-      default:
-         return "bad orientation";
-   } 
-}
-
-///////////////////////////////////////////////////////////////////////////////
-EOrientation stringToOr(const char* s) {
-   EPlane plane = stringToPlane(s);
-   EDimension dim = charToDim(s[3]);
-   ESign sign[2] = {charToSign(s[5]), charToSign(s[4])};
-   if (plane == -1 || dim == -1
-    || sign[0] == -1 || sign[1] == -1) {
-      return -1;
-   }
-   return plane * 2 * eSigns * eSigns
-        + dim * eSigns * eSigns
-        + sign[0] * eSigns
-        + sign[1];
-}
- 
-///////////////////////////////////////////////////////////////////////////////
 const TOrient orients[eOrientations] = {
    {e001, eX, {ePlus, ePlus}},
    {e001, eX, {eMinus, ePlus}},
@@ -110,13 +39,45 @@ const TOrient orients[eOrientations] = {
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+const char* orToString(int or) {
+   if (or < 0 || or > eOrientations) {
+         return "bad orientation";
+   } 
+   static char buf[eOrientations][OR_BUF_SIZE];
+   return orientToString(buf[or], &orients[or]);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+EOrientation stringToOr(const char* s) {
+   EPlane plane = charToPlane(s[0]);
+   EDimension dim = charToDim(s[1]);
+   ESign sign[2] = {charToSign(s[3]), charToSign(s[2])};
+   if (plane == -1 || dim == -1
+    || sign[0] == -1 || sign[1] == -1) {
+      return -1;
+   }
+   return plane * 2 * eSigns * eSigns
+        + dim * eSigns * eSigns
+        + sign[0] * eSigns
+        + sign[1];
+}
+ 
+///////////////////////////////////////////////////////////////////////////////
 const char* orientToString(char* buf, const TOrient* or) {
-   sprintf(buf, "%s%s%s%s", 
-           planeToString(or->plane),
-           dimToString(or->align),
-           signToString(or->fwd[eX]),
-           signToString(or->fwd[eY]));
+   sprintf(buf, "%c%c%c%c", 
+           planeToChar(or->plane),
+           dimToChar(or->align),
+           signToChar(or->fwd[eX]),
+           signToChar(or->fwd[eY]));
    return buf;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int orientOk(const char* s) {
+   return charToPlane(s[0]) != -1
+       && charToDim(s[1]) != -1
+       && charToSign(s[2]) != -1
+       && charToSign(s[3]) != -1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

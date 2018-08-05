@@ -9,10 +9,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 typedef int TSet;
 typedef const char* (*FSetElementToString)(int);
+typedef int (*FSetElementToChar)(int);
 int setCount(TSet);
 int setGetMax(TSet);
 int setGetSingle(TSet);
 char* setToString(TSet, FSetElementToString);
+char* setToChars(TSet, FSetElementToChar);
 #define SET_ALL 0xffffffff
 #define SET_MAX_SIZE (sizeof(TSet) * 8)
 #define SET_LAST 0x80000000

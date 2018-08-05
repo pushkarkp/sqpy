@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#define STEP_SIZE 7
+#define STEP_SIZE (4 + OR_BUF_SIZE)
 
 ///////////////////////////////////////////////////////////////////////////////
 // returns size in multiples of (STEP_SIZE + maxPathLength)
@@ -29,8 +29,8 @@ int getUnitSize(int len) {
 char* stepToString(EPresence pc, const TPosition* pos, const char* path, EOrientation or) {
    char* step = (char*)malloc(STEP_SIZE + maxPathLength);
    sprintf(step, 
-           "%c%1d%1d%1d%02d%s", 
-           GLYPH(pc), pos[eX], pos[eY], pos[eZ], or, path);
+           "%c%1d%1d%1d%s%s", 
+           GLYPH(pc), pos[eX], pos[eY], pos[eZ], orToString(or), path);
    return step;
 }
 
@@ -127,18 +127,12 @@ char** eachStep(char* steps) {
 
 ///////////////////////////////////////////////////////////////////////////////
 int stepOk(const char* step) {
-   int c = 0;
-   if (!isalpha(step[c])) {
-      return 0;
-   }
-   for (++c; isdigit(step[c]); ++c) {}
-   if (c != 6) {
-      return 0;
-   }
-   if (!pathOk(step + 6)) {
-      return 0;
-   }
-   return 1;
+   return isalpha(step[0])
+       && isdigit(step[1])
+       && isdigit(step[2])
+       && isdigit(step[3])
+       && orientOk(step + 4)
+       && pathOk(step + 8);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -164,8 +158,8 @@ TPlace* parseSteps(const char* given) {
    for (i = 0; step[i]; ++i) {
       EPresence pc = PIECE(step[i][0]);
       TPosition pos[eDimensions] = {step[i][1] - '0', step[i][2] - '0', step[i][3] - '0'};
-      EOrientation or = (step[i][4] - '0') * 10 + step[i][5] - '0';
-      TPath path = step[i] + 6;
+      EOrientation or = stringToOr(step[i] + 4);
+      TPath path = step[i] + 4 + OR_BUF_SIZE - 1;
       if (eAbsent != SP_GET(pos, sp)
        || eAbsent != pcWalk(pc, path, or, pos, sp)) {
          free(sp);

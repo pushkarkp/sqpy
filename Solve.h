@@ -7,9 +7,9 @@
 #define SolveH
 
 #include "Presence.h"
-#include "SetOf.h"
+#include "Symmetry.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(EPresence pc, int useOnce);
+int solve(EPresence pc, int fill, TSetOfRotations sorn, TSetOfReflectionPlanes sorp);
 
 #endif

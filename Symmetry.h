@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2018 Pushkar Piggott
  *
@@ -9,17 +10,14 @@
 #include "Orientation.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-typedef enum {e0, e180, e90, eRotations} ERotation;
+typedef enum {e0, e90, e180, e270, eRotations} ERotation;
 const char* rotationToString(int); 
+typedef int TSetOfRotations;
 typedef enum {e100Reflection, e010Reflection, 
               e110Reflection, e1T0Reflection, eReflectionPlanes} EReflectionPlane;
 const char* reflectionPlaneToString(int); 
+int reflectionPlaneToChar(int); 
 typedef int TSetOfReflectionPlanes;
-#define ON_AXIS(p) (!((p)[eZ] & 1) && (p)[eX] == (p)[eY] && (p)[eX] == (p)[eZ] / 2)
-
-///////////////////////////////////////////////////////////////////////////////
-TSetOfOrientations rotateSkip(ERotation);
-TSetOfOrientations reflectSkip(TSetOfReflectionPlanes);
-TSetOfReflectionPlanes onPlanes(const TPosition*);
-void showOrientationsSymmetry(TSetOfOrientations);
+TSetOfReflectionPlanes onReflectionPlanes(const TPosition*);
+#define ON_AXIS(p) (!((p)[eZ] & 1) && (p)[eX] == (p)[eZ] / 2 && (p)[eX] == (p)[eY])
 #endif

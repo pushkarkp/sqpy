@@ -7,6 +7,7 @@
 #include "Solutions.h"
 #include "Piece.h"
 #include "Steps.h"
+#include "Symmetry.h"
 #include "Topics.h"
 #include "SetOf.h"
 
@@ -86,14 +87,14 @@ int findSp(int k, const TPlace* sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int findSymmetricSp(ERotation* prot, TSetOfReflectionPlanes* psorp, int k, const TPlace* sp) {
+int findSymmetricSp(TSetOfRotations* psorn, TSetOfReflectionPlanes* psorp, int k, const TPlace* sp) {
    int i;
    for (i = sps_count[k] - 1; i >= 0; --i) {
-      ERotation rot = spEqualRotate(sp, sps[k][i]);
-      TSetOfReflectionPlanes sorp = spEqualReflect(sp, sps[k][i]);
-      if (rot || sorp) {
-         if (prot) {
-            *prot = rot;
+      TSetOfRotations sorn = spEqualRotate(sps[k][i], sp);
+      TSetOfReflectionPlanes sorp = spEqualReflect(sps[k][i], sp);
+      if (sorn || sorp) {
+         if (psorn) {
+            *psorn = sorn;
          } 
          if (psorp) {
             *psorp = sorp;
@@ -185,38 +186,42 @@ int findUniqueSymmetric(int key, const char* spsteps, const TPlace* sp) {
    int s = findSp(k, sp);
    if (s < sps_count[k]) {
       displayWide(ePyramid, 0);
-      printf("Duplicate: k %d s %d %s; %s%s", k, s, steps[k][s], spsteps, EOL);
-      display1(ePyramid, sp);
+      if (IS_TOPIC(eTopicAdd)) {
+         printf("Duplicate: k %d s %d %s; %s%s", 
+                k, s, steps[k][s], spsteps, EOL);
+         display1(ePyramid, sp);
+      }
       return -1;
    }
-   ERotation rot = 0;
+   TSetOfRotations sorn = 0;
    TSetOfReflectionPlanes sorp = 0;
-   s = findSymmetricSp(&rot, &sorp, k, sp);
+   s = findSymmetricSp(&sorn, &sorp, k, sp);
    if (s < sps_count[k]) {
-      const char* strrothead = "";
-      const char* strrot = "";
-      if (rot) {
-         strrothead = " rotation ";
-         strrot = rotationToString(rot);
+      const char* strsornhead = "";
+      char* strsorn = strdup("");
+      if (sorn) {
+         strsornhead = " rotation ";
+         strsorn = setToString(sorn, rotationToString);
       }
-      char* strsorphead = "";
-      char* strsorp = setToString(sorp, reflectionPlaneToString);
+      const char* strsorphead = strdup("");
+      char* strsorp = setToChars(sorp, reflectionPlaneToChar);
       if (sorp) {
          strsorphead = " reflection ";
       }
-      catSteps(&steps[k][s], strrot, strsorp, spsteps);
+      catSteps(&steps[k][s], strsorn, strsorp, spsteps);
       if (IS_TOPIC(eTopicSymmetries)) {
          displayWide(ePyramid, 0);
-         printf("Symmetric with existing (on left) (k %d s %d): ", k, s);
+         printf("Symmetric with existing (on left) (k %d s %d) 0x%x: ", k, s, sorp);
          if (IS_TOPIC(eTopicSteps)) {
             printf("%s%s", steps[k][s], EOL);
          } else {
-            printf("%s%s%s%s%s", strrothead, strrot, strsorphead, strsorp, EOL);
+            printf("%s%s%s%s%s", strsornhead, strsorn, strsorphead, strsorp, EOL);
          }
          displayWide(ePyramid, sps[k][s]);
          displayWide(ePyramid, sp);
          displayWide(ePyramid, 0);
       }
+      free(strsorn);
       free(strsorp);
       return -1;
    }
@@ -234,13 +239,6 @@ int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) 
    if (k == -1) {
       return 0;
    }
-   if (IS_TOPIC(eTopicAdd)) {
-      const char* strsteps =
-         IS_TOPIC(eTopicSteps)
-         ? spsteps : "";
-      printf("Add: %s%s", strsteps, EOL);
-      displayWide(ePyramid, sp);
-   }
    if (!keys[k]) {
       addKey(key, k);
    }
@@ -254,7 +252,13 @@ int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) 
    sps[k][s] = SP_NEW(1);
    spCopy(sps[k][s], sp);
    ++sps_count[k];
-//printf("solAddUniqueSymmetric() add: k %d keys[k] 0x%x sps_count[k] %d %s%s", k, keys[k], sps_count[k], spsteps, EOL);
+   if (IS_TOPIC(eTopicAdd)) {
+      const char* strsteps =
+         IS_TOPIC(eTopicSteps)
+         ? spsteps : "";
+      printf("Add: %s%s", strsteps, EOL);
+      displayWide(ePyramid, sps[k][s]);
+   }
    return 1;
 }
 

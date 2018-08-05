@@ -90,6 +90,13 @@ void extendPieces(int pathCount) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void pcAdd(TPiece pc, int times) {
+   int i;
+   for (i = 0; pc[i]; ++i) {
+      int len = strlen(pc[i]);
+      if (len > maxPathLength) {
+         maxPathLength = len;
+      }
+   }
    extendPieces(pcCountPaths(pc));
    ((TPiece*)pieces)[pieceCount - 1] = pc;
    pieceZeroInstances[pieceCount - 1] = 0;
@@ -184,7 +191,7 @@ EPresence pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, 
          moveStep(pos, pmove);
          EPresence ePresence = SP_GET(pos, sp);
          if (ePresence != eAbsent) {
-            if (0) {
+            if (IS_TOPIC(eTopicSteps)) {
                char buf[POS_BUF_SIZE];
                printf("%s %d: %s %c%s", path, i, posToString(buf, pos), GLYPH(ePresence), EOL);
             }
@@ -230,7 +237,9 @@ int pcPathOrientation(EPresence pc, TPath path, TSetOfOrientations soor) {
          if (IS_TOPIC(eTopicOrientations)
           || IS_TOPIC(eTopicSteps)) {
             if (IS_TOPIC(eTopicSteps)) {
-               printf("%s ", stepToString(pc, pos, path, or)); 
+               char* str = stepToString(pc, pos, path, or);
+               printf("%s ", str); 
+               free(str);
             }
             if (IS_TOPIC(eTopicOrientations)) {
                printf("%s", orToString(or)); 

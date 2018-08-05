@@ -8,6 +8,7 @@
 #include "Repeat.h"
 #include "Solve.h"
 #include "Solutions.h"
+#include "Symmetry.h"
 #include "Steps.h"
 #include "Display.h"
 #include "Topics.h"
@@ -29,10 +30,11 @@ static const char const* ERR_BAD_TOPIC = "more than one display topic matched \"
 static const char const* ERR_BAD_PLAY = "bad play \"%s\"";
 static const char const* ERR_UNPLAYABLE = "failed to play \"%s\"";
 static const char const* ERR_EXTRA_PLAY = "too many plays";
-static int compare = 0;
 static int search = 0;
 static int fill = 0;
 static char* play[2] = {0};
+static TSetOfRotations sorn = SET_ALL_OF(eRotations);
+static TSetOfReflectionPlanes sorp = SET_ALL_OF(eReflectionPlanes);
 static int pc = eAbsent;
 static int pathIndex = -1;
 static TPath path = "aA";
@@ -44,21 +46,20 @@ int getOptions(const char**, const char*);
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("sqpy [-f <file>] [-s [fill]] [-y <play>  [<play>]...] [-h <height>] [-p <piece> [<count>]] [-i <piece>] [-a <path index>] [-g <page width>] [-d <topics>] [-k [<prefix>]]%s", EOL);
+   printf("sqpy [-f <file>] [-s [fill]] [-y <play>  [<play>]...] [-h <height>] [-p <piece> [<count>]] [-i <piece>] [-x] [-r] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
    printf(" -h <height>               the pyramid height%s", EOL);
    printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
    printf(" -s [fill]                 search for and display complete pyramids%s", EOL);
    printf("     fill                  ignore instance counts and fill pyramid%s", EOL);
    printf(" -y <play> [<play>]...     plays (? for help), two sets of plays are compared%s", EOL);
-   printf(" -c                        compare two solutions (specified with -y)%s", EOL);
    printf(" -p <piece> [<count>]      a piece (? for help)%s", EOL);
    printf(" -i <piece> (all)          the initial piece by letter or index%s", EOL);
-   printf(" -a <path or index> (aA    the path to orient%s", EOL);
-   printf(" -0 <orientation index>    the orientation to show the paths%s", EOL);
+   printf(" -r                        ignore rotational symmetry%s", EOL);
+   printf(" -x                        ignore reflective symmetry%s", EOL);
+   printf(" -a <path or index> (%s)   the path to orient%s", path, EOL);
    printf(" -o <orientations match>   the orientations to show the paths%s", EOL);
    printf(" -g <page width> (70)      the width of the display page%s", EOL);
    printf(" -d <topics>               display one or more topics (see below, ? for help)%s", EOL);
-   printf(" -k [<prefix>]             display symmetries for which the matching orientation are skipped%s", EOL);
    printf("%sDisplay topics (any unique prefix matches):%s", EOL, EOL);
    char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString);
    printf("%s%s", str, EOL);
@@ -93,11 +94,25 @@ void describePiece() {
 ///////////////////////////////////////////////////////////////////////////////
 void describePlay() {
    printf("A play is a short string describing the deployment of a piece.%s", EOL);
-   printf("It consists of a piece letter, a three digit location,%s", EOL);
-   printf("a two digit orientation index and a path.%s", EOL);
-   printf("The path may start with a marker.%s", EOL);
-   printf("The path may contain the extra marker ('/').%s", EOL);
-   printf("For example, \"b00008/a/A\":%s", EOL);
+   printf("It consists of a piece letter to display,%s", EOL);
+   printf("a three digit location to start from,%s", EOL);
+   printf("a letter indicating the plane (z, b, or d),%s", EOL);
+   printf("a letter indicating the axis (x or y),%s", EOL);
+   printf("two signs indicating the alignments,%s", EOL);
+   printf("and a path itself.%s%s", EOL, EOL);
+   printf("Planes: z is the z surface (001), b is the x==y surface (110),%s", EOL);
+   printf("and d is the x==-y surface (1T0).%s", EOL);
+   printf("The axis letter specifies the axis of lower case path letters.%s", EOL);
+   printf("The signs indicates the directions of lower and upper case.%s", EOL);
+   printf("The path may start with a marker, and%s", EOL);
+   printf("may contain the extra marker ('/').%s", EOL);
+   printf("For example, \"b000bx++/b/A\":%s%s", EOL, EOL);
+   printf(" b%s%s", EOL, EOL);
+   printf(" `b%s", EOL);
+   printf(" b`%s%s", EOL, EOL);
+   printf(" ```%s", EOL);
+   printf(" ```%s", EOL);
+   printf(" b``%s", EOL);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -283,10 +298,6 @@ int getOptions(const char** argv, const char* prefix) {
          }
          break;
       }
-      case 'k': {
-         showOrientationsSymmetry(matchOrientation(getOptionValue(&i, argv)));
-         return 0;
-      }
       case 'h': {
          const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1], prefix), argv[i][1], prefix);
          spSetHeight(strtol(n, 0, 10));
@@ -313,6 +324,14 @@ int getOptions(const char** argv, const char* prefix) {
          }
          break;
       }
+      case 'r': {
+         sorn = 0;
+         break;
+      }
+      case 'x': {
+         sorp = 0;
+         break;
+      }
       case 'a': {
          const char* n = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
          if (strtol(n, 0, 10) != 0 || n[0] == '0') {
@@ -320,11 +339,6 @@ int getOptions(const char** argv, const char* prefix) {
          } else {
             path = n;
          }
-         break;
-      }
-      case '0': {
-         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1], prefix), argv[i][1], prefix);
-         soor = SET_WITH(soor, strtol(n, 0, 10));
          break;
       }
       case 'o': {
@@ -446,8 +460,14 @@ int main(int argc, const char** argv) {
          TPlace* sp = parseSteps(play[i]);
          if (!sp) {
             printf(ERR_UNPLAYABLE, play[i]); 
+            printf(EOL); 
          } else {
-            solAddUniqueSymmetric(i, play[i], sp);
+            if (!play[1]) {
+               display1(ePyramid, sp);
+            } else if ((solAddUniqueSymmetric(1, play[i], sp) && i == 1)
+                    || (i == 1 && !IS_TOPIC(eTopicSymmetries))) {
+               solDisplay(1, ePyramid);
+            }
             free(sp);
          }
          free(play[i]);
@@ -458,12 +478,11 @@ int main(int argc, const char** argv) {
    if (IS_TOPIC(eTopicOrientations)) {
       pcTestOrientations(pc, pathIndex, soor);
    }
-   if (IS_TOPIC(eTopicRepeat)) {
-      findRepeat(1);
+   if (search || IS_TOPIC(eTopicRepeat)) {
+      findRepeat();
    }
    if (search) {
-      findRepeat(0);
-      printf("Total solutions %d%s", solve(pc, fill), EOL);
+      printf("Total solutions %d%s", solve(pc, fill, sorn, sorp), EOL);
    }
    return 0;
 }

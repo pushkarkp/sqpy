@@ -8,6 +8,7 @@
 
 #include "Position.h"
 #include "Orientation.h"
+#include "Symmetry.h"
 #include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,5 +16,7 @@
 // repeats a previous path orientation.
 extern TSet** repeat;
 void findRepeat();
+TSetOfOrientations rotateSkip(int pc, int path, TSetOfRotations);
+TSetOfOrientations reflectSkip(int pc, int path, TSetOfReflectionPlanes);
 
 #endif

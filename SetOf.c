@@ -53,9 +53,7 @@ int setGetSingle(TSet set) {
 //////////////////////////////////////////////////////////////////////////////
 char* setToString(TSet set, FSetElementToString elToString) {
    if (set == 0) {
-      char* str = (char*)malloc(1);
-      *str = 0;
-      return str;
+      return strdup("");
    }
    int len = 0;
    int i;
@@ -80,3 +78,18 @@ char* setToString(TSet set, FSetElementToString elToString) {
    *(p - 1) = 0; 
    return str;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+char* setToChars(TSet set, FSetElementToChar elToChar) {
+   char* str = (char*)malloc(setCount(set) + 1);
+   char* p = str;
+   int i;
+   for (i = 0; i < SET_MAX_SIZE; ++i) {
+      if (SET_HAS(set, i)) {
+         *p++ = elToChar(i);
+      }
+   }
+   *p = 0; 
+   return str;
+}
+
