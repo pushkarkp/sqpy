@@ -24,5 +24,5 @@ int displayPageRowRange(EDisplayShape, int h, int r0, int r1, int n, const TPlac
 void displayWideRowRange(EDisplayShape, int r0, int r1, const TPlace* sp);
 void displayWide(EDisplayShape, const TPlace* sp);
 void displayWidePlane(int z, const TPlace* sp);
-
+int displayIsPlane();
 #endif

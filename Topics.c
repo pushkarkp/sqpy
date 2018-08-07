@@ -20,9 +20,6 @@ static TSet setTopics = 0;
 const char* displayTopicToString(int t) {
    switch (t) {
       case eTopicSettings: return "settings";
-      case eTopicPyramid: return "pyramid";
-      case eTopicOrder: return "order";
-      case eTopicOrientations: return "orientations";
       case eTopicPaths: return "paths";
       case eTopicRepeat: return "repeats";
       case eTopicSteps: return "steps";
@@ -37,9 +34,6 @@ const char* displayTopicToString(int t) {
 const char* displayTopicDescription(int t) {
    switch (t) {
       case eTopicSettings: return "Display the setting values.";
-      case eTopicPyramid: return "Display the pyramid.";
-      case eTopicOrder: return "Display the order of the positions at which paths are started.";
-      case eTopicOrientations: return "Display the paths in all orientations.";
       case eTopicPaths: return "Display the paths for each piece.";
       case eTopicRepeat: return "Display each piece path orientation and whether it is a repeat.";
       case eTopicSteps: return "Display the steps for baths.";

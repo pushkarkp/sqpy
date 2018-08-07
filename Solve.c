@@ -173,7 +173,7 @@ int solve(EPresence pc, int f,
       solutions += sol;
       displayWide(ePyramid, 0);
       int max = solMaxPieceCount();
-      printf("%d solutions starting with %c %d pieces%s", sol,  GLYPH(pc), max, EOL);
+      printf("%c: %d solutions%s", GLYPH(pc), sol, EOL);
       int n;
       for (n = 1; n <= max; ++n) {
          int count = solCountForPieceCount(n);

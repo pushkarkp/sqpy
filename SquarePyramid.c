@@ -145,7 +145,7 @@ char* spWholeRowToString(char* str, int y, int z, const TPlace* sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spTestPyramid() {
+void spTestVolume() {
    TPlace* sps = SP_NEW(3);
    spClear(&sps[SPS(0)]);
    spInit(&sps[SPS(1)]);
@@ -228,7 +228,7 @@ int spFind(TPosition* pos, TPlace c, const TPlace* sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spTestOrder() {
+void spTestSequence() {
    int volume = getPyramidVolume();
    TPlace* sp = SP_NEW(1);
    spInit(sp);

@@ -212,7 +212,6 @@ int pcPathOrientation(EPresence pc, TPath path, TSetOfOrientations soor) {
    }
    TPlace* sp = SP_NEW(1);
    TPosition pos[eDimensions] = {spHeight / 2, spHeight / 2, spHeight / 2};
-   int plane = soor && !(soor & ~OR_001_SET);
    EOrientation or;
    for (or = 0; or < eOrientations; ++or) {
       if (soor != 0 && !SET_HAS(soor, or)) {
@@ -221,40 +220,49 @@ int pcPathOrientation(EPresence pc, TPath path, TSetOfOrientations soor) {
       spInitCube(sp); 
       SP_SET(sp, pc, pos);
       EPresence p = pcWalk(pc, path, or, pos, sp);
+      if (IS_TOPIC(eTopicPaths)
+       && or >= OR_001_COUNT
+       && displayIsPlane()) {
+         displayWidePlane(spHeight / 2, 0);
+      }
       if (p != eAbsent) {
          if (IS_TOPIC(eTopicPaths)) {
-            printf("%s: %c%s", path, GLYPH(p), EOL);
-            if (plane) {
-               display1Plane(spHeight / 2, sp);
+            if (or < OR_001_COUNT) {
+               displayWidePlane(spHeight / 2, 0);
             } else {
-               display1(eCube, sp);
+               displayWide(eCube, 0);
+            }
+            printf("%s: %c%s", path, GLYPH(p), EOL);
+            if (or < OR_001_COUNT) {
+               displayWidePlane(spHeight / 2, sp);
+            } else {
+               displayWide(eCube, sp);
             }
          }
          free(sp);
          return 0;
       }
       if (IS_TOPIC(eTopicPaths)) {
-         if (IS_TOPIC(eTopicOrientations)
-          || IS_TOPIC(eTopicSteps)) {
-            if (IS_TOPIC(eTopicSteps)) {
-               char* str = stepToString(pc, pos, path, or);
-               printf("%s ", str); 
-               free(str);
-            }
-            if (IS_TOPIC(eTopicOrientations)) {
-               printf("%s", orToString(or)); 
-            }
-            printf("%s", EOL); 
+         if (IS_TOPIC(eTopicSteps)) {
+            char* str = stepToString(pc, pos, path, or);
+            printf("%s%s", str, EOL); 
+            free(str);
          }
-         if (plane) {
-            display1Plane(spHeight / 2, sp);
+         if (or < OR_001_COUNT) {
+            displayWidePlane(spHeight / 2, sp);
          } else {
-            display1(eCube, sp);
+            displayWide(eCube, sp);
          }
-         printf("%s", EOL);
       }
    }
    free(sp);
+   if (IS_TOPIC(eTopicPaths)) {
+      if (displayIsPlane()) {
+         displayWidePlane(spHeight / 2, 0);
+      } else {
+         displayWide(eCube, 0);
+      }
+   }
    return 1;
 }
 
@@ -301,6 +309,7 @@ void pcDisplayAll() {
 
 ///////////////////////////////////////////////////////////////////////////////
 void testOrientations(EPresence pcStart, EPresence pcEnd, TSetOfOrientations soor) {
+printf("testOrientations(%c, %c, %s)\r\n", GLYPH(pcStart), GLYPH(pcEnd), setToString(soor, orToString));
    EPresence pc;
    for (pc = pcStart; pc < pcEnd; ++pc) {
       int p;
@@ -316,14 +325,14 @@ void testOrientations(EPresence pcStart, EPresence pcEnd, TSetOfOrientations soo
       }
    }
    displayTopicsRevert();
-   displayWide(eCube, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void pcTestOrientations(EPresence pc, int path, TSetOfOrientations soor) {
-   printf("piece: %s path: %s orientations 0x%x%s", 
+   printf("piece: %s path: %s orientations %s%s", 
           pc ? presToString(pc) : "all", 
-          path > -1 ? pieces[pc][path] : "all", soor, EOL);
+          path > -1 ? pieces[pc][path] : "all", 
+          setToString(soor, orToString), EOL);
    pcSetHeight(1);
    if (path == -1) {
       EPresence pcStart = pc ? pc : eFirstPiece;

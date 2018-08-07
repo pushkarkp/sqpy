@@ -14,12 +14,14 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 const char* eol[eEolTypes] = {"\n", "\r", "\r\n"};
+static int plane = 0;
 static int pageWidth = 0;
 static int spCount = 0;
 static int rows[eDisplayShapes] = {0};
 
 ///////////////////////////////////////////////////////////////////////////////
 void initDisplay(int pw) {
+   plane = 0;
    rows[ePyramid] = 0;
    int i = 0;
    for (i = 0; i < spHeight + 2; ++i) {
@@ -79,14 +81,21 @@ char* display1Line(char* str, int row, EDisplayShape shape, const TPlace* sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+typedef void (*FDisplayRowRange)(EDisplayShape, int, int, const TPlace*);
+void displayPlane(int z, const TPlace* sp, FDisplayRowRange f) {
+   plane = 1;
+   int start = (spHeight + 1) * z;
+   f(eCube, start, start + spHeight + 2, sp);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void display1(EDisplayShape shape, const TPlace* sp) {
    display1RowRange(shape, 0, rows[shape], sp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void display1Plane(int z, const TPlace* sp) {
-   int start = (spHeight + 1) * z + 1;
-   display1RowRange(eCube, start, start + spHeight, sp);
+   displayPlane(z, sp, display1RowRange);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -144,16 +153,25 @@ void displayWideRowRange(EDisplayShape shape, int r0, int r1, const TPlace* sp) 
    if (!sp || stored + 1 > spCount) {
       displayPageRowRange(shape, 1000, r0, r1, stored, store);
       stored = 0;
+      plane = 0;
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void displayWide(EDisplayShape shape, const TPlace* sp) {
+   if (sp && plane) {
+      printf("display conflict%s", EOL);
+      displayWideRowRange(shape, 0, rows[shape], 0);
+   }      
    displayWideRowRange(shape, 0, rows[shape], sp);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void displayWidePlane(int z, const TPlace* sp) {
-   int start = (spHeight + 1) * z + 1;
-   displayWideRowRange(eCube, start, start + spHeight, sp);
+   displayPlane(z, sp, displayWideRowRange);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int displayIsPlane() {
+   return plane;
 }

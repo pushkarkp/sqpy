@@ -39,15 +39,20 @@ static int pc = eAbsent;
 static int pathIndex = -1;
 static TPath path = "aA";
 static TSet soor = 0;
-static int pageWidth = 70;
+static int pageWidth = 76;
 
 int getOptions(const char**, const char*);
 
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("sqpy [-f <file>] [-s [fill]] [-y <play>  [<play>]...] [-h <height>] [-p <piece> [<count>]] [-i <piece>] [-x] [-r] [-a <path index>] [-g <page width>] [-d <topics>]%s", EOL);
+   printf("sqpy [-g <page width>] [-h <height>] [-v] [-q] [-a <path index>] [-f <file>] [-s [fill]] [-y <play>  [<play>]...] [-p <piece> [<count>]] [-i <piece>] [-x] [-r] [-d <topics>]%s", EOL);
+   printf(" -g <page width> (%d)      the width of the display page%s", pageWidth, EOL);
    printf(" -h <height>               the pyramid height%s", EOL);
+   printf(" -v                        show the pyramid volume%s", EOL);
+   printf(" -q                        show the sequence of placement%s", EOL);
+   printf(" -a <path or index> (%s)   the path to orient%s", path, EOL);
+   printf(" -o <orientations match>   show paths in orientations (default all)%s", EOL);
    printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
    printf(" -s [fill]                 search for and display complete pyramids%s", EOL);
    printf("     fill                  ignore instance counts and fill pyramid%s", EOL);
@@ -56,9 +61,6 @@ void usage() {
    printf(" -i <piece> (all)          the initial piece by letter or index%s", EOL);
    printf(" -r                        ignore rotational symmetry%s", EOL);
    printf(" -x                        ignore reflective symmetry%s", EOL);
-   printf(" -a <path or index> (%s)   the path to orient%s", path, EOL);
-   printf(" -o <orientations match>   the orientations to show the paths%s", EOL);
-   printf(" -g <page width> (70)      the width of the display page%s", EOL);
    printf(" -d <topics>               display one or more topics (see below, ? for help)%s", EOL);
    printf("%sDisplay topics (any unique prefix matches):%s", EOL, EOL);
    char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString);
@@ -246,10 +248,53 @@ char* read(const char* fname) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void init() {
+   if (pieceCount == eFirstPiece) {
+      readPathArg(path, "1", 0);
+   }
+   if (spHeight == 0) {
+      pcSetHeight();
+      initDisplay(pageWidth);
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 int getOptions(const char** argv, const char* prefix) {
    int i;
    for (i = 0; argv[i] && argv[i][0] == '-'; ++i) {
       switch (argv[i][1]) {
+      case 'h': {
+         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1], prefix), argv[i][1], prefix);
+         spSetHeight(strtol(n, 0, 10));
+         initDisplay(pageWidth);
+         break;
+      }
+      case 'v': {
+         init();
+         spTestVolume();
+         return 0;
+      }
+      case 'q': {
+         init();
+         spTestSequence();
+         return 0;
+      }
+      case 'o': {
+         TSetOfOrientations s = SET_ALL_OF(eOrientations);
+         const char* v = getOptionValue(&i, argv);
+         if (v) {
+            s = matchOrientation(v);
+         }
+         if (setCount(s) == 0) {
+            printf(ERR_NO_ORIENT, v);
+            printf("%s", EOL);
+            usage();
+         }
+         soor |= s;
+         init();
+         pcTestOrientations(pc, pathIndex, soor);
+         return 0;
+      }
       case 'f': {
          const char* fname = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
          char* err = read(fname);
@@ -298,15 +343,10 @@ int getOptions(const char** argv, const char* prefix) {
          }
          break;
       }
-      case 'h': {
-         const char* n = getNumber(getMandatory(getOptionValue(&i, argv), argv[i][1], prefix), argv[i][1], prefix);
-         spSetHeight(strtol(n, 0, 10));
-         initDisplay(pageWidth);
-         break;
-      }
       case 'p': {
          const char* path = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
          if (path && path[0] == '?') {
+            init();
             describePiece();
             return 0;
          }
@@ -339,17 +379,6 @@ int getOptions(const char** argv, const char* prefix) {
          } else {
             path = n;
          }
-         break;
-      }
-      case 'o': {
-         const char* v = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
-         TSetOfOrientations s = matchOrientation(v);
-         if (setCount(s) == 0) {
-            printf(ERR_NO_ORIENT, v);
-            printf("%s", EOL);
-            usage();
-         }
-         soor |= s;
          break;
       }
       case 'g': {
@@ -434,21 +463,9 @@ int main(int argc, const char** argv) {
    if (!getOptions(&argv[i], 0)) {
       return 0;
    }
-   if (pieceCount == eFirstPiece) {
-      readPathArg(path, "1", 0);
-   }
-   if (spHeight == 0) {
-      pcSetHeight();
-      initDisplay(pageWidth);
-   }
+   init();
    if (IS_TOPIC(eTopicSettings)) {
       showOptions();
-   }
-   if (IS_TOPIC(eTopicPyramid)) {
-      spTestPyramid();
-   }
-   if (IS_TOPIC(eTopicOrder)) {
-      spTestOrder();
    }
    if (IS_TOPIC(eTopicPaths)) {
       pcDisplayAll();
@@ -474,9 +491,6 @@ int main(int argc, const char** argv) {
       }
       displayWide(ePyramid, 0);
       return 0;
-   }
-   if (IS_TOPIC(eTopicOrientations)) {
-      pcTestOrientations(pc, pathIndex, soor);
    }
    if (search || IS_TOPIC(eTopicRepeat)) {
       findRepeat();
