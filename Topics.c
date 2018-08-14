@@ -23,9 +23,11 @@ const char* displayTopicToString(int t) {
       case eTopicPaths: return "paths";
       case eTopicRepeat: return "repeats";
       case eTopicSteps: return "steps";
+      case eTopicPlays: return "plays";
       case eTopicSymmetries: return "symmetries";
       case eTopicAdd: return "adding";
       case eTopicProgress: return "progress";
+      case eTopicCollisions: return "collisions";
       default: return "unknown";
    }
 }
@@ -36,10 +38,12 @@ const char* displayTopicDescription(int t) {
       case eTopicSettings: return "Display the setting values.";
       case eTopicPaths: return "Display the paths for each piece.";
       case eTopicRepeat: return "Display each piece path orientation and whether it is a repeat.";
-      case eTopicSteps: return "Display the steps for baths.";
+      case eTopicSteps: return "Display the steps for paths.";
+      case eTopicPlays: return "Display the plays for each partial solution.";
       case eTopicSymmetries: return "Display the symmetries found for each symmetrical partial solution.";
       case eTopicAdd: return "Display each unique solution as it is added.";
       case eTopicProgress: return "Display search progress.";
+      case eTopicCollisions: return "Display all collisions.";
       default: return "unknown";
    }
 }

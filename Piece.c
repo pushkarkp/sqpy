@@ -191,7 +191,7 @@ EPresence pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, 
          moveStep(pos, pmove);
          EPresence ePresence = SP_GET(pos, sp);
          if (ePresence != eAbsent) {
-            if (IS_TOPIC(eTopicSteps)) {
+            if (IS_TOPIC(eTopicCollisions)) {
                char buf[POS_BUF_SIZE];
                printf("%s %d: %s %c%s", path, i, posToString(buf, pos), GLYPH(ePresence), EOL);
             }

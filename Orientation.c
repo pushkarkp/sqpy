@@ -6,6 +6,7 @@
 
 #include "Orientation.h"
 #include "SetOf.h"
+#include "Display.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -48,36 +49,65 @@ const char* orToString(int or) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+int orientIsShort(const char* s) {
+   return charToSign(s[1]) == -1;
+}
+   
+///////////////////////////////////////////////////////////////////////////////
 EOrientation stringToOr(const char* s) {
    EPlane plane = charToPlane(s[0]);
-   EDimension dim = charToDim(s[1]);
-   ESign sign[2] = {charToSign(s[3]), charToSign(s[2])};
+   EDimension dim = eX;
+   ESign sign[2] = {ePlus, ePlus};
+   if (charToSign(s[1]) != -1) {
+      sign[0] = charToSign(s[1]);
+      sign[1] = charToSign(s[2]);
+      dim = charToDim(s[3]);
+   }
    if (plane == -1 || dim == -1
     || sign[0] == -1 || sign[1] == -1) {
       return -1;
    }
    return plane * 2 * eSigns * eSigns
-        + dim * eSigns * eSigns
-        + sign[0] * eSigns
-        + sign[1];
+        + sign[1] * eSigns
+        + sign[0]
+        + dim * eSigns * eSigns;
 }
  
 ///////////////////////////////////////////////////////////////////////////////
 const char* orientToString(char* buf, const TOrient* or) {
    sprintf(buf, "%c%c%c%c", 
            planeToChar(or->plane),
-           dimToChar(or->align),
            signToChar(or->fwd[eX]),
-           signToChar(or->fwd[eY]));
+           signToChar(or->fwd[eY]),
+           dimToChar(or->align));
    return buf;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 int orientOk(const char* s) {
    return charToPlane(s[0]) != -1
-       && charToDim(s[1]) != -1
-       && charToSign(s[2]) != -1
-       && charToSign(s[3]) != -1;
+       && (charToSign(s[1]) == -1
+        || (charToSign(s[1]) != -1
+         && charToSign(s[2]) != -1
+         && charToDim(s[3]) != -1));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int orientReport(const char* s, int start) {
+   typedef int (*fun)(int);
+   static fun cvt[4] = {charToPlane, charToDim, charToSign, charToSign};
+   static char* msg[4] = {"plane", "dimension", "sign", "sign"};
+   int i;
+   for (i = 0; i < 4; ++i) {
+      if (cvt[i](s[start + i]) == -1) {
+         if (i == 1) {
+            return 1;
+         }
+         printf("%s%s%*c - %s expected%s", s, EOL, start + i + 1, '^', msg[i], EOL);
+         return 0;
+      }
+   }
+   return 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

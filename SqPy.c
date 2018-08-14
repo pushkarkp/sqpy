@@ -27,8 +27,8 @@ static const char const* ERR_FILE = "file error";
 static const char const* ERR_NO_ORIENT = "no orientation matched \"%s\"";
 static const char const* ERR_NO_TOPIC = "no display topic matched \"%s\"";
 static const char const* ERR_BAD_TOPIC = "more than one display topic matched \"%s\"";
-static const char const* ERR_BAD_PLAY = "bad play \"%s\"";
-static const char const* ERR_UNPLAYABLE = "failed to play \"%s\"";
+static const char const* ERR_BAD_PLAY = "bad play ";
+static const char const* ERR_UNPLAYABLE = "play collides \"%s\"";
 static const char const* ERR_EXTRA_PLAY = "too many plays";
 static int search = 0;
 static int fill = 0;
@@ -319,15 +319,14 @@ int getOptions(const char** argv, const char* prefix) {
             printf(EOL);
             return 0;
          }
-         const char* p;
          int g = play[0] ? 1 : 0;
+         const char* p;
          for (p = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
               p;
               p = getOptionExtraValue(&i, argv)) {
             if (!stepOk(p)) {
                if (p[0] != '?') {
-                  printf(ERR_BAD_PLAY, p);
-                  printf(EOL);
+                  stepReport(p, ERR_BAD_PLAY);
                }
                describePlay();
                return 0;
@@ -398,6 +397,7 @@ int getOptions(const char** argv, const char* prefix) {
          while ((v = getOptionExtraValue(&i, argv)) != 0) {
             int t = displayTopicsAdd(v);
             if (t != 1) {
+               printf("%d 0x%x\r\n", eTopics, SET_ALL_OF(eTopics));
                printf(t == 0 ? ERR_NO_TOPIC : ERR_BAD_TOPIC, v);
                char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString);
                printf("%sTopics available: %s%s", EOL, str, EOL);
@@ -418,9 +418,21 @@ int getOptions(const char** argv, const char* prefix) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void showOptions() {
-   printf("search %s, fill %s, spHeight %d, pieces %d, page width %d.%s", 
-          search?"true":"false", fill?"true":"false", 
-          spHeight, pieceCount - 1, pageWidth, EOL);
+   printf("page width %d, pyramid height %d, %s%s%d pieces.%s", 
+          pageWidth, spHeight, search?"search, ":"", fill?"fill, ":"", 
+          pieceCount - 1, EOL);
+   if (displayTopics() != 0) {
+      char* str = setToString(displayTopics(), displayTopicToString);
+      printf("Topics: %s.%s", str, EOL);
+      free(str);
+   }
+   if (play[0]) {
+      printf("Play 1: %s.%s", play[0], EOL);
+      if (play[1]) {
+         printf("Play 2: %s.%s", play[1], EOL);
+      }
+      return;
+   }
    if (pieceCount > 1) {
       printf("Pieces:%s", EOL);
    }
@@ -434,13 +446,7 @@ void showOptions() {
       printf("%s", EOL);
    }
    if (pc != 0) {
-      printf("initial piece %c.%s", GLYPH(pc), EOL);
-   }
-   if (play[0]) {
-      printf("Play 1: %s.%s", play[0], EOL);
-      if (play[1]) {
-         printf("Play 2: %s.%s", play[1], EOL);
-      }
+      printf("Initial piece: %c.%s", GLYPH(pc), EOL);
    }
    if (pathIndex != -1) {
       printf("path %d (%s).%s", pathIndex, pieces[pc][pathIndex], EOL);
@@ -448,11 +454,6 @@ void showOptions() {
    if (soor != 0) {
       char* str = setToString(soor, orToString);
       printf("orientations: %s.%s", str, EOL);
-      free(str);
-   }
-   if (displayTopics() != 0) {
-      char* str = setToString(displayTopics(), displayTopicToString);
-      printf("Topics: %s.%s", str, EOL);
       free(str);
    }
 }

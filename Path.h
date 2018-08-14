@@ -19,10 +19,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 typedef const char* TPath;
 int pathOk(TPath);
+int pathReport(TPath, int start);
 int pathOkForPiece(TPath, const char* errorPrefix);
 int pathMarkersCount(TPath);
 int pathMarkerCount(TPath, int marker);
 char* pathNext(TPath);
 int pathRemoveBothEndMarkers(char*);
+void reportErr(int report, const char* prefix, const char* path, int offset, const char* msg);
 
 #endif

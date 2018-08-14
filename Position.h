@@ -9,14 +9,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {e001, e110, e1T0, ePlanes} EPlane;
 int planeToChar(EPlane);
-EPlane charToPlane(int);
+int charToPlane(int);
 typedef enum {eX, eY, eZ, e2dDimensions = eZ, eDimensions} EDimension;
 int dimToChar(EDimension);
-EDimension charToDim(int);
+int charToDim(int);
 #define INVERT_DIM(eDim) ((eDim) ? eX : eY)
 typedef enum {ePlus, eMinus, eSigns} ESign;
 int signToChar(ESign);
-ESign charToSign(int);
+int charToSign(int);
 #define SIGN_AS_INT(eSign) (-((eSign) * 2 - 1))
 struct TPosSpace { int x; int y; int z; };
 #define POS_COPY(d, s) { *(struct TPosSpace*)(d) = *(struct TPosSpace*)(s); }

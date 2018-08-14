@@ -9,6 +9,7 @@
 #include "Path.h"
 #include "SetOf.h"
 #include "Display.h"
+#include "Topics.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -132,7 +133,24 @@ int stepOk(const char* step) {
        && isdigit(step[2])
        && isdigit(step[3])
        && orientOk(step + 4)
-       && pathOk(step + 8);
+       && pathOk(step + (orientIsShort(step + 4) ? 5 : OR_BUF_SIZE + 3));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int stepReport(const char* step, const char* prefix) {
+   if (!isalpha(step[0])) {
+      reportErr(1, prefix, step, 0, " - letter expected");
+      return 0;
+   }
+   int i;
+   for (i = 1; i < 4; ++i) {
+      if (!isdigit(step[i])) {
+         reportErr(1, prefix, step, i, " - digit expected");
+         return 0;
+      }
+   }
+   return orientReport(step, 4)
+       && pathReport(step, (orientIsShort(step + 4) ? 5 : OR_BUF_SIZE + 3));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -154,12 +172,14 @@ TPlace* parseSteps(const char* given) {
    char** step = eachStep(steps);
    TPlace* sp = SP_NEW(1);
    spInit(sp);
+   // show any collision
+   displayTopicsAll();
    int i;
    for (i = 0; step[i]; ++i) {
       EPresence pc = PIECE(step[i][0]);
       TPosition pos[eDimensions] = {step[i][1] - '0', step[i][2] - '0', step[i][3] - '0'};
       EOrientation or = stringToOr(step[i] + 4);
-      TPath path = step[i] + 4 + OR_BUF_SIZE - 1;
+      TPath path = step[i] + 4 + ((orientIsShort(step[i] + 4) ? 1 : OR_BUF_SIZE - 1));
       if (eAbsent != SP_GET(pos, sp)
        || eAbsent != pcWalk(pc, path, or, pos, sp)) {
          free(sp);
@@ -168,6 +188,7 @@ TPlace* parseSteps(const char* given) {
       }
       SP_SET(sp, pc, pos);
    }
+   displayTopicsRevert();
    free(steps);
    free(step);
    return sp;

@@ -20,7 +20,7 @@ int planeToChar(EPlane p) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-EPlane charToPlane(int c) {
+int charToPlane(int c) {
    switch (c) {
       case 'z': return e001;
       case 'b': return e110;
@@ -40,7 +40,7 @@ int dimToChar(EDimension dim) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-EDimension charToDim(int c) {
+int charToDim(int c) {
    switch (c) {
       case 'X': case 'x': return eX;
       case 'Y': case 'y': return eY;
@@ -59,7 +59,7 @@ int signToChar(ESign s) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ESign charToSign(int c) {
+int charToSign(int c) {
    switch (c) {
       case '+': return ePlus;
       case '-': return eMinus;

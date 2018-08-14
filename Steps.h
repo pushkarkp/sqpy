@@ -19,6 +19,7 @@ char* stepsCopy(const char*);
 int stepsPieceCount(const char*);
 const char* stepsLast(const char*);
 int stepOk(const char*);
+int stepReport(const char*, const char* prefix);
 int stepsOk(const char*);
 TPlace* parseSteps(const char*);
 #endif

@@ -11,7 +11,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {
    eTopicSettings, eTopicPaths, eTopicRepeat, eTopicSteps, 
-   eTopicSymmetries, eTopicAdd, eTopicProgress,
+   eTopicPlays, eTopicSymmetries, eTopicAdd, eTopicProgress,
+   eTopicCollisions,
    eTopics
 } ETopic;
 #define IS_TOPIC(t) SET_HAS(displayTopics(), t)

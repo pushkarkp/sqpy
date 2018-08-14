@@ -13,7 +13,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#define MARKER MAX_MARKER
 #define ONE_OF_ADVANCE(c) (PATH_STEP_IS_FORWARD(c) ? 1 : -1)
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -21,6 +20,14 @@ int makeStep(int sideways, int advance) {
    return advance
         + (advance > 0 ? PATH_STEP_MIN - 1 : PATH_STEP_MAX + 1) 
         & (sideways ? ~0x20 : ~0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int safeStrlen(const char* s) {
+   if (!s) {
+      return 0;
+   }
+   return strlen(s);
 }
 
 #define ONE_BACKWARDS_OF(c) makeStep(PATH_STEP_IS_SIDEWAYS(c), -ONE_OF_ADVANCE(c))
@@ -52,79 +59,64 @@ int pathCharCount(TPath path, char c) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSet pathMarkers(TPath path) {
-   TSet markers = 0;
-   int i;
-   for (i = 0; path[i]; ++i) {
-      if (IS_MARKER(path[i]) && !SET_HAS(markers, MARKER_INDEX(path[i]))) {
-         markers = SET_WITH(markers, MARKER_INDEX(path[i]));
-      }
+void reportErr(int report, const char* prefix, const char* path, int offset, const char* msg) {
+   if (report) {
+      printf("%s'%s'%s%*c%s%s", 
+             prefix?prefix:"", path, EOL,
+             (prefix?strlen(prefix):0) + offset + 2, '^', msg, EOL);
    }
-   return markers;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int isPathOk(TPath path, int forPiece, const char* prefix) {
-   const int len = strlen(path);
+int isPathOk(int forPiece, TPath path, int start, const char* prefix, int report) {
+   const int len = strlen(path) - start;
    if (len < 1) {
-      printf("%sempty path%s", prefix?prefix:"", EOL);
+      reportErr(report, prefix, path, start, " - no path");
       return 0;
    }
-   if (forPiece && IS_MARKER(path[0])) {
-      printf("%spath '%s' starts with a marker%s", 
-             prefix?prefix:"", path, EOL);
+   if (forPiece && IS_MARKER(path[start])) {
+      reportErr(report, prefix, path, start, " - starts with a marker");
       return 0;
    }
-   TSet markers = pathMarkers(path);
+   int offset[MARKER_INDEX(MAX_MARKER) + 1] = {0};
+   int one = 0;
+   int more = 0;
    int i;
-   for (i = 0; i < MARKER; ++i) {
-      if (SET_HAS(markers, i)
-       && pathCharCount(path, AS_MARKER(i)) == 1) {
-         printf("%spath '%s' contains only one of marker '%c'%s", 
-                prefix?prefix:"", path, AS_MARKER(i), EOL);
-         return 0;
-       }
-   }
-   int one = 0;;
-   int more = 0;;
    for (i = 0; i < len; ++i) {
-      if ((!IS_MARKER(path[i]) || (forPiece && path[i] == MAX_MARKER))
-       && (path[i] < 'A' || path[i] > 'Z')
-       && (path[i] < 'a' || path[i] > 'z')) {
-         printf("%spath '%s' contains illegal character '%c' (%d)%s", 
-                prefix?prefix:"", path, path[i], (int)path[i], EOL);
+      int c = path[start + i];
+      if ((!IS_MARKER(c) || (forPiece && c == MAX_MARKER))
+       && (c < 'A' || c > 'Z')
+       && (c < 'a' || c > 'z')) {
+         reportErr(report, prefix, path, start + i, " - illegal character");
          return 0;
       }
-      if (IS_MARKER(path[i])) {
-         if (path[i] == path[i + 1]) {
-            printf("%spath '%s' contains adjacent '%c' markers%s", 
-                   prefix?prefix:"", path, path[i], EOL);
+      if (IS_MARKER(c)) {
+         if (IS_MARKER(path[start + i + 1])) {
+            reportErr(report, prefix, path, start + i, "^ - adjacent markers");
             return 0;
          }
-         if (IS_MARKER(path[i + 1])) {
-            printf("%spath '%s' contains adjacent markers '%c' and '%c'%s", 
-                   prefix?prefix:"", path, path[i], path[i + 1], EOL);
-            return 0;
-         }
-         if (!SET_HAS(one, MARKER_INDEX(path[i]))) {
-            one = SET_WITH(one, MARKER_INDEX(path[i]));
+         if (!SET_HAS(one, MARKER_INDEX(c))) {
+            one = SET_WITH(one, MARKER_INDEX(c));
+            offset[MARKER_INDEX(c)] = i;
          } else 
-         if (!SET_HAS(more, MARKER_INDEX(path[i]))) {
-            more = SET_WITH(more, MARKER_INDEX(path[i]));
+         if (!SET_HAS(more, MARKER_INDEX(c))) {
+            more = SET_WITH(more, MARKER_INDEX(c));
          }
-      } else if (path[i + 1] 
-              && !IS_MARKER(path[i + 1])
-              && PATH_STEP_IS_SIDEWAYS(path[i]) == PATH_STEP_IS_SIDEWAYS(path[i + 1])) {
-         printf("%spath '%s' contains consecutive steps '%c%c' in the same dimension%s", 
-                prefix?prefix:"", path, path[i], path[i + 1], EOL);
-         return 0;
+      } else {
+         // skip markers
+         int j;
+         for (j = i + 1; IS_MARKER(path[start + j]); ++j) {}
+         int c1 = path[start + j];
+         if (c1 != 0 && PATH_STEP_IS_SIDEWAYS(c) == PATH_STEP_IS_SIDEWAYS(c1)) {
+            reportErr(report, prefix, path, start + i, "^ - consecutive steps in the same dimension");
+            return 0;
+         }
       }
    }
    int c;
-   for (c = MIN_MARKER; c < MAX_MARKER; ++c) {
+   for (c = MIN_MARKER; c <= MAX_MARKER; ++c) {
       if (SET_HAS(one, MARKER_INDEX(c)) && !SET_HAS(more, MARKER_INDEX(c))) {
-         printf("%spath '%s' contains only one of '%c' marker%s", 
-                prefix?prefix:"", path, c, EOL);
+         reportErr(report, prefix, path, start + offset[MARKER_INDEX(c)], " - single marker");
          return 0;
       }
    }
@@ -133,12 +125,25 @@ int isPathOk(TPath path, int forPiece, const char* prefix) {
 
 ///////////////////////////////////////////////////////////////////////////////
 int pathOkForPiece(TPath path, const char* prefix) {
-   return isPathOk(path, 1, prefix);
+   if (!prefix) {
+      return isPathOk(1, path, 0, 0, 1);
+   }
+   char* str = (char*)malloc(strlen(prefix) + 2);
+   strcpy(str, prefix);
+   strcat(str, " ");
+   int ok = isPathOk(1, path, 0, str, 1);
+   free(str);
+   return ok;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 int pathOk(TPath path) {
-   return isPathOk(path, 0, 0);
+   return isPathOk(0, path, 0, 0, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int pathReport(TPath path, int start) {
+   return isPathOk(0, path, start, 0, 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -231,7 +236,7 @@ char* addOne(int len, TPath path) {
    for (i = len + 1; i > 1; --i) {
       newpath[i] = path[i - 1];
    }
-   newpath[0] = MARKER;
+   newpath[0] = MAX_MARKER;
    return newpath;
 }
 
@@ -265,9 +270,9 @@ int pathRemoveBothEndMarkers(char* path) {
 char* startReversal(TPath path) {
 //printf("0 startReversal(%s)\r\n", path);
    char* newpath = (char*)malloc((strlen(path) + 4) * sizeof(char));
-   newpath[0] = MARKER;
+   newpath[0] = MAX_MARKER;
    newpath[1] = ONE_BACKWARDS_OF(path[0]);
-   newpath[2] = MARKER;
+   newpath[2] = MAX_MARKER;
    if (abs(PATH_STEP_ADVANCE(path[0])) == 1) {
       if (path[1] == 0) {
          newpath[0] = newpath[1];
@@ -317,7 +322,7 @@ char* pathNext(TPath path) {
    }
 //printf("1 pathNext(%s) markers %d marker %d%s", path, markers, marker, EOL);
    int m = nextMarker(path);
-   if (m < len && path[m] != MARKER) {
+   if (m < len && path[m] != MAX_MARKER) {
 //printf("reversePrefix(%s) path[m] %c%s", path, path[m], EOL);
       // reached fork
       return reversePrefix(flip(marker, path));

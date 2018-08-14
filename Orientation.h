@@ -19,7 +19,9 @@ typedef enum {
    eOrientations
 } EOrientation;
 const char* orToString(int);
+int orientIsShort(const char*);
 int orientOk(const char*);
+int orientReport(const char*, int start);
 EOrientation stringToOr(const char*);
 #define OR_BUF_SIZE 5
 typedef int TSetOfOrientations;
