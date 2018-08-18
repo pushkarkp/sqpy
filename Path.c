@@ -90,8 +90,9 @@ int isPathOk(int forPiece, TPath path, int start, const char* prefix, int report
          reportErr(report, prefix, path, start + i, " - illegal character");
          return 0;
       }
+      int c1 = path[start + i + 1];
       if (IS_MARKER(c)) {
-         if (IS_MARKER(path[start + i + 1])) {
+         if (IS_MARKER(c1)) {
             reportErr(report, prefix, path, start + i, "^ - adjacent markers");
             return 0;
          }
@@ -102,11 +103,11 @@ int isPathOk(int forPiece, TPath path, int start, const char* prefix, int report
          if (!SET_HAS(more, MARKER_INDEX(c))) {
             more = SET_WITH(more, MARKER_INDEX(c));
          }
-      } else {
-         if (PATH_STEP_IS_SIDEWAYS(c) == PATH_STEP_IS_SIDEWAYS(path[start + i + 1])) {
-            reportErr(report, prefix, path, start + i, "^ - consecutive steps in the same dimension");
-            return 0;
-         }
+      } else 
+      if (c1 != 0 && !IS_MARKER(c1)
+       && PATH_STEP_IS_SIDEWAYS(c1) == PATH_STEP_IS_SIDEWAYS(c)) {
+         reportErr(report, prefix, path, start + i, "^ - consecutive steps in the same dimension");
+         return 0;
       }
    }
    int c;
