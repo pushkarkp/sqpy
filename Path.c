@@ -103,11 +103,7 @@ int isPathOk(int forPiece, TPath path, int start, const char* prefix, int report
             more = SET_WITH(more, MARKER_INDEX(c));
          }
       } else {
-         // skip markers
-         int j;
-         for (j = i + 1; IS_MARKER(path[start + j]); ++j) {}
-         int c1 = path[start + j];
-         if (c1 != 0 && PATH_STEP_IS_SIDEWAYS(c) == PATH_STEP_IS_SIDEWAYS(c1)) {
+         if (PATH_STEP_IS_SIDEWAYS(c) == PATH_STEP_IS_SIDEWAYS(path[start + i + 1])) {
             reportErr(report, prefix, path, start + i, "^ - consecutive steps in the same dimension");
             return 0;
          }
