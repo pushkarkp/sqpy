@@ -128,7 +128,7 @@ int search(EPresence pc, const int* used, const TPosition* pos, const char* step
                   sorp = 0;
                   TSetOfReflectionPlanes s = onReflectionPlanes(newpos);
                   if (s) {
-                     sorp = (s | spEqualReflect(newsp, newsp));
+                     sorp = (s & spEqualReflect(newsp, newsp));
                   }
                }
                int* newused = pcDupInstanceCounts(used);
