@@ -42,9 +42,17 @@ TSetOfOrientations getSkip(EPresence pc, int path, const TPosition* p, TPlace* s
    }
    if (skip && IS_TOPIC(eTopicSymmetries)) {
       displayWide(ePyramid, 0);
+      display1(ePyramid, sp);
       char posBuf[POS_BUF_SIZE];
-      printf("Symmetries for %s (%s axis)%s", 
-             posToString(posBuf, p), ON_AXIS(p) ? "on" : "off", EOL);
+      printf("Symmetries for path %s (%c[%d]) from %s (%s axis, ",
+             pieces[pc][path], GLYPH(pc), path, posToString(posBuf, p), ON_AXIS(p) ? "on" : "off");
+      if (p == 0) {
+         printf("off planes)%s", EOL);
+      } else {
+         char* strPlanes = setToString(onReflectionPlanes(p), reflectionPlaneToString);
+         printf("on %s plane)%s", strPlanes, EOL);
+         free(strPlanes);
+      }
       char* strsorn = setToString(sorn, rotationToString);
       printf("Rotations %s%s", strsorn, EOL);
       free(strsorn);
@@ -61,7 +69,6 @@ TSetOfOrientations getSkip(EPresence pc, int path, const TPosition* p, TPlace* s
       }
       printf(fmt, strsoor, EOL);
       free(strsoor);
-      display1(ePyramid, sp);
    }
    return skip;
 }
@@ -77,7 +84,11 @@ int search(EPresence pc, const int* used, const TPosition* pos, const char* step
       EOrientation or;
       for (or = 0; or < eOrientations; ++or) {
          if (skip && SET_HAS(skip, or)) {
-//printf("continue (skip)\r\n");
+            if (IS_TOPIC(eTopicProgress)) {
+               char* newsteps = catStep(steps, stepToString(pc, pos, pieces[pc][path], or));
+               printf("skip duplicate partial %s%s", newsteps, EOL);
+               free(newsteps);
+            }
             continue;
          }
          if (!SET_HAS(repeat[pc][path], or)
@@ -89,7 +100,7 @@ int search(EPresence pc, const int* used, const TPosition* pos, const char* step
             char* newsteps = catStep(steps, stepToString(pc, pos, pieces[pc][path], or));
             if (!solIsUniqueSymmetric(sopc, newsteps, newsp)) {
                if (IS_TOPIC(eTopicProgress)) {
-                  printf("skip duplicate %s%s", newsteps, EOL);
+                  printf("skip duplicate solution %s%s", newsteps, EOL);
                }
                free(newsteps);
                continue;

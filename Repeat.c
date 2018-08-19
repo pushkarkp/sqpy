@@ -33,8 +33,8 @@ TSet findEqualSym(int or, int distinct, TPlace* sps, FEqualSym eqSym, FSetElemen
          char* symstr = setToString(s, tostr);
          printf("(%s[%d] =%s= [%d])%s", orToString(or), distinct, symstr, eq, EOL);
          free(symstr);
-         displayWidePlane(PLANE, sps + SPS(eq));
          displayWidePlane(PLANE, sps + SPS(distinct));
+         displayWidePlane(PLANE, sps + SPS(eq));
          displayWidePlane(PLANE, 0);
       }
    }
@@ -110,7 +110,7 @@ void findRepeat() {
                repeat[pc][path] = SET_WITH(repeat[pc][path], or);
             } else {
                setOrientation(repeatRot[pc][path], eRotations, or,
-                              findEqualSym(or, distinct, sps, spEqualRotate, rotationToString)); 
+                              findEqualSym(or, distinct, sps, spEqualRotate, rotationToString));
                setOrientation(repeatRef[pc][path], eReflectionPlanes, or,
                               findEqualSym(or, distinct, sps, spEqualReflect, reflectionPlaneToString));
                ++distinct;
@@ -159,5 +159,17 @@ TSetOfOrientations rotateSkip(int pc, int path, TSetOfRotations sorn) {
 
 ///////////////////////////////////////////////////////////////////////////////
 TSetOfOrientations reflectSkip(int pc, int path, TSetOfReflectionPlanes sorp) {
+/*
+   char* str = setToString(sorp, reflectionPlaneToString);
+   printf("%c[%d] %s", GLYPH(pc), path, str);
+   free(str);
+   int i;
+   for (int i = 0; i < eReflectionPlanes; ++i) {
+      char* str = setToString(repeatRef[pc][path][i], orToString);
+      printf(" | %c 0x%x %s", reflectionPlaneToChar(i), repeatRef[pc][path][i], str);
+      free(str);
+   }
+   printf(EOL);
+*/
    return skipOr(repeatRef[pc][path], sorp, eReflectionPlanes);
 }

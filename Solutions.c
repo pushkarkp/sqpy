@@ -209,17 +209,18 @@ int findUniqueSymmetric(int key, const char* spsteps, const TPlace* sp) {
          strsorphead = " reflection ";
       }
       catSteps(&steps[k][s], strsorn, strsorp, spsteps);
-      if (IS_TOPIC(eTopicSymmetries)) {
+      if (IS_TOPIC(eTopicAdd)
+       && IS_TOPIC(eTopicSymmetries)) {
          displayWide(ePyramid, 0);
-         printf("Symmetric with existing (on left) (key 0x%x k %d s %d) 0x%x: ", 
-                key, k, s, sorp);
+         printf("Symmetric with existing (on right) (key 0x%x k %d s %d): ",
+                key, k, s);
          if (IS_TOPIC(eTopicSteps)) {
             printf("%s%s", steps[k][s], EOL);
          } else {
             printf("%s%s%s%s%s", strsornhead, strsorn, strsorphead, strsorp, EOL);
          }
-         displayWide(ePyramid, sps[k][s]);
          displayWide(ePyramid, sp);
+         displayWide(ePyramid, sps[k][s]);
          displayWide(ePyramid, 0);
       }
       free(strsorn);
