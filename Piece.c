@@ -221,19 +221,19 @@ int pcPathOrientation(EPresence pc, TPath path, TSetOfOrientations soor) {
       SP_SET(sp, pc, pos);
       EPresence p = pcWalk(pc, path, or, pos, sp);
       if (IS_TOPIC(eTopicPaths)
-       && or >= OR_001_COUNT
+       && or >= OR_Z_COUNT
        && displayIsPlane()) {
          displayWidePlane(spHeight / 2, 0);
       }
       if (p != eAbsent) {
          if (IS_TOPIC(eTopicPaths)) {
-            if (or < OR_001_COUNT) {
+            if (or < OR_Z_COUNT) {
                displayWidePlane(spHeight / 2, 0);
             } else {
                displayWide(eCube, 0);
             }
             printf("%s: %c%s", path, GLYPH(p), EOL);
-            if (or < OR_001_COUNT) {
+            if (or < OR_Z_COUNT) {
                displayWidePlane(spHeight / 2, sp);
             } else {
                displayWide(eCube, sp);
@@ -248,7 +248,7 @@ int pcPathOrientation(EPresence pc, TPath path, TSetOfOrientations soor) {
             printf("%s%s", str, EOL); 
             free(str);
          }
-         if (or < OR_001_COUNT) {
+         if (or < OR_Z_COUNT) {
             displayWidePlane(spHeight / 2, sp);
          } else {
             displayWide(eCube, sp);
@@ -309,7 +309,7 @@ void pcDisplayAll() {
 
 ///////////////////////////////////////////////////////////////////////////////
 void testOrientations(EPresence pcStart, EPresence pcEnd, TSetOfOrientations soor) {
-printf("testOrientations(%c, %c, %s)\r\n", GLYPH(pcStart), GLYPH(pcEnd), setToString(soor, orToString));
+printf("testOrientations(%c, %c, %s)\r\n", GLYPH(pcStart), GLYPH(pcEnd), setToString(soor, orToString, ""));
    EPresence pc;
    for (pc = pcStart; pc < pcEnd; ++pc) {
       int p;
@@ -332,7 +332,7 @@ void pcTestOrientations(EPresence pc, int path, TSetOfOrientations soor) {
    printf("piece: %s path: %s orientations %s%s", 
           pc ? presToString(pc) : "all", 
           path > -1 ? pieces[pc][path] : "all", 
-          setToString(soor, orToString), EOL);
+          setToString(soor, orToString, ""), EOL);
    pcSetHeight(1);
    if (path == -1) {
       EPresence pcStart = pc ? pc : eFirstPiece;
@@ -356,4 +356,23 @@ void pcRemovePath(int pc, int path) {
    for (; pieces[pc][path]; ++path) {
       pieces[pc][path] = pieces[pc][path + 1];
    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void pcOnePath(int pc, int path) {
+   if (pc >= pieceCount) {
+      pc = pieceCount - 1;
+   }
+   int pathCount = pcCountPaths(pieces[pc]);
+   if (path >= pathCount) {
+      path = pathCount - 1;
+   }
+   if (path > 0) {
+      free((void*)pieces[pc][0]);
+      pieces[pc][0] = pieces[pc][path];
+   }
+   if (path != 1 && pathCount > 1) {
+      free((void*)pieces[pc][1]);
+   }
+   pieces[pc][1] = 0;
 }

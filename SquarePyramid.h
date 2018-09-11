@@ -7,6 +7,7 @@
 #define SquarePyramidH
 
 #include "Position.h"
+#include "Symmetry.h"
 #include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,8 +40,8 @@ char* spRowToString(char*, int y, int z, const TPlace*);
 char* spCubeRowToString(char*, int, int, const TPlace*);
 char* spWholeRowToString(char*, int, int, const TPlace*);
 void spTestVolume();
-int spFind(TPosition*, TPlace, const TPlace*);
-void spTestSequence();
+int spFind(TPosition*, TPlace, const TPlace*, TSetOfReflectionPlanes);
+void spTestSequence(TSetOfReflectionPlanes);
 TSet spEqualRotate(const TPlace*, const TPlace*);
 TSet spEqualReflect(const TPlace*, const TPlace*);
 typedef TSet (*FEqualSym)(const TPlace*, const TPlace*);

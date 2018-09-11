@@ -26,10 +26,10 @@ const char* rotationToString(int rot) {
 ///////////////////////////////////////////////////////////////////////////////
 const char* reflectionPlaneToString(int rp) { 
    switch (rp) {
-      case e100Reflection: return "x";
-      case e010Reflection: return "y";
-      case e110Reflection: return "b";
-      case e1T0Reflection: return "d";
+      case eXReflection: return "x";
+      case eYReflection: return "y";
+      case eBReflection: return "b";
+      case eDReflection: return "d";
       default: return "unknown";
    }
 }
@@ -37,30 +37,48 @@ const char* reflectionPlaneToString(int rp) {
 ///////////////////////////////////////////////////////////////////////////////
 int reflectionPlaneToChar(int rp) { 
    switch (rp) {
-      case e100Reflection: return 'x';
-      case e010Reflection: return 'y';
-      case e110Reflection: return 'b';
-      case e1T0Reflection: return 'd';
+      case eXReflection: return 'x';
+      case eYReflection: return 'y';
+      case eBReflection: return 'b';
+      case eDReflection: return 'd';
       default: return ' ';
    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+EReflectionPlane parseReflectionPlane(int rp) { 
+   switch (rp) {
+      case 'x': return eXReflection;
+      case 'y': return eYReflection;
+      case 'b': return eBReflection;
+      case 'd': return eDReflection;
+      default: return eReflectionPlanes;
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 TSetOfReflectionPlanes onReflectionPlanes(const TPosition* p) {
+//char buf[POS_BUF_SIZE];
+//printf("%s ", posToString(buf, p));
    TSetOfReflectionPlanes sorp = 0;
    if (!(p[eZ] & 1)) {
       if (p[eX] == p[eZ] / 2) {
-         sorp = SET_WITH(sorp, e100Reflection);
+//printf("y: p[eX] (%d) == p[eZ] / 2 (%d) ", p[eX], p[eZ] / 2);
+         sorp = SET_WITH(sorp, eXReflection);
       }
       if (p[eY] == p[eZ] / 2) {
-         sorp = SET_WITH(sorp, e010Reflection);
+//printf("x: p[eY] (%d) == p[eZ] / 2 (%d) ", p[eY], p[eZ] / 2);
+         sorp = SET_WITH(sorp, eYReflection);
       }
    }
    if (p[eX] == p[eY]) {
-      sorp = SET_WITH(sorp, e110Reflection);
+//printf("b: p[eX] (%d) == p[eY] (%d) ", p[eX], p[eY]);
+      sorp = SET_WITH(sorp, eBReflection);
    }
    if (p[eX] == p[eZ] - p[eY]) {
-      sorp = SET_WITH(sorp, e1T0Reflection);
+//printf("d: p[eX] (%d) == (%d) p[eZ] (%d) - p[eY] (%d) ", p[eX], p[eZ] - p[eY], p[eZ], p[eY]);
+      sorp = SET_WITH(sorp, eDReflection);
    }
+//printf("\r\n");
    return sorp;
 }

@@ -10,12 +10,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 typedef enum {
-   e001XPlusPlus, e001XMinusPlus, e001XPlusMinus, e001XMinusMinus,
-   e001YPlusPlus, e001YMinusPlus, e001YPlusMinus, e001YMinusMinus,
-   e110XPlusPlus, e110XMinusPlus, e110XPlusMinus, e110XMinusMinus,
-   e110YPlusPlus, e110YMinusPlus, e110YPlusMinus, e110YMinusMinus,
-   e1T0XPlusPlus, e1T0XMinusPlus, e1T0XPlusMinus, e1T0XMinusMinus,
-   e1T0YPlusPlus, e1T0YMinusPlus, e1T0YPlusMinus, e1T0YMinusMinus,
+   eZxPlusPlus, eZxMinusPlus, eZxPlusMinus, eZxMinusMinus,
+   eZyPlusPlus, eZyMinusPlus, eZyPlusMinus, eZyMinusMinus,
+   eBxPlusPlus, eBxMinusPlus, eBxPlusMinus, eBxMinusMinus,
+   eByPlusPlus, eByMinusPlus, eByPlusMinus, eByMinusMinus,
+   eDxPlusPlus, eDxMinusPlus, eDxPlusMinus, eDxMinusMinus,
+   eDyPlusPlus, eDyMinusPlus, eDyPlusMinus, eDyMinusMinus,
    eOrientations
 } EOrientation;
 const char* orToString(int);
@@ -25,11 +25,17 @@ int orientReport(const char*, int start);
 EOrientation stringToOr(const char*);
 #define OR_BUF_SIZE 5
 typedef int TSetOfOrientations;
-#define OR_001_OFFSET e001XPlusPlus
-#define OR_001_COUNT e110XPlusPlus
-#define OR_110_OFFSET OR_001_COUNT
-#define OR_1T0_OFFSET e1T0XPlusPlus
-#define OR_001_SET SET_ALL_OF(OR_001_COUNT)
+#define OR_Z_OFFSET eZxPlusPlus
+#define OR_Z_COUNT eBxPlusPlus
+#define OR_B_OFFSET OR_Z_COUNT
+#define OR_D_OFFSET eDxPlusPlus
+#define OR_Z_SET SET_ALL_OF(OR_Z_COUNT)
+#define OR_BY_SET SET_WITH(SET_WITH(SET_WITH(SET_WITH(0, \
+         eByPlusPlus), eByMinusPlus), eByPlusMinus), eByMinusMinus)
+#define OR_DX_SET SET_WITH(SET_WITH(SET_WITH(SET_WITH(0, \
+         eDxPlusPlus), eDxMinusPlus), eDxPlusMinus), eDxMinusMinus)
+#define OR_DY_SET SET_WITH(SET_WITH(SET_WITH(SET_WITH(0, \
+         eDyPlusPlus), eDyMinusPlus), eDyPlusMinus), eDyMinusMinus)
 TSetOfOrientations matchOrientation(const char*);
 
 ///////////////////////////////////////////////////////////////////////////////

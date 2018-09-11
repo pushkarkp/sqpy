@@ -7,7 +7,7 @@
 #define PositionH
 
 ///////////////////////////////////////////////////////////////////////////////
-typedef enum {e001, e110, e1T0, ePlanes} EPlane;
+typedef enum {eZPlane, eBPlane, eDPlane, ePlanes} EPlane;
 int planeToChar(EPlane);
 int charToPlane(int);
 typedef enum {eX, eY, eZ, e2dDimensions = eZ, eDimensions} EDimension;

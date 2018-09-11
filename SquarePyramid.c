@@ -6,7 +6,6 @@
 
 #include "SquarePyramid.h"
 #include "Presence.h"
-#include "Symmetry.h"
 #include "SetOf.h"
 #include "Display.h"
 
@@ -161,23 +160,23 @@ void spTestVolume() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int test(TPosition* pos, int x, int y, int z, TPlace c, const TPlace* sp) {
+int test(TPosition* pos, int x, int y, int z, TPlace c, const TPlace* sp, TSetOfReflectionPlanes sorp) {
    if (sp[SP_XYZ(x, y, z)] != c) {
       return 0;
    }
    pos[eX] = x;
    pos[eY] = y;
    pos[eZ] = z;
-   return 1;
+   return sorp == 0 || (sorp & onReflectionPlanes(pos));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int spFind(TPosition* pos, TPlace c, const TPlace* sp) {
+int spFind(TPosition* pos, TPlace c, const TPlace* sp, TSetOfReflectionPlanes sorp) {
    int z;
    // find the potentially symmetrical rotational axis spots 
    for (z = 0; z < spHeight; z += 2) {
       int z2 = z / 2;
-      if (test(pos, z2, z2, z, c, sp)) {
+      if (test(pos, z2, z2, z, c, sp, 0)) {
          return 1;
       }
    }
@@ -185,21 +184,24 @@ int spFind(TPosition* pos, TPlace c, const TPlace* sp) {
    for (z = 1; z < spHeight; ++z) {
       int r;
       for (r = 0; r < spHeight / 2; ++r) {
-         if (test(pos, r, r, z, c, sp)
-          || test(pos, z - r, r, z, c, sp)
-          || test(pos, r, z - r, z, c, sp)
-          || test(pos, z - r, z - r, z, c, sp)) {
+         if (test(pos, r, r, z, c, sp, sorp)
+          || test(pos, z - r, r, z, c, sp, sorp)
+          || test(pos, r, z - r, z, c, sp, sorp)
+          || test(pos, z - r, z - r, z, c, sp, sorp)) {
             return 1;
          }
          if (!(z & 1)) {
-            if (test(pos, r, z / 2, z, c, sp)
-             || test(pos, z / 2, r, z, c, sp)
-             || test(pos, z - r, z / 2, z, c, sp)
-             || test(pos, z / 2, z - r, z, c, sp)) {
+            if (test(pos, r, z / 2, z, c, sp, sorp)
+             || test(pos, z / 2, r, z, c, sp, sorp)
+             || test(pos, z - r, z / 2, z, c, sp, sorp)
+             || test(pos, z / 2, z - r, z, c, sp, sorp)) {
                return 1;
             }
          }
       }
+   }
+   if (sorp != 0) {
+      return 0;
    }
    // fill in the remainder
    for (z = 3; z < spHeight; ++z) {
@@ -218,7 +220,7 @@ int spFind(TPosition* pos, TPlace c, const TPlace* sp) {
               || y == z / 2)) {
                continue;
             }
-            if (test(pos, x, y, z, c, sp)) {
+            if (test(pos, x, y, z, c, sp, 0)) {
                return 1;
             }
          }
@@ -228,18 +230,26 @@ int spFind(TPosition* pos, TPlace c, const TPlace* sp) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void spTestSequence() {
+void spTestSequence(TSetOfReflectionPlanes sorp) {
    int volume = getPyramidVolume();
    TPlace* sp = SP_NEW(1);
    spInit(sp);
    char buf[POS_BUF_SIZE];
    TPosition pos[eDimensions];
    int i;
-   for (i = 0; spFind(pos, eAbsent, sp); ++i) {
-      int c = i % 26 + 1;
-      printf("%d %c %s %d%s", i, GLYPH(c), posToString(buf, pos), SP_POS(pos), EOL);
-      SP_SET(sp, c, pos);
-      displayWide(ePyramid, sp);
+   for (i = 0; ; ++i) {
+      if (spFind(pos, eAbsent, sp, sorp)) {
+         int c = i % 26 + 1;
+         printf("%d %c %s %d%s", i, GLYPH(c), posToString(buf, pos), SP_POS(pos), EOL);
+         SP_SET(sp, c, pos);
+         displayWide(ePyramid, sp);
+      } else if (sorp != 0) {
+printf("sorp = 0\r\n");
+         sorp = 0;
+         --i;
+      } else {
+         break;
+      }
    }
    displayWide(ePyramid, 0);
    free(sp);
@@ -328,7 +338,7 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
          int zyoffset = YOFFSET(z - y);
          int x;
          for (x = 0; x <= z; ++x) {
-            if (SET_HAS(sorp, e100Reflection)
+            if (SET_HAS(sorp, eXReflection)
              && (sp1[zoffset + yoffset + MARGIN + x]
               != sp2[zoffset + zyoffset + MARGIN + x])) {
                /*
@@ -336,12 +346,12 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
                   x, y, z,     GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   x, z - y, z, GLYPH(sp2[zoffset + zyoffset + MARGIN + x]), EOL);
                */
-               sorp = SET_WITHOUT(sorp, e100Reflection);
+               sorp = SET_WITHOUT(sorp, eXReflection);
                if (!sorp) {
                   return 0;
                }
             }
-            if (SET_HAS(sorp, e010Reflection)
+            if (SET_HAS(sorp, eYReflection)
              && (sp1[zoffset + yoffset + MARGIN + x]
               != sp2[zoffset + yoffset + MARGIN + z - x])) {
                /*
@@ -349,12 +359,12 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
                   x, y, z,     GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   z - x, y, z, GLYPH(sp2[zoffset + yoffset + MARGIN + z - x]), EOL);
                */
-               sorp = SET_WITHOUT(sorp, e010Reflection);
+               sorp = SET_WITHOUT(sorp, eYReflection);
                if (!sorp) {
                   return 0;
                }
             }
-            if (SET_HAS(sorp, e110Reflection)
+            if (SET_HAS(sorp, eBReflection)
              && (sp1[zoffset + yoffset + MARGIN + x]
               != sp2[zoffset + YOFFSET(x) + MARGIN + y])) {
                /*
@@ -362,12 +372,12 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
                   x, y, z, GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   y, x, z, GLYPH(sp2[zoffset + YOFFSET(x) + MARGIN + y]), EOL);
                */
-               sorp = SET_WITHOUT(sorp, e110Reflection);
+               sorp = SET_WITHOUT(sorp, eBReflection);
                if (!sorp) {
                   return 0;
                }
             }
-            if (SET_HAS(sorp, e1T0Reflection)
+            if (SET_HAS(sorp, eDReflection)
              && (sp1[zoffset + yoffset + MARGIN + x]
               != sp2[zoffset + YOFFSET(z - x) + MARGIN + (z - y)])) {
                /*
@@ -375,7 +385,7 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
                   x, y, z,             GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   (z - y), (z - x), z, GLYPH(sp2[zoffset + YOFFSET(z - x) + MARGIN + (z - y)]), EOL);
                */
-               sorp = SET_WITHOUT(sorp, e1T0Reflection);
+               sorp = SET_WITHOUT(sorp, eDReflection);
                if (!sorp) {
                   return 0;
                }

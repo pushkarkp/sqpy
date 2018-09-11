@@ -16,7 +16,9 @@
 // repeats a previous path orientation.
 extern TSet** repeat;
 void findRepeat();
-TSetOfOrientations rotateSkip(int pc, int path, TSetOfRotations);
-TSetOfOrientations reflectSkip(int pc, int path, TSetOfReflectionPlanes);
+TSetOfOrientations pathRotateSkip(int pc, int path, TSetOfRotations);
+TSetOfOrientations pathReflectSkip(int pc, int path, TSetOfReflectionPlanes);
+TSetOfOrientations spaceRotateSkip(TSetOfRotations);
+TSetOfOrientations spaceReflectSkip(TSetOfReflectionPlanes);
 
 #endif

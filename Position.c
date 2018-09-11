@@ -12,9 +12,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 int planeToChar(EPlane p) {
    switch (p) {
-      case e001: return 'z';
-      case e110: return 'b';
-      case e1T0: return 'd';
+      case eZPlane: return 'z';
+      case eBPlane: return 'b';
+      case eDPlane: return 'd';
       default: return ' ';
    }
 }
@@ -22,9 +22,9 @@ int planeToChar(EPlane p) {
 ///////////////////////////////////////////////////////////////////////////////
 int charToPlane(int c) {
    switch (c) {
-      case 'z': return e001;
-      case 'b': return e110;
-      case 'd': return e1T0;
+      case 'z': return eZPlane;
+      case 'b': return eBPlane;
+      case 'd': return eDPlane;
       default: return -1;
    }
 }

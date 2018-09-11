@@ -30,6 +30,7 @@ static const char const* ERR_BAD_TOPIC = "more than one display topic matched \"
 static const char const* ERR_BAD_PLAY = "bad play ";
 static const char const* ERR_UNPLAYABLE = "play collides \"%s\"";
 static const char const* ERR_EXTRA_PLAY = "too many plays";
+static const char const* ERR_BAD_PLANE = "failed to parse reflection plane";
 static int search = 0;
 static int fill = 0;
 static char* play[2] = {0};
@@ -46,11 +47,11 @@ int getOptions(const char**, const char*);
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("sqpy [-g <page width>] [-h <height>] [-v] [-q] [-a <path index>] [-f <file>] [-s [fill]] [-y <play>  [<play>]...] [-p <piece> [<count>]] [-i <piece>] [-x] [-r] [-d <topics>]%s", EOL);
+   printf("sqpy [-g <page width>] [-h <height>] [-v] [-q [<planes>]] [-a <path index>] [-f <file>] [-s [fill]] [-y <play>  [<play>]...] [-p <piece> [<count>]] [-i <piece>] [-x] [-r] [-d <topics>]%s", EOL);
    printf(" -g <page width> (%d)      the width of the display page%s", pageWidth, EOL);
    printf(" -h <height>               the pyramid height%s", EOL);
    printf(" -v                        show the pyramid volume%s", EOL);
-   printf(" -q                        show the sequence of placement%s", EOL);
+   printf(" -q [b] [d] [x] [y]        show the sequence of placement (with symmetry planes)%s", EOL);
    printf(" -a <path or index> (%s)   the path to orient%s", path, EOL);
    printf(" -o <orientations match>   show paths in orientations (default all)%s", EOL);
    printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
@@ -63,7 +64,7 @@ void usage() {
    printf(" -x                        ignore reflective symmetry%s", EOL);
    printf(" -d <topics>               display one or more topics (see below, ? for help)%s", EOL);
    printf("%sDisplay topics (any unique prefix matches):%s", EOL, EOL);
-   char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString);
+   char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString, "none");
    printf("%s%s", str, EOL);
    free(str);
    exit(0);
@@ -129,7 +130,7 @@ const char* getOptionExtraValue(int* pi, const char** argv) {
    if (argv[*pi + 1] && argv[*pi + 1][0] != '-') {
       ++*pi;
       return argv[*pi];
-   }
+   }      
    return 0;
 }
 
@@ -198,8 +199,8 @@ int readPathArg(const char* path, const char* n, const char* prefix) {
 
    int height = spHeight;
    spSetHeight(1);
-   pcSetHeightForPath(path, SET_WITH(0, e001XPlusPlus));
-   if (!pcPathOrientation(pieceCount, path, SET_WITH(0, e001XPlusPlus))) {
+   pcSetHeightForPath(path, SET_WITH(0, eZxPlusPlus));
+   if (!pcPathOrientation(pieceCount, path, SET_WITH(0, eZxPlusPlus))) {
       printf("%spath '%s' self-conflicts%s", prefix?prefix:"", path, EOL);
       return 0;
    }
@@ -275,8 +276,23 @@ int getOptions(const char** argv, const char* prefix) {
          return 0;
       }
       case 'q': {
+         TSetOfReflectionPlanes sorp = 0;
+         const char* p;
+         for (p = getOptionExtraValue(&i, argv);
+              p != 0;
+              p = getOptionExtraValue(&i, argv)) {
+            EReflectionPlane rp = eReflectionPlanes;
+            if (p[0] != 0 && p[1] == 0) {
+               rp = parseReflectionPlane(p[0]);
+            }
+            if (rp == eReflectionPlanes) {
+               printf("%s '%s'%s", ERR_BAD_PLANE, p, EOL);
+               return 0;
+            }
+            sorp = SET_WITH(sorp, rp);
+         }
          init();
-         spTestSequence();
+         spTestSequence(sorp);
          return 0;
       }
       case 'o': {
@@ -375,6 +391,7 @@ int getOptions(const char** argv, const char* prefix) {
          const char* n = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
          if (strtol(n, 0, 10) != 0 || n[0] == '0') {
             pathIndex = strtol(n, 0, 10);
+            pcOnePath(pc, pathIndex);
          } else {
             path = n;
          }
@@ -399,7 +416,7 @@ int getOptions(const char** argv, const char* prefix) {
             if (t != 1) {
                printf("%d 0x%x\r\n", eTopics, SET_ALL_OF(eTopics));
                printf(t == 0 ? ERR_NO_TOPIC : ERR_BAD_TOPIC, v);
-               char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString);
+               char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString, "none");
                printf("%sTopics available: %s%s", EOL, str, EOL);
                free(str);
                return 0;
@@ -422,7 +439,7 @@ void showOptions() {
           pageWidth, spHeight, search?"search, ":"", fill?"fill, ":"", 
           pieceCount - 1, EOL);
    if (displayTopics() != 0) {
-      char* str = setToString(displayTopics(), displayTopicToString);
+      char* str = setToString(displayTopics(), displayTopicToString, "none");
       printf("Topics: %s.%s", str, EOL);
       free(str);
    }
@@ -452,9 +469,15 @@ void showOptions() {
       printf("path %d (%s).%s", pathIndex, pieces[pc][pathIndex], EOL);
    }
    if (soor != 0) {
-      char* str = setToString(soor, orToString);
+      char* str = setToString(soor, orToString, "none");
       printf("orientations: %s.%s", str, EOL);
       free(str);
+   }
+   if (sorp == 0 || sorn == 0) {
+      printf("Ignoring%s%s%s symmetry optimization.%s", 
+             sorn?"":" rotational",
+             sorn||sorp?"":" and",
+             sorp?"":" reflective", EOL);
    }
 }
 

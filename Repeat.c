@@ -30,7 +30,7 @@ TSet findEqualSym(int or, int distinct, TPlace* sps, FEqualSym eqSym, FSetElemen
       sor |= s;
       if (s != 0 && IS_TOPIC(eTopicRepeat)) {
          displayWidePlane(PLANE, 0);
-         char* symstr = setToString(s, tostr);
+         char* symstr = setToString(s, tostr, "");
          printf("(%s[%d] =%s= [%d])%s", orToString(or), distinct, symstr, eq, EOL);
          free(symstr);
          displayWidePlane(PLANE, sps + SPS(distinct));
@@ -81,8 +81,8 @@ void findRepeat() {
          memset(repeatRef[pc][path], 0, eReflectionPlanes);
          int d = distinct;
          EOrientation or;
-         // test only 001 plane 
-         for (or = 0; or < OR_001_COUNT; ++or) {
+         // test only z plane 
+         for (or = 0; or < OR_Z_COUNT; ++or) {
             TPosition pos[eDimensions] = {spHeight / 2, spHeight / 2, PLANE};
             while (distinct >= maxSps) {
                maxSps *= 2;
@@ -122,7 +122,7 @@ void findRepeat() {
          if (IS_TOPIC(eTopicRepeat) && repeat[pc][path]) {
             char* r = (repeat[pc][path] == SET_ALL_OF(eOrientations))
                     ? strdup("all (removed)")
-                    : setToString(repeat[pc][path] & OR_001_SET, orToString);
+                    : setToString(repeat[pc][path] & OR_Z_SET, orToString, "");
             printf("%c:%s repeats: %s%s%s", GLYPH(pc), pieces[pc][path], r, EOL, EOL);
             free(r);
          }
@@ -153,23 +153,62 @@ TSetOfOrientations skipOr(const TSet* psos, TSet s, int size) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfOrientations rotateSkip(int pc, int path, TSetOfRotations sorn) {
+TSetOfOrientations spaceRotateSkip(TSetOfRotations sorn) {
+   if (!SET_HAS(sorn, e180)) {
+      return 0;
+   }
+   if (!SET_HAS(sorn, e90)
+    || !SET_HAS(sorn, e270)) {
+      // skip y half of both vertical planes
+      return OR_BY_SET | OR_DY_SET;
+   }
+   // skip all but half of one vertical plane
+   return OR_BY_SET | OR_DX_SET | OR_DY_SET;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TSetOfOrientations spaceReflectSkip(TSetOfReflectionPlanes sorp) {
+   if (SET_HAS(sorp, eXReflection)
+    && SET_HAS(sorp, eYReflection)) {
+      // skip all but half of one vertical plane
+      return OR_BY_SET | OR_DX_SET | OR_DY_SET;
+   }
+   TSetOfOrientations soor = 0;
+   if (SET_HAS(sorp, eXReflection)) {
+      // skip half of both vertical planes
+      return OR_BY_SET | OR_DX_SET;
+   }
+   if (SET_HAS(sorp, eYReflection)) {
+      // skip y half of both vertical planes
+      return OR_BY_SET | OR_DY_SET;
+   }
+   if (SET_HAS(sorp, eBReflection)) {
+      // skip y half of bisected vertical plane
+      soor |= OR_DY_SET;
+   }
+   if (SET_HAS(sorp, eDReflection)) {
+      // skip y half of bisected vertical plane
+      soor |= OR_BY_SET;
+   }
+   return soor;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TSetOfOrientations pathRotateSkip(int pc, int path, TSetOfRotations sorn) {
    return skipOr(repeatRot[pc][path], sorn, eRotations);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfOrientations reflectSkip(int pc, int path, TSetOfReflectionPlanes sorp) {
-/*
-   char* str = setToString(sorp, reflectionPlaneToString);
+TSetOfOrientations pathReflectSkip(int pc, int path, TSetOfReflectionPlanes sorp) {
+/*   char* str = setToString(sorp, reflectionPlaneToString, "");
    printf("%c[%d] %s", GLYPH(pc), path, str);
    free(str);
    int i;
    for (int i = 0; i < eReflectionPlanes; ++i) {
-      char* str = setToString(repeatRef[pc][path][i], orToString);
+      char* str = setToString(repeatRef[pc][path][i], orToString, "");
       printf(" | %c 0x%x %s", reflectionPlaneToChar(i), repeatRef[pc][path][i], str);
       free(str);
    }
    printf(EOL);
-*/
-   return skipOr(repeatRef[pc][path], sorp, eReflectionPlanes);
+*/   return skipOr(repeatRef[pc][path], sorp, eReflectionPlanes);
 }

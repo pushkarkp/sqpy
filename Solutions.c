@@ -137,12 +137,12 @@ void solInit() {
 void solShowSetKeys(int k, FSetElementToString toString) {
    if (k == -1) {
       for (k = 0; keys[k]; ++k) {
-         char* strsop = setToString(keys[k], toString);
+         char* strsop = setToString(keys[k], toString, "");
          printf("%s %d%s", strsop, sps_count[k], EOL);
          free(strsop);
       }
    } else {
-      char* strsop = setToString(keys[k], toString);
+      char* strsop = setToString(keys[k], toString, "");
       printf("%s %d%s", strsop, sps_count[k], EOL);
       free(strsop);
    }
@@ -201,10 +201,10 @@ int findUniqueSymmetric(int key, const char* spsteps, const TPlace* sp) {
       char* strsorn = strdup("");
       if (sorn) {
          strsornhead = " rotation ";
-         strsorn = setToString(sorn, rotationToString);
+         strsorn = setToString(sorn, rotationToString, "");
       }
       const char* strsorphead = strdup("");
-      char* strsorp = setToChars(sorp, reflectionPlaneToChar);
+      char* strsorp = setToChars(sorp, reflectionPlaneToChar, "");
       if (sorp) {
          strsorphead = " reflection ";
       }
@@ -254,11 +254,9 @@ int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) 
    sps[k][s] = SP_NEW(1);
    spCopy(sps[k][s], sp);
    ++sps_count[k];
-   if (IS_TOPIC(eTopicAdd)) {
-      const char* strsteps =
-         IS_TOPIC(eTopicSteps)
-         ? spsteps : "";
-      printf("Add: %s%s", strsteps, EOL);
+   if (IS_TOPIC(eTopicAdd)
+    && !IS_TOPIC(eTopicProgress)) {
+      printf("Add: %s%s", IS_TOPIC(eTopicSteps)?spsteps:"", EOL);
       displayWide(ePyramid, sps[k][s]);
    }
    return 1;

@@ -74,7 +74,7 @@ int displayTopicsAdd(const char* s) {
          ++m;
       }
    }
-//printf("%s %d%s", setToString(sot, displayTopicToString), setCount(sot), EOL);
+//printf("%s %d%s", setToString(sot, displayTopicToString), setCount(sot), EOL, "none");
    return m;
 }
 

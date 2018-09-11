@@ -51,9 +51,9 @@ int setGetSingle(TSet set) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-char* setToString(TSet set, FSetElementToString elToString) {
+char* setToString(TSet set, FSetElementToString elToString, const char* empty) {
    if (set == 0) {
-      return strdup("");
+      return strdup(empty);
    }
    int len = 0;
    int i;
@@ -80,7 +80,10 @@ char* setToString(TSet set, FSetElementToString elToString) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-char* setToChars(TSet set, FSetElementToChar elToChar) {
+char* setToChars(TSet set, FSetElementToChar elToChar, const char* empty) {
+   if (set == 0) {
+      return strdup(empty);
+   }
    char* str = (char*)malloc(setCount(set) + 1);
    char* p = str;
    int i;

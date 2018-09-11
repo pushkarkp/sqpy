@@ -13,7 +13,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 const TMove moves[ePlanes][e2dDimensions][eSigns][eDimensions] = { // Planes
-   { // e001 Dimensions
+   { // eZ Dimensions
       { // eX Signs
          {1, 0, 0},
          {-1, 0, 0},
@@ -23,7 +23,7 @@ const TMove moves[ePlanes][e2dDimensions][eSigns][eDimensions] = { // Planes
          {0, -1, 0},
       }
    }, 
-   { // e110 Dimensions
+   { // eBPlane Dimensions
       { // eX Signs
          {0, 0, 1},
          {0, 0, -1},
@@ -33,7 +33,7 @@ const TMove moves[ePlanes][e2dDimensions][eSigns][eDimensions] = { // Planes
          {-1, -1, -1},
       }
    },
-   { // e1T0 Dimensions
+   { // eDPlane Dimensions
       { // eX Signs
          {1, 0, 1},
          {-1, 0, -1},
