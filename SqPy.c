@@ -33,12 +33,12 @@ static const char const* ERR_EXTRA_PLAY = "too many plays";
 static const char const* ERR_BAD_PLANE = "failed to parse reflection plane";
 static int search = 0;
 static int fill = 0;
-static char* play[2] = {0};
 static TSetOfRotations sorn = SET_ALL_OF(eRotations);
 static TSetOfReflectionPlanes sorp = SET_ALL_OF(eReflectionPlanes);
 static int pc = eAbsent;
 static int pathIndex = -1;
 static TPath path = "aA";
+static char* play[2] = {0};
 static TSet soor = 0;
 static int pageWidth = 76;
 
@@ -47,21 +47,22 @@ int getOptions(const char**, const char*);
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("sqpy [-g <page width>] [-h <height>] [-v] [-q [<planes>]] [-a <path index>] [-f <file>] [-s [fill]] [-y <play>  [<play>]...] [-p <piece> [<count>]] [-i <piece>] [-x] [-r] [-d <topics>]%s", EOL);
+   printf("sqpy [-g <page width>] [-h <height>] [-v] [-q [<planes>]] [-x [<planes>]] [-a <path index>] [-f <file>] [-s [f] [x] [r]] [-y <play> [<play>]...] [-p <piece> [<count>]] [-i <piece>] [-d <topics>]%s", EOL);
    printf(" -g <page width> (%d)      the width of the display page%s", pageWidth, EOL);
    printf(" -h <height>               the pyramid height%s", EOL);
    printf(" -v                        show the pyramid volume%s", EOL);
    printf(" -q [b] [d] [x] [y]        show the sequence of placement (with symmetry planes)%s", EOL);
+   printf(" -x [b] [d] [x] [y]        show orientations skipped for given symmetry planes%s", EOL);
    printf(" -a <path or index> (%s)   the path to orient%s", path, EOL);
    printf(" -o <orientations match>   show paths in orientations (default all)%s", EOL);
    printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
-   printf(" -s [fill]                 search for and display complete pyramids%s", EOL);
-   printf("     fill                  ignore instance counts and fill pyramid%s", EOL);
+   printf(" -s [f] [r] [x]            search for and display complete pyramids%s", EOL);
+   printf(" f                         ignore instance counts and fill the pyramid%s", EOL);
+   printf(" r                         no rotational symmetry optimization%s", EOL);
+   printf(" x                         no reflective symmetry optimization%s", EOL);
    printf(" -y <play> [<play>]...     plays (? for help), two sets of plays are compared%s", EOL);
    printf(" -p <piece> [<count>]      a piece (? for help)%s", EOL);
-   printf(" -i <piece> (all)          the initial piece by letter or index%s", EOL);
-   printf(" -r                        ignore rotational symmetry%s", EOL);
-   printf(" -x                        ignore reflective symmetry%s", EOL);
+   printf(" -i <piece> (all)          the initial piece, by letter or index%s", EOL);
    printf(" -d <topics>               display one or more topics (see below, ? for help)%s", EOL);
    printf("%sDisplay topics (any unique prefix matches):%s", EOL, EOL);
    char* str = setToString(SET_ALL_OF(eTopics), displayTopicToString, "none");
@@ -260,6 +261,26 @@ void init() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+TSetOfReflectionPlanes getPlanes(int* pi, const char** argv) {
+   TSetOfReflectionPlanes sorp = 0;
+   const char* p;
+   for (p = getOptionExtraValue(pi, argv);
+        p != 0;
+        p = getOptionExtraValue(pi, argv)) {
+      EReflectionPlane rp = eReflectionPlanes;
+      if (p[0] != 0 && p[1] == 0) {
+         rp = parseReflectionPlane(p[0]);
+      }
+      if (rp == eReflectionPlanes) {
+         printf("%s '%s'%s", ERR_BAD_PLANE, p, EOL);
+         return 0;
+      }
+      sorp = SET_WITH(sorp, rp);
+   }
+   return sorp;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 int getOptions(const char** argv, const char* prefix) {
    int i;
    for (i = 0; argv[i] && argv[i][0] == '-'; ++i) {
@@ -276,23 +297,14 @@ int getOptions(const char** argv, const char* prefix) {
          return 0;
       }
       case 'q': {
-         TSetOfReflectionPlanes sorp = 0;
-         const char* p;
-         for (p = getOptionExtraValue(&i, argv);
-              p != 0;
-              p = getOptionExtraValue(&i, argv)) {
-            EReflectionPlane rp = eReflectionPlanes;
-            if (p[0] != 0 && p[1] == 0) {
-               rp = parseReflectionPlane(p[0]);
-            }
-            if (rp == eReflectionPlanes) {
-               printf("%s '%s'%s", ERR_BAD_PLANE, p, EOL);
-               return 0;
-            }
-            sorp = SET_WITH(sorp, rp);
-         }
          init();
-         spTestSequence(sorp);
+         spTestSequence(getPlanes(&i, argv));
+         return 0;
+      }
+      case 'x': {
+         char* stror = setToString(spaceReflectSkip(getPlanes(&i, argv)), orToString, "none");
+         printf("%s%s", stror, EOL);
+         free(stror);
          return 0;
       }
       case 'o': {
@@ -323,9 +335,26 @@ int getOptions(const char** argv, const char* prefix) {
       }
       case 's': {
          search = 1;
-         const char* f = getOptionValue(&i, argv);
-         if (f && 0 == strcasecmp(f, "fill")) {
-            fill = 1;
+         const char* c = 0;
+         while ((c = getOptionExtraValue(&i, argv)) != 0) {
+            switch (c[0]) {
+               case 'f':
+                  fill = 1;
+                  break;
+               case 'r':
+                  sorn = 0;
+                  break;
+               case 'x':
+                  sorp = 0;
+                  break;
+               default:
+                  c = 0;
+                  break;
+            }
+            if (c == 0 || c[1] != 0) {
+               printf("expected 'f', 'r' or 'x'.%s", EOL);
+               return 0;
+            }
          }
          break;
       }
@@ -377,14 +406,6 @@ int getOptions(const char** argv, const char* prefix) {
          if (pc == 0 && n[0] != '0') {
             pc = PIECE(n[0]);
          }
-         break;
-      }
-      case 'r': {
-         sorn = 0;
-         break;
-      }
-      case 'x': {
-         sorp = 0;
          break;
       }
       case 'a': {
