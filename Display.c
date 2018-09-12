@@ -31,7 +31,7 @@ void initDisplay(int pw) {
    if (pw >= 0) {
       pageWidth = pw;
    }
-//printf("rows[ePyramid] %d rows[eCube] %d\r\n", rows[ePyramid], rows[eCube]);
+//printf("initDisplay() rows[ePyramid] %d rows[eCube] %d pageWidth %d\r\n", rows[ePyramid], rows[eCube], pageWidth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,11 +117,14 @@ int displayPage(EDisplayShape shape, int h, int n, const TPlace* sps) {
 
 ///////////////////////////////////////////////////////////////////////////////
 int displayPageRowRange(EDisplayShape shape, int h, int row0, int row1, int n, const TPlace* sps) {
-   char* buf = malloc(spHeight + 1);
    const int across = pageWidth / (spHeight + 1);
+   if (across == 0) {
+      return 0;
+   }
    const int down = h / rows[shape];
    const int r0 = (row0 > 0) ? row0 : 0;
    const int r1 = (row1 < rows[shape]) ? row1 : rows[shape];
+   char* buf = malloc(spHeight + 1);
    int p = 0;
    int d;
    for (d = 0; d < down && p < n; ++d) {
@@ -136,6 +139,7 @@ int displayPageRowRange(EDisplayShape shape, int h, int row0, int row1, int n, c
       }
       p += limit;
    }
+   free(buf);
    return p;
 }
 
@@ -144,8 +148,12 @@ void displayWideRowRange(EDisplayShape shape, int r0, int r1, const TPlace* sp) 
    static TPlace* store = 0;
    static int stored = 0;
    if (sp) {
-      if (pageWidth / (spHeight + 1) > spCount) {
-         spCount = pageWidth / (spHeight + 1);
+      const int across = pageWidth / (spHeight + 1);
+      if (across == 0) {
+         return;
+      }
+      if (across > spCount) {
+         spCount = across;
          store = SP_EXTEND(store, spCount);
       }
       spCopy(&store[SPS(stored++)], sp);
