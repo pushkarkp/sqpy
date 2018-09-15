@@ -19,7 +19,7 @@ const char* rotationToString(int rot) {
       case e90: return "90";
       case e180: return "180";
       case e270: return "270";
-      default: return "unknown";
+      default: return "";
    }
 }
 
@@ -30,7 +30,7 @@ const char* reflectionPlaneToString(int rp) {
       case eYReflection: return "y";
       case eBReflection: return "b";
       case eDReflection: return "d";
-      default: return "unknown";
+      default: return "";
    }
 }
 
@@ -42,17 +42,6 @@ int reflectionPlaneToChar(int rp) {
       case eBReflection: return 'b';
       case eDReflection: return 'd';
       default: return ' ';
-   }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-EReflectionPlane parseReflectionPlane(int rp) { 
-   switch (rp) {
-      case 'x': return eXReflection;
-      case 'y': return eYReflection;
-      case 'b': return eBReflection;
-      case 'd': return eDReflection;
-      default: return eReflectionPlanes;
    }
 }
 

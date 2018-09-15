@@ -51,6 +51,15 @@ int setGetSingle(TSet set) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
+const char* withUnknown(int i, FSetElementToString elToString) {
+   const char* str = elToString(i);
+   if (str[0] != 0) {
+      return str;
+   }
+   return "unknown";
+}
+
+//////////////////////////////////////////////////////////////////////////////
 char* setToString(TSet set, FSetElementToString elToString, const char* empty) {
    if (set == 0) {
       return strdup(empty);
@@ -59,14 +68,14 @@ char* setToString(TSet set, FSetElementToString elToString, const char* empty) {
    int i;
    for (i = 0; i < SET_MAX_SIZE; ++i) {
       if (SET_HAS(set, i)) {
-         len += strlen(elToString(i)) + 1;
+         len += strlen(withUnknown(i, elToString)) + 1;
       }
    }
    char* str = (char*)malloc(len);
    char* p = str;
    for (i = 0; i < SET_MAX_SIZE; ++i) {
       if (SET_HAS(set, i)) {
-         const char* se = elToString(i);
+         const char* se = withUnknown(i, elToString);
          int c;
          for (c = 0; se[c]; ++c) {
             p[c] = se[c];
@@ -96,3 +105,14 @@ char* setToChars(TSet set, FSetElementToChar elToChar, const char* empty) {
    return str;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+int setParseElement(const char* str, int n, FSetElementToString elToString) {
+   int i;
+   for (i = 0; i < n; ++i) {
+//printf("%s =?= %s\r\n", str, elToString(i));
+      if (!strcmp(elToString(i), str)) {
+         return i;
+      }
+   }
+   return n;
+}

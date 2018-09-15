@@ -16,7 +16,6 @@ typedef enum {eXReflection, eYReflection,
               eBReflection, eDReflection, eReflectionPlanes} EReflectionPlane;
 const char* reflectionPlaneToString(int); 
 int reflectionPlaneToChar(int); 
-EReflectionPlane parseReflectionPlane(int);
 typedef int TSetOfReflectionPlanes;
 TSetOfReflectionPlanes onReflectionPlanes(const TPosition*);
 #define ON_AXIS(p) (!((p)[eZ] & 1) && (p)[eX] == (p)[eZ] / 2 && (p)[eX] == (p)[eY])

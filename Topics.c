@@ -28,7 +28,7 @@ const char* displayTopicToString(int t) {
       case eTopicAdd: return "adding";
       case eTopicProgress: return "progress";
       case eTopicCollisions: return "collisions";
-      default: return "unknown";
+      default: return "";
    }
 }
 
@@ -74,7 +74,7 @@ int displayTopicsAdd(const char* s) {
          ++m;
       }
    }
-//printf("%s %d%s", setToString(sot, displayTopicToString), setCount(sot), EOL, "none");
+//printf("%s %d%s", setToString(topics, displayTopicToString, "none"), setCount(topics), EOL, "none");
    return m;
 }
 
