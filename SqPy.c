@@ -36,7 +36,7 @@ static int fill = 0;
 static TSetOfRotations sorn = SET_ALL_OF(eRotations);
 static TSetOfReflectionPlanes sorp = SET_ALL_OF(eReflectionPlanes);
 static int pc = eAbsent;
-static int pathIndex = -1;
+static int pathIndex = 0;
 static TPath path = "aA";
 static char* play[2] = {0};
 static TSet soor = 0;
@@ -74,7 +74,8 @@ void usage() {
 
 ///////////////////////////////////////////////////////////////////////////////
 void describePiece() {
-   printf("A piece is a series of adjacent locations in (x, y).%s", EOL);
+   printf("A piece is a series of adjacent locations in (x, y)%s", EOL);
+   printf("that form its shape. It also has a maximum instance count.%s", EOL);
    printf("A path uses letters to specify the moves between locations.%s", EOL);
    printf("'a' is 1, 'b' is 2, etc, 'z' is -1, 'y' is -2, etc.%s", EOL);
    printf("Lower case is horizontal (x), upper case is vertical (y).%s", EOL);
@@ -416,8 +417,8 @@ int getOptions(const char** argv, const char* prefix) {
       }
       case 'a': {
          const char* n = getMandatory(getOptionValue(&i, argv), argv[i][1], prefix);
-         if (strtol(n, 0, 10) != 0 || n[0] == '0') {
-            pathIndex = strtol(n, 0, 10);
+         pathIndex = strtol(n, 0, 10);
+         if (pathIndex > 0) {
             pcOnePath(pc, pathIndex);
          } else {
             path = n;
@@ -492,7 +493,7 @@ void showOptions() {
    if (pc != 0) {
       printf("Initial piece: %c.%s", GLYPH(pc), EOL);
    }
-   if (pathIndex != -1) {
+   if (pathIndex > 0) {
       printf("path %d (%s).%s", pathIndex, pieces[pc][pathIndex], EOL);
    }
    if (soor != 0) {

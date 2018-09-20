@@ -26,6 +26,7 @@ const char* displayTopicToString(int t) {
       case eTopicPlays: return "plays";
       case eTopicSymmetries: return "symmetries";
       case eTopicAdd: return "adding";
+      case eTopicForks: return "forks";
       case eTopicProgress: return "progress";
       case eTopicCollisions: return "collisions";
       default: return "";
@@ -42,6 +43,7 @@ const char* displayTopicDescription(int t) {
       case eTopicPlays: return "Display the plays for each partial solution.";
       case eTopicSymmetries: return "Display the symmetries found for each symmetrical partial solution.";
       case eTopicAdd: return "Display each unique solution as it is added.";
+      case eTopicForks: return "Display forking points cotributing to more than one solution.";
       case eTopicProgress: return "Display search progress.";
       case eTopicCollisions: return "Display all collisions.";
       default: return "unknown";

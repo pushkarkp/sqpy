@@ -7,6 +7,7 @@
 #include "Solutions.h"
 #include "Piece.h"
 #include "Steps.h"
+#include "Label.h"
 #include "Symmetry.h"
 #include "Topics.h"
 #include "SetOf.h"
@@ -43,10 +44,21 @@ void zeroAllFrom(int k) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void solSetComplete(int key) {
+   int k;
+   for (k = 0; keys[k]; ++k) {
+       if (LABEL_NO_FULL(keys[k]) == LABEL_NO_FULL(key)) {
+          keys[k] = LABEL_SET_FULL(keys[k]);
+          return;
+       }
+   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 int findKey(int key) {
    int k;
    for (k = 0; keys[k]; ++k) {
-       if (keys[k] == key) {
+       if (LABEL_NO_FULL(keys[k]) == LABEL_NO_FULL(key)) {
           return k;
        }
    }
@@ -275,11 +287,11 @@ void displayKey(int key, EDisplayShape eShape) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solMaxPieceCount() {
+int solMaxPlayCount() {
    int max = 0;
    int k;
    for (k = 0; keys[k]; ++k) {
-      int n = setCount(keys[k]);
+      int n = LABEL_GET_PLAY_COUNT(keys[k]);
       if (n > max) {
          max = n;
       }
@@ -288,11 +300,37 @@ int solMaxPieceCount() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solCountForPieceCount(int n) {
+int solMaxShapeCount() {
+   int max = 0;
+   int k;
+   for (k = 0; keys[k]; ++k) {
+      int n = setCount(LABEL_GET_SHAPES(keys[k]));
+      if (n > max) {
+         max = n;
+      }
+   }
+   return max;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int solCountForPlayCount(int n, int complete) {
    int found = 0;
    int k;
    for (k = 0; keys[k]; ++k) {
-      if (setCount(keys[k]) == n) {
+     if (LABEL_GET_PLAY_COUNT(keys[k]) == n
+       && (!complete || LABEL_IS_FULL(keys[k]))) {
+         found += sps_count[k];
+      }
+   }
+   return found;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int solCountForShapes(TSet s) {
+   int found = 0;
+   int k;
+   for (k = 0; keys[k]; ++k) {
+      if (LABEL_GET_SHAPES(keys[k]) == s) {
          found += sps_count[k];
       }
    }
@@ -306,10 +344,22 @@ void solDisplay(int key, EDisplayShape eShape) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void solDisplayByPieceCount(int n, EDisplayShape eShape) {
+void solDisplayByPlayCount(int n, int complete, EDisplayShape eShape) {
    int k;
    for (k = 0; keys[k]; ++k) {
-      if (setCount(keys[k]) == n) {
+      if (LABEL_GET_PLAY_COUNT(keys[k]) == n
+       && (!complete || LABEL_IS_FULL(keys[k]))) {
+         displayKey(keys[k], eShape);
+      }
+   }
+   displayWide(eShape, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void solDisplayByShapes(TSet s, EDisplayShape eShape) {
+   int k;
+   for (k = 0; keys[k]; ++k) {
+      if (LABEL_GET_SHAPES(keys[k]) == s) {
          displayKey(keys[k], eShape);
       }
    }

@@ -331,10 +331,10 @@ printf("testOrientations(%c, %c, %s)\r\n", GLYPH(pcStart), GLYPH(pcEnd), setToSt
 void pcTestOrientations(EPresence pc, int path, TSetOfOrientations soor) {
    printf("piece: %s path: %s orientations %s%s", 
           pc ? presToString(pc) : "all", 
-          path > -1 ? pieces[pc][path] : "all", 
+          path > 0 ? pieces[pc][path] : "all", 
           setToString(soor, orToString, ""), EOL);
    pcSetHeight(1);
-   if (path == -1) {
+   if (path == 0) {
       EPresence pcStart = pc ? pc : eFirstPiece;
       EPresence pcEnd = pc ? pc + 1: pieceCount;
       testOrientations(pcStart, pcEnd, soor);

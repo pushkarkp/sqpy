@@ -10,6 +10,7 @@
 #include "Piece.h"
 #include "Position.h"
 #include "Steps.h"
+#include "Label.h"
 #include "SetOf.h"
 #include "Topics.h"
 #include "Display.h"
@@ -120,9 +121,11 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
             spCopy(newsp, sp);
             SP_SET(newsp, PC_PLAY(pc, used), pos);
             pcWalk(PC_PLAY(pc, used), pieces[pc][path], or, pos, newsp);
-            TSet sopc = SET_WITH(pcInstanceCountSet(used), pc);
+            TLabel label = LABEL_MAKE(0, 
+                                      pcSumInstanceCounts(used) + 1, 
+                                      SET_WITH(pcInstanceCountSet(used), pc));
             char* newsteps = catStep(steps, stepToString(pc, pos, pieces[pc][path], or));
-            if (!solIsUniqueSymmetric(sopc, newsteps, newsp)) {
+            if (!solIsUniqueSymmetric(label, newsteps, newsp)) {
                if (IS_TOPIC(eTopicProgress)) {
                   printf("Skip duplicate solution: %s%s", newsteps, EOL);
                }
@@ -142,7 +145,8 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
             TPosition newpos[eDimensions];
             spFind(newpos, eAbsent, newsp, newsorp);
             if (newpos[eX] == -1) {
-               if (solAddUniqueSymmetric(sopc, newsteps, newsp)) {
+               if (solAddUniqueSymmetric(label, newsteps, newsp)) {
+                  solSetComplete(label);
                   solutions = 1;
                }
             } else {
@@ -187,8 +191,9 @@ free(strsorn);
                   }
                }
                if (fork || togo == 0) {
-                  if (solAddUniqueSymmetric(sopc, newsteps, newsp)
+                  if (solAddUniqueSymmetric(label, newsteps, newsp)
                    && !fork) {
+                     solSetComplete(label);
                      next_solutions = 1;
                   }
                }
@@ -223,14 +228,14 @@ int solve(EPresence pc, int f,
       int sol = search(pc, pieceZeroInstances, pos, "", sp, sorn, sorp);
       solutions += sol;
       displayWide(ePyramid, 0);
-      int max = solMaxPieceCount();
+      int max = solMaxPlayCount();
       printf("%c: %d solutions%s", GLYPH(pc), sol, EOL);
       int n;
       for (n = 1; n <= max; ++n) {
-         int count = solCountForPieceCount(n);
+         int count = solCountForPlayCount(n, !IS_TOPIC(eTopicForks));
          if (count > 0) {
-            printf("%d with %d pieces%s", count, n, EOL);
-            solDisplayByPieceCount(n, ePyramid);
+            printf("%d with %d plays%s", count, n, EOL);
+            solDisplayByPlayCount(n, !IS_TOPIC(eTopicForks), ePyramid);
          }
       }
    }

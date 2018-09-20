@@ -1,4 +1,4 @@
-HEADERS = Display.h Move.h Orientation.h Path.h PathState.h Piece.h Position.h Presence.h Repeat.h SetOf.h Solutions.h Solve.h SquarePyramid.h Steps.h Symmetry.h Topics.h
+HEADERS = Display.h Label.h Move.h Orientation.h Path.h PathState.h Piece.h Position.h Presence.h Repeat.h SetOf.h Solutions.h Solve.h SquarePyramid.h Steps.h Symmetry.h Topics.h
 CC=gcc
 CFLAGS=-I. -O2 -g
 OBJDIR=obj
