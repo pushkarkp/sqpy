@@ -46,8 +46,8 @@ char* spWholeRowToString(char*, int, int, const TPlace*);
 void spTestVolume();
 int spFind(TPosition*, TPlace, const TPlace*, TSetOfReflectionPlanes);
 void spTestSequence(TSetOfReflectionPlanes);
-TSet spEqualRotate(const TPlace*, const TPlace*, int byz);
-TSet spEqualReflect(const TPlace*, const TPlace*, int byz);
+TSet spEqualRotate(const TPlace*, const TPlace*, int fixz);
+TSet spEqualReflect(const TPlace*, const TPlace*, int fixz);
 typedef TSet (*FEqualSym)(const TPlace*, const TPlace*, int);
 
 #endif

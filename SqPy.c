@@ -33,7 +33,7 @@ static const char const* ERR_EXTRA_PLAY = "too many plays";
 static const char const* ERR_BAD_SYM = "failed to parse symmetry";
 static int search = 0;
 static int fill = 0;
-static int by_z = 0;
+static int fixz = 0;
 static TSetOfRotations sorn = SET_ALL_OF(eRotations);
 static TSetOfReflectionPlanes sorp = SET_ALL_OF(eReflectionPlanes);
 static int pc = eAbsent;
@@ -62,7 +62,7 @@ void usage() {
    printf("    f                         ignore instance counts and fill the pyramid%s", EOL);
    printf("    r                         no rotational symmetry optimization%s", EOL);
    printf("    x                         no reflective symmetry optimization%s", EOL);
-   printf("    z                         symmetry optimization %s", EOL);
+   printf("    z                         fixed z planes in uniqueness comparison%s", EOL);
    printf(" -y <play> [<play>]...     plays (? for help), two sets of plays are compared%s", EOL);
    printf(" -p <piece> [<count>]      a piece (? for help)%s", EOL);
    printf(" -i <piece> (all)          the initial piece, by letter or index%s", EOL);
@@ -357,7 +357,7 @@ int getOptions(const char** argv, const char* prefix) {
                   sorp = 0;
                   break;
                case 'z':
-                  by_z = 1;
+                  fixz = 1;
                   break;
                default:
                   c = 0;
@@ -528,7 +528,7 @@ int main(int argc, const char** argv) {
       pcDisplayAll();
    }
    if (play[0]) {
-      solInit(by_z);
+      solInit(fixz);
       int i;
       for (i = 0; play[i]; ++i) {
          TPlace* sp = parseSteps(play[i]);
@@ -553,7 +553,7 @@ int main(int argc, const char** argv) {
       findRepeat();
    }
    if (search) {
-      printf("Total solutions %d%s", solve(pc, fill, by_z, sorn, sorp), EOL);
+      printf("Total solutions %d%s", solve(pc, fill, fixz, sorn, sorp), EOL);
    }
    return 0;
 }

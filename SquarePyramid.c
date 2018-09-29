@@ -55,7 +55,8 @@ void spClear(TPlace* sp) {
 ///////////////////////////////////////////////////////////////////////////////
 // Initialize all to eMargin with the pyramid hollowed out as eAbsent. 
 void spInit(TPlace* sp) {
-   memset(sp, eMargin, spXYZ2);
+   memset(sp, eMargin, spXYZ);
+   memset(sp + spXYZ, 0, spXYZ);
    int z;
    for (z = 0; z < spHeight; ++z) {
       int zoffset = ZOFFSET(z);
@@ -117,13 +118,12 @@ int spEqual(const TPlace* sp1, const TPlace* sp2) {
 
 ///////////////////////////////////////////////////////////////////////////////
 char* spRowToString(char* str, int y, int z, const TPlace* sp) {
-   int zoffset = ZOFFSET(z);
-   int yoffset = YOFFSET(y);
+   int offset = ZOFFSET(z) + YOFFSET(y) + MARGIN;
    int x;
    for (x = 0; x <= z; ++x) {
-      int i = sp[zoffset + yoffset + MARGIN + x];
-      int n = (sp + spXYZ)[zoffset + yoffset + MARGIN + x];
-      *str++ = GLYPH(i + n * pieceCount);
+      int c = sp[offset + x];
+      int n = (sp + spXYZ)[offset + x];
+      *str++ = GLYPH(c + n * pieceCount);
    }
    return str;
 }
@@ -265,7 +265,24 @@ printf("sorp = 0\r\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2, int byz) {
+int equalZ(int z, const TPlace* sp1, const TPlace* sp2) {
+   int zoffset = ZOFFSET(z);
+   int y;
+   for (y = 0; y <= z; ++y) {
+      int yoffset = YOFFSET(y);
+      int x;
+      for (x = 0; x <= z; ++x) {
+         int offset = zoffset + yoffset + MARGIN + x;
+         if (sp1[offset] != sp2[offset]) {
+            return 0;
+         }
+      }
+   }
+   return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2, int fixz) {
    int origin = SP_XYZ(0, 0, 0);
    if (sp1[origin] != sp2[origin]) {
       return 0;
@@ -277,10 +294,13 @@ TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2, int byz) {
 //   }
    int z;
    for (z = 1; z < spHeight; ++z) {
-      if (byz) {
-         if (sorn != sall) {
-//printf("%s%s", setToString(sorn, rotationToString, "none"), EOL);
+      if (!fixz) {
+         if (equalZ(z, sp1, sp2)) {
+            continue;
          }
+//         if (sorn != sall) {
+//printf("%s%s", setToString(sorn, rotationToString, "none"), EOL);
+//         }
          sorn = sall;
       }
       int zoffset = ZOFFSET(z);
@@ -294,7 +314,7 @@ TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2, int byz) {
              && sp1[zoffset + yoffset + MARGIN + x]
              != sp2[zoffset + YOFFSET(z - x) + MARGIN + y]) {
                /*
-               printf("90: %d%d%d %c != %d%d%d %c%s", 
+               printf("90: %d%d%d %c != %d%d%d %c%s",
                   x, y, z,       GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   y, (z - x), z, GLYPH(sp2[zoffset + YOFFSET(z - x) + MARGIN + y]), EOL);
                */
@@ -307,7 +327,7 @@ TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2, int byz) {
              && sp1[zoffset + yoffset + MARGIN + x]
              != sp2[zoffset + zyoffset + MARGIN + (z - x)]) {
                /*
-               printf("180: %d%d%d %c != %d%d%d %c%s", 
+               printf("180: %d%d%d %c != %d%d%d %c%s",
                   x, y, z,             GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   (z - x), (z - y), z, GLYPH(sp2[zoffset + zyoffset + MARGIN + (z - x)]), EOL);
                */
@@ -320,7 +340,7 @@ TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2, int byz) {
              && sp1[zoffset + yoffset + MARGIN + x]
              != sp2[zoffset + YOFFSET(x) + MARGIN + (z - y)]) {
                /*
-               printf("270: %d%d%d %c != %d%d%d %c%s", 
+               printf("270: %d%d%d %c != %d%d%d %c%s",
                   x, y, z,       GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   (z - y), x, z, GLYPH(sp2[zoffset + YOFFSET(x) + MARGIN + (z - y)]), EOL);
                */
@@ -336,9 +356,9 @@ TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2, int byz) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2, int byz) {
+TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2, int fixz) {
    int origin = SP_XYZ(0, 0, 0);
-    if (sp1[origin] != sp2[origin]) {
+   if (sp1[origin] != sp2[origin]) {
       return 0;
    }
    TSetOfReflectionPlanes sall = SET_ALL_OF(eReflectionPlanes);
@@ -348,10 +368,13 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2, int 
 //   }
    int z;
    for (z = 1; z < spHeight; ++z) {
-      if (byz) {
-         if (sorp != sall) {
-//printf("%s%s", setToString(sorp, reflectionPlaneToString, "none"), EOL);            
+      if (!fixz) {
+         if (equalZ(z, sp1, sp2)) {
+            continue;
          }
+//         if (sorp != sall) {
+//printf("%s%s", setToString(sorp, reflectionPlaneToString, "none"), EOL);
+//         }
          sorp = sall;
       }
       int zoffset = ZOFFSET(z);
@@ -365,7 +388,7 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2, int 
              && (sp1[zoffset + yoffset + MARGIN + x]
               != sp2[zoffset + zyoffset + MARGIN + x])) {
                /*
-               printf("%d%d%dx %c != %d%d%d %c%s", 
+               printf("x: %d%d%d %c != %d%d%d %c%s",
                   x, y, z,     GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   x, z - y, z, GLYPH(sp2[zoffset + zyoffset + MARGIN + x]), EOL);
                */
@@ -378,7 +401,7 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2, int 
              && (sp1[zoffset + yoffset + MARGIN + x]
               != sp2[zoffset + yoffset + MARGIN + z - x])) {
                /*
-               printf("%d%d%dy %c != %d%d%d %c%s", 
+               printf("y: %d%d%d %c != %d%d%d %c%s",
                   x, y, z,     GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   z - x, y, z, GLYPH(sp2[zoffset + yoffset + MARGIN + z - x]), EOL);
                */
@@ -391,7 +414,7 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2, int 
              && (sp1[zoffset + yoffset + MARGIN + x]
               != sp2[zoffset + YOFFSET(x) + MARGIN + y])) {
                /*
-               printf("%d%d%db %c != %d%d%d %c%s", 
+               printf("b: %d%d%d %c != %d%d%d %c%s",
                   x, y, z, GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   y, x, z, GLYPH(sp2[zoffset + YOFFSET(x) + MARGIN + y]), EOL);
                */
@@ -404,7 +427,7 @@ TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2, int 
              && (sp1[zoffset + yoffset + MARGIN + x]
               != sp2[zoffset + YOFFSET(z - x) + MARGIN + (z - y)])) {
                /*
-               printf("%d%d%dd %c != %d%d%d %c%s", 
+               printf("d: %d%d%d %c != %d%d%d %c%s",
                   x, y, z,             GLYPH(sp1[zoffset + yoffset + MARGIN + x]),
                   (z - y), (z - x), z, GLYPH(sp2[zoffset + YOFFSET(z - x) + MARGIN + (z - y)]), EOL);
                */

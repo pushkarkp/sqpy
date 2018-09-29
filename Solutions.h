@@ -11,7 +11,7 @@
 #include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-void solInit(int byz);
+void solInit(int fixz);
 int solGetCount(int key);
 const TPlace* solGet(int key, int);
 int solIsUnique(int key, const TPlace*);
@@ -25,5 +25,4 @@ void solDisplay(int key, EDisplayShape);
 void solDisplayByPlayCount(int, int complete, EDisplayShape);
 void solDisplayByShapes(TSet, EDisplayShape);
 void solShowSetKeys(int k, FSetElementToString);
-
 #endif

@@ -22,7 +22,7 @@
 #define GROWTH_FACTOR 2
 
 ///////////////////////////////////////////////////////////////////////////////
-static int by_z = 0;
+static int fixz = 0;
 static int max_keys = 0;
 static int* keys = 0;
 static int* max_sps = 0;
@@ -103,8 +103,8 @@ int findSp(int k, const TPlace* sp) {
 int findSymmetricSp(TSetOfRotations* psorn, TSetOfReflectionPlanes* psorp, int k, const TPlace* sp) {
    int i;
    for (i = sps_count[k] - 1; i >= 0; --i) {
-      TSetOfRotations sorn = spEqualRotate(sps[k][i], sp, by_z);
-      TSetOfReflectionPlanes sorp = spEqualReflect(sps[k][i], sp, by_z);
+      TSetOfRotations sorn = spEqualRotate(sps[k][i], sp, fixz);
+      TSetOfReflectionPlanes sorp = spEqualReflect(sps[k][i], sp, fixz);
       if (sorn || sorp) {
          if (psorn) {
             *psorn = sorn;
@@ -119,8 +119,8 @@ int findSymmetricSp(TSetOfRotations* psorn, TSetOfReflectionPlanes* psorp, int k
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void solInit(int byz) {
-   by_z = byz;
+void solInit(int fz) {
+   fixz = fz;
    max_keys = INITIAL_KEYS;
    if (keys) {
       int k;

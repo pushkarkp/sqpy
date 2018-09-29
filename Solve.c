@@ -140,7 +140,7 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
             }
             TSetOfReflectionPlanes newsorp = 0;
             if (sorp) {
-               newsorp = spEqualReflect(newsp, newsp, 0);
+               newsorp = spEqualReflect(newsp, newsp, 1);
             }
             TPosition newpos[eDimensions];
             spFind(newpos, eAbsent, newsp, newsorp);
@@ -163,7 +163,7 @@ free(strsorp);*/
                }
                TSetOfRotations newsorn = 0;
                if (sorn && ON_AXIS(newpos)) {
-                  newsorn = spEqualRotate(newsp, newsp, 0);
+                  newsorn = spEqualRotate(newsp, newsp, 1);
 /*
 char* strsorn = setToString(newsorn, rotationToString, "");
 printf("sorn %s\r\n", strsorn);
@@ -209,7 +209,7 @@ free(strsorn);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(EPresence pc, int f, int byz,
+int solve(EPresence pc, int f, int fixz,
           TSetOfRotations sorn, TSetOfReflectionPlanes sorp) {
    fill = f;
    int solutions = 0;
@@ -221,7 +221,7 @@ int solve(EPresence pc, int f, int byz,
       end = pieceCount;
    }
    for (; pc < end; ++pc) {
-      solInit(byz);
+      solInit(fixz);
       TSet used = 0;
       spInit(sp);
 //showSymmetries(pos, sp, sorn, sorp);
