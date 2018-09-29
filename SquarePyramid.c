@@ -6,6 +6,7 @@
 
 #include "SquarePyramid.h"
 #include "Presence.h"
+#include "Piece.h"
 #include "SetOf.h"
 #include "Display.h"
 
@@ -22,6 +23,8 @@ int spHeight = 0;
 int spX = 0;
 int spXY = 0;
 int spXYZ = 0;
+int spXYZ2 = 0;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 void spSetHeight(int height) {
@@ -29,6 +32,7 @@ void spSetHeight(int height) {
    spX = spHeight + MARGIN * 2;
    spXY = spX * spX;
    spXYZ = spX * spXY;
+   spXYZ2 = spXYZ * 2;
 //printf("spHeight %d spXYZ %d\r\n", spHeight, spXYZ);
 }
 
@@ -45,13 +49,13 @@ int getPyramidVolume() {
 ///////////////////////////////////////////////////////////////////////////////
 // Clear the whole cube to absent. 
 void spClear(TPlace* sp) {
-   memset(sp, eAbsent, spXYZ);
+   memset(sp, eAbsent, spXYZ2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Initialize all to eMargin with the pyramid hollowed out as eAbsent. 
 void spInit(TPlace* sp) {
-   memset(sp, eMargin, spXYZ);
+   memset(sp, eMargin, spXYZ2);
    int z;
    for (z = 0; z < spHeight; ++z) {
       int zoffset = ZOFFSET(z);
@@ -69,7 +73,7 @@ void spInit(TPlace* sp) {
 ///////////////////////////////////////////////////////////////////////////////
 // Initialize all to eAbsent with an all round margin. 
 void spInitCube(TPlace* sp) {
-   memset(sp, eMargin, spXYZ);
+   memset(sp, eMargin, spXYZ2);
    int z;
    for (z = 0; z < spHeight; ++z) {
       int zoffset = ZOFFSET(z);
@@ -86,7 +90,7 @@ void spInitCube(TPlace* sp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 void spEnumerate(TPlace* sp) {
-   memset(sp, eMargin, spXYZ);
+   memset(sp, eMargin, spXYZ2);
    int c = 0;
    int z;
    for (z = 0; z < spHeight; ++z) {
@@ -102,10 +106,11 @@ void spEnumerate(TPlace* sp) {
 
 ///////////////////////////////////////////////////////////////////////////////
 TPlace* spCopy(TPlace* dst, const TPlace* src) {
-   return memcpy(dst, src, spXYZ);
+   return memcpy(dst, src, spXYZ2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// ignore instance counts
 int spEqual(const TPlace* sp1, const TPlace* sp2) {
    return 0 == memcmp(sp1, sp2, spXYZ);
 }
@@ -116,7 +121,9 @@ char* spRowToString(char* str, int y, int z, const TPlace* sp) {
    int yoffset = YOFFSET(y);
    int x;
    for (x = 0; x <= z; ++x) {
-      *str++ = GLYPH(sp[zoffset + yoffset + MARGIN + x]);
+      int i = sp[zoffset + yoffset + MARGIN + x];
+      int n = (sp + spXYZ)[zoffset + yoffset + MARGIN + x];
+      *str++ = GLYPH(i + n * pieceCount);
    }
    return str;
 }
@@ -127,7 +134,9 @@ char* spCubeRowToString(char* str, int y, int z, const TPlace* sp) {
    int yoffset = YOFFSET(y - (2 * MARGIN));
    int x;
    for (x = 0; x < spX - 2; ++x) {
-      *str++ = GLYPH(sp[zoffset + yoffset + MARGIN + x]);
+      int i = sp[zoffset + yoffset + MARGIN + x];
+      int n = (sp + spXYZ)[zoffset + yoffset + MARGIN + x];
+      *str++ = GLYPH(i + n * pieceCount);
    }
    return str;
 }
@@ -256,17 +265,24 @@ printf("sorp = 0\r\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2) {
-   int origin = SP_XYZ(MARGIN, MARGIN, MARGIN);
+TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2, int byz) {
+   int origin = SP_XYZ(0, 0, 0);
    if (sp1[origin] != sp2[origin]) {
       return 0;
    }
-   TSet sorn = SET_WITHOUT(SET_ALL_OF(eRotations), e0);
+   TSet sall = SET_WITHOUT(SET_ALL_OF(eRotations), e0);
+   TSet sorn = sall;
 //   if (sp1[origin] == eAbsent && sp2[origin] == eAbsent) {
 //      return sorn;
 //   }
    int z;
    for (z = 1; z < spHeight; ++z) {
+      if (byz) {
+         if (sorn != sall) {
+//printf("%s%s", setToString(sorn, rotationToString, "none"), EOL);
+         }
+         sorn = sall;
+      }
       int zoffset = ZOFFSET(z);
       int y;
       for (y = 0; y <= z; ++y) {
@@ -320,17 +336,24 @@ TSetOfRotations spEqualRotate(const TPlace* sp1, const TPlace* sp2) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2) {
-   int origin = SP_XYZ(MARGIN, MARGIN, MARGIN);
+TSetOfReflectionPlanes spEqualReflect(const TPlace* sp1, const TPlace* sp2, int byz) {
+   int origin = SP_XYZ(0, 0, 0);
     if (sp1[origin] != sp2[origin]) {
       return 0;
    }
-   TSetOfReflectionPlanes sorp = SET_ALL_OF(eReflectionPlanes);
+   TSetOfReflectionPlanes sall = SET_ALL_OF(eReflectionPlanes);
+   TSetOfReflectionPlanes sorp = sall;
 //   if (sp1[origin] == eAbsent && sp2[origin] == eAbsent) {
 //      return sorp;
 //   }
    int z;
    for (z = 1; z < spHeight; ++z) {
+      if (byz) {
+         if (sorp != sall) {
+//printf("%s%s", setToString(sorp, reflectionPlaneToString, "none"), EOL);            
+         }
+         sorp = sall;
+      }
       int zoffset = ZOFFSET(z);
       int y;
       for (y = 0; y <= z; ++y) {

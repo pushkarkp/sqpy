@@ -23,13 +23,9 @@ extern int* pieceZeroInstances;
 extern int* pieceMaxInstances;
 
 ///////////////////////////////////////////////////////////////////////////////
-// a piece appears different each time it is used
-#define PC_PLAY(pc, used) ((pc) + used[pc] * pieceCount)
-
-///////////////////////////////////////////////////////////////////////////////
 TPiece pcCreate(TPath path);
 void pcAdd(TPiece pc, int times);
-EPresence pcWalk(EPresence, TPath, EOrientation, const TPosition*, TPlace*);
+EPresence pcWalk(EPresence, int n, TPath, EOrientation, const TPosition*, TPlace*);
 int* pcDupInstanceCounts(const int*);
 int pcSumInstanceCounts(const int*);
 TSet pcInstanceCountSet(const int*);

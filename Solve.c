@@ -110,7 +110,7 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
             }
             continue;
          }
-         EPresence hit = pcWalk(eAbsent, pieces[pc][path], or, pos, (TPlace*)sp);
+         EPresence hit = pcWalk(eAbsent, 0, pieces[pc][path], or, pos, (TPlace*)sp);
          if (hit != eAbsent) {
             if (IS_TOPIC(eTopicProgress)) {
                char* newsteps = catStep(steps, stepToString(pc, pos, pieces[pc][path], or));
@@ -119,8 +119,8 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
             }
          } else {
             spCopy(newsp, sp);
-            SP_SET(newsp, PC_PLAY(pc, used), pos);
-            pcWalk(PC_PLAY(pc, used), pieces[pc][path], or, pos, newsp);
+            SP_SET_PC_N(newsp, pc, used[pc], pos);
+            pcWalk(pc, used[pc], pieces[pc][path], or, pos, newsp);
             TLabel label = LABEL_MAKE(0, 
                                       pcSumInstanceCounts(used) + 1, 
                                       SET_WITH(pcInstanceCountSet(used), pc));
@@ -140,7 +140,7 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
             }
             TSetOfReflectionPlanes newsorp = 0;
             if (sorp) {
-               newsorp = spEqualReflect(newsp, newsp);
+               newsorp = spEqualReflect(newsp, newsp, 0);
             }
             TPosition newpos[eDimensions];
             spFind(newpos, eAbsent, newsp, newsorp);
@@ -163,7 +163,7 @@ free(strsorp);*/
                }
                TSetOfRotations newsorn = 0;
                if (sorn && ON_AXIS(newpos)) {
-                  newsorn = spEqualRotate(newsp, newsp);
+                  newsorn = spEqualRotate(newsp, newsp, 0);
 /*
 char* strsorn = setToString(newsorn, rotationToString, "");
 printf("sorn %s\r\n", strsorn);
@@ -209,7 +209,7 @@ free(strsorn);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(EPresence pc, int f,
+int solve(EPresence pc, int f, int byz,
           TSetOfRotations sorn, TSetOfReflectionPlanes sorp) {
    fill = f;
    int solutions = 0;
@@ -221,7 +221,7 @@ int solve(EPresence pc, int f,
       end = pieceCount;
    }
    for (; pc < end; ++pc) {
-      solInit();
+      solInit(byz);
       TSet used = 0;
       spInit(sp);
 //showSymmetries(pos, sp, sorn, sorp);

@@ -10,6 +10,6 @@
 #include "Symmetry.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-int solve(EPresence pc, int fill, TSetOfRotations sorn, TSetOfReflectionPlanes sorp);
+int solve(EPresence pc, int fill, int byz, TSetOfRotations sorn, TSetOfReflectionPlanes sorp);
 
 #endif

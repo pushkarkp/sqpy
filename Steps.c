@@ -181,7 +181,7 @@ TPlace* parseSteps(const char* given) {
       EOrientation or = stringToOr(step[i] + 4);
       TPath path = step[i] + 4 + ((orientIsShort(step[i] + 4) ? 1 : OR_BUF_SIZE - 1));
       if (eAbsent != SP_GET(pos, sp)
-       || eAbsent != pcWalk(pc, path, or, pos, sp)) {
+       || eAbsent != pcWalk(pc, 0, path, or, pos, sp)) {
          free(sp);
          sp = 0;
          break;

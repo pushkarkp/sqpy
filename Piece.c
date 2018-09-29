@@ -8,6 +8,7 @@
 #include "PathState.h"
 #include "Move.h"
 #include "Steps.h"
+#include "SquarePyramid.h"
 #include "Display.h"
 #include "Topics.h"
 #include "SetOf.h"
@@ -178,7 +179,7 @@ TPiece addPiece(int pathCount, int times) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-EPresence pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, TPlace* sp) {
+EPresence pcWalk(EPresence pc, int n, TPath path, EOrientation or, const TPosition* p, TPlace* sp) {
    TPosition ps[ePathMarkers][eDimensions] = PATH_MARKER_STORES;
    TPosition pos[eDimensions];
    POS_COPY(pos, p);
@@ -198,7 +199,7 @@ EPresence pcWalk(EPresence pc, TPath path, EOrientation or, const TPosition* p, 
             return ePresence;
          }
          if (pc != eAbsent) {
-            SP_SET(sp, pc, pos);
+            SP_SET_PC_N(sp, pc, n, pos);
          }
       }
    }
@@ -219,7 +220,7 @@ int pcPathOrientation(EPresence pc, TPath path, TSetOfOrientations soor) {
       }
       spInitCube(sp); 
       SP_SET(sp, pc, pos);
-      EPresence p = pcWalk(pc, path, or, pos, sp);
+      EPresence p = pcWalk(pc, 0, path, or, pos, sp);
       if (IS_TOPIC(eTopicPaths)
        && or >= OR_Z_COUNT
        && displayIsPlane()) {

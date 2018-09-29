@@ -33,6 +33,7 @@ static const char const* ERR_EXTRA_PLAY = "too many plays";
 static const char const* ERR_BAD_SYM = "failed to parse symmetry";
 static int search = 0;
 static int fill = 0;
+static int by_z = 0;
 static TSetOfRotations sorn = SET_ALL_OF(eRotations);
 static TSetOfReflectionPlanes sorp = SET_ALL_OF(eReflectionPlanes);
 static int pc = eAbsent;
@@ -47,7 +48,7 @@ int getOptions(const char**, const char*);
 ///////////////////////////////////////////////////////////////////////////////
 void usage() {
    printf("usage:%s", EOL);
-   printf("sqpy [-g <page width>] [-h <height>] [-v] [-q [<planes>]] [-x [<planes>]] [-r [<rotations>]] [-a <path index>] [-f <file>] [-s [f] [x] [r]] [-y <play> [<play>]...] [-p <piece> [<count>]] [-i <piece>] [-d <topics>]%s", EOL);
+   printf("sqpy [-g <page width>] [-h <height>] [-v] [-q [<planes>]] [-x [<planes>]] [-r [<rotations>]] [-a <path index>] [-f <file>] [-s [f] [x] [r] [z]] [-y <play> [<play>]...] [-p <piece> [<count>]] [-i <piece>] [-d <topics>]%s", EOL);
    printf(" -g <page width> (%d)      the width of the display page (default)%s", pageWidth, EOL);
    printf(" -h <height> (5)           the pyramid height%s", EOL);
    printf(" -v                        show the pyramid volume%s", EOL);
@@ -57,10 +58,11 @@ void usage() {
    printf(" -a <path or index> (%s)   the path to orient%s", path, EOL);
    printf(" -o <orientations match>   show paths in orientations (default all)%s", EOL);
    printf(" -f <file>                 file contains arguments and one piece per line%s", EOL);
-   printf(" -s [f] [r] [x]            search for and display complete pyramids%s", EOL);
+   printf(" -s [f] [r] [x] [z]        search for and display complete pyramids%s", EOL);
    printf("    f                         ignore instance counts and fill the pyramid%s", EOL);
    printf("    r                         no rotational symmetry optimization%s", EOL);
    printf("    x                         no reflective symmetry optimization%s", EOL);
+   printf("    z                         symmetry optimization %s", EOL);
    printf(" -y <play> [<play>]...     plays (? for help), two sets of plays are compared%s", EOL);
    printf(" -p <piece> [<count>]      a piece (? for help)%s", EOL);
    printf(" -i <piece> (all)          the initial piece, by letter or index%s", EOL);
@@ -354,12 +356,15 @@ int getOptions(const char** argv, const char* prefix) {
                case 'x':
                   sorp = 0;
                   break;
+               case 'z':
+                  by_z = 1;
+                  break;
                default:
                   c = 0;
                   break;
             }
             if (c == 0 || c[1] != 0) {
-               printf("expected 'f', 'r' or 'x'.%s", EOL);
+               printf("expected 'f', 'r' 'x' or 'z'.%s", EOL);
                return 0;
             }
          }
@@ -523,7 +528,7 @@ int main(int argc, const char** argv) {
       pcDisplayAll();
    }
    if (play[0]) {
-      solInit();
+      solInit(by_z);
       int i;
       for (i = 0; play[i]; ++i) {
          TPlace* sp = parseSteps(play[i]);
@@ -548,7 +553,7 @@ int main(int argc, const char** argv) {
       findRepeat();
    }
    if (search) {
-      printf("Total solutions %d%s", solve(pc, fill, sorn, sorp), EOL);
+      printf("Total solutions %d%s", solve(pc, fill, by_z, sorn, sorp), EOL);
    }
    return 0;
 }

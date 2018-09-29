@@ -11,7 +11,7 @@
 #include "SetOf.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-void solInit();
+void solInit(int byz);
 int solGetCount(int key);
 const TPlace* solGet(int key, int);
 int solIsUnique(int key, const TPlace*);

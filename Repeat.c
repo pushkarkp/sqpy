@@ -26,7 +26,7 @@ TSet findEqualSym(int or, int distinct, TPlace* sps, FEqualSym eqSym, FSetElemen
    TSet sor = 0; 
    int eq;
    for (eq = 0; eq < distinct; ++eq) {
-      TSet s = eqSym(sps + SPS(eq), sps + SPS(distinct));
+      TSet s = eqSym(sps + SPS(eq), sps + SPS(distinct), 0);
       sor |= s;
       if (s != 0 && IS_TOPIC(eTopicRepeat)) {
          displayWidePlane(PLANE, 0);
@@ -90,7 +90,7 @@ void findRepeat() {
             }
             spClear(sps + SPS(distinct));
             SP_SET(sps + SPS(distinct), pc, pos);
-            pcWalk(pc, pieces[pc][path], or, pos, sps + spXYZ * distinct);
+            pcWalk(pc, 0, pieces[pc][path], or, pos, sps + spXYZ2 * distinct);
             int eq;
             for (eq = distinct - 1; eq >= 0; --eq) {
                if (spEqual(sps + SPS(distinct), 

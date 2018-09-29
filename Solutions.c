@@ -22,6 +22,7 @@
 #define GROWTH_FACTOR 2
 
 ///////////////////////////////////////////////////////////////////////////////
+static int by_z = 0;
 static int max_keys = 0;
 static int* keys = 0;
 static int* max_sps = 0;
@@ -83,7 +84,7 @@ void addKey(int key, int k) {
       max_sps[k] = INITIAL_SPS;
       sps_count[k] = 0;
       steps[k] = (char**)malloc(max_sps[k] * sizeof(char*));
-      sps[k] = (TPlace**)malloc(max_sps[k] * spXYZ * sizeof(TPlace));
+      sps[k] = (TPlace**)malloc(max_sps[k] * spXYZ2 * sizeof(TPlace));
    }
 }
 
@@ -102,8 +103,8 @@ int findSp(int k, const TPlace* sp) {
 int findSymmetricSp(TSetOfRotations* psorn, TSetOfReflectionPlanes* psorp, int k, const TPlace* sp) {
    int i;
    for (i = sps_count[k] - 1; i >= 0; --i) {
-      TSetOfRotations sorn = spEqualRotate(sps[k][i], sp);
-      TSetOfReflectionPlanes sorp = spEqualReflect(sps[k][i], sp);
+      TSetOfRotations sorn = spEqualRotate(sps[k][i], sp, by_z);
+      TSetOfReflectionPlanes sorp = spEqualReflect(sps[k][i], sp, by_z);
       if (sorn || sorp) {
          if (psorn) {
             *psorn = sorn;
@@ -118,7 +119,8 @@ int findSymmetricSp(TSetOfRotations* psorn, TSetOfReflectionPlanes* psorp, int k
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void solInit() {
+void solInit(int byz) {
+   by_z = byz;
    max_keys = INITIAL_KEYS;
    if (keys) {
       int k;
@@ -260,7 +262,7 @@ int solAddUniqueSymmetric(int key, const char* spsteps, const const TPlace* sp) 
    if (s == max_sps[k]) {
       max_sps[k] *= GROWTH_FACTOR;
       steps[k] = (char**)realloc(steps[k], max_sps[k] * sizeof(char*));
-      sps[k] = (TPlace**)realloc(sps[k], max_sps[k] * spXYZ * sizeof(TPlace));
+      sps[k] = (TPlace**)realloc(sps[k], max_sps[k] * spXYZ2 * sizeof(TPlace));
    }
    steps[k][s] = stepsCopy(spsteps);
    sps[k][s] = SP_NEW(1);
