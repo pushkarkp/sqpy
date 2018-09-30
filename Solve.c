@@ -20,6 +20,14 @@
 #include <string.h>
 
 static int fill = 0;
+static int plays = 0;
+
+///////////////////////////////////////////////////////////////////////////////
+int GetAndClearPlays() {
+   int p = plays;
+   plays = 0;
+   return p;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 int countUse(const int* use) {
@@ -78,6 +86,7 @@ void showSkip(EPresence pc, int path, TSetOfOrientations skip) {
 ///////////////////////////////////////////////////////////////////////////////
 int search(EPresence pc, const  int* used, const TPosition* pos, const char* steps, const TPlace* sp, 
            const TSetOfRotations sorn, const TSetOfReflectionPlanes sorp) {
+   ++plays;
    int solutions = 0;
    TPlace* newsp = SP_NEW(1);
    int path;
@@ -149,9 +158,12 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
                   solSetComplete(label);
                   solutions = 1;
                }
-            } else {
-               if (newsorp) {
-                  TSetOfReflectionPlanes posPlanes = onReflectionPlanes(newpos);
+               free(newsteps);
+               free(newsp);
+               return solutions;
+            }
+            if (newsorp) {
+               TSetOfReflectionPlanes posPlanes = onReflectionPlanes(newpos);
 /*char* strsp = setToString(sorp, reflectionPlaneToString, "");
 char* strpos = setToString(posPlanes, reflectionPlaneToString, "");
 char* strsorp = setToString(sorp & posPlanes, reflectionPlaneToString, "");
@@ -159,47 +171,46 @@ printf("sp %s pos %s sorp %s\r\n", strsp, strpos, strsorp);
 free(strsp);
 free(strpos);
 free(strsorp);*/
-                  newsorp &= posPlanes;
-               }
-               TSetOfRotations newsorn = 0;
-               if (sorn && ON_AXIS(newpos)) {
-                  newsorn = spEqualRotate(newsp, newsp, 1);
+               newsorp &= posPlanes;
+            }
+            TSetOfRotations newsorn = 0;
+            if (sorn && ON_AXIS(newpos)) {
+               newsorn = spEqualRotate(newsp, newsp, 1);
 /*
 char* strsorn = setToString(newsorn, rotationToString, "");
 printf("sorn %s\r\n", strsorn);
 free(strsorn);
 */
-               }
-               if (IS_TOPIC(eTopicSymmetries)
-                && (newsorn || newsorp || sorn || sorp)) {
-                  showSymmetries(newpos, newsp, newsorn, newsorp);
-               }
-               int* newused = pcDupInstanceCounts(used);
-               ++newused[pc];
-               int next_solutions = 0;
-               int togo = 0;
-               int fork = 0;
-               EPresence next;
-               for (next = eFirstPiece; next < pieceCount; ++next) {
-                  if (fill || newused[next] < pieceMaxInstances[next]) {
-                     ++togo;
-                     int s = search(next, newused, newpos, newsteps, newsp, newsorn, newsorp);
-                     if (s && next_solutions) {
-                        fork = 1;
-                     }
-                     next_solutions += s;
-                  }
-               }
-               if (fork || togo == 0) {
-                  if (solAddUniqueSymmetric(label, newsteps, newsp)
-                   && !fork) {
-                     solSetComplete(label);
-                     next_solutions = 1;
-                  }
-               }
-               solutions += next_solutions;
-               free(newused);
             }
+            if (IS_TOPIC(eTopicSymmetries)
+             && (newsorn || newsorp || sorn || sorp)) {
+               showSymmetries(newpos, newsp, newsorn, newsorp);
+            }
+            int* newused = pcDupInstanceCounts(used);
+            ++newused[pc];
+            int next_solutions = 0;
+            int togo = 0;
+            int fork = 0;
+            EPresence next;
+            for (next = eFirstPiece; next < pieceCount; ++next) {
+               if (fill || newused[next] < pieceMaxInstances[next]) {
+                  ++togo;
+                  int s = search(next, newused, newpos, newsteps, newsp, newsorn, newsorp);
+                  if (s && next_solutions) {
+                     fork = 1;
+                  }
+                  next_solutions += s;
+               }
+            }
+            if (fork || togo == 0) {
+               if (solAddUniqueSymmetric(label, newsteps, newsp)
+                && !fork) {
+                  solSetComplete(label);
+                  next_solutions = 1;
+               }
+            }
+            solutions += next_solutions;
+            free(newused);
             free(newsteps);
          }
       }
@@ -229,7 +240,7 @@ int solve(EPresence pc, int f, int fixz,
       solutions += sol;
       displayWide(ePyramid, 0);
       int max = solMaxPlayCount();
-      printf("%c: %d solutions%s", GLYPH(pc), sol, EOL);
+      printf("%c: %d plays, %d solutions%s", GLYPH(pc), GetAndClearPlays(), sol, EOL);
       int n;
       for (n = 1; n <= max; ++n) {
          int count = solCountForPlayCount(n, !IS_TOPIC(eTopicForks));
