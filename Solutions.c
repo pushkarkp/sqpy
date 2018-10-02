@@ -29,6 +29,7 @@ static int* max_sps = 0;
 static int* sps_count = 0;
 static char*** steps = 0;
 static TPlace*** sps = 0;
+static int* solutions = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
 void zeroAllFrom(int k) {
@@ -41,6 +42,7 @@ void zeroAllFrom(int k) {
       sps_count[k] = 0;
       steps[k] = 0;
       sps[k] = 0;
+      solutions[k] = 0;
    }
 }
 
@@ -59,9 +61,9 @@ void solSetComplete(int key) {
 int findKey(int key) {
    int k;
    for (k = 0; keys[k]; ++k) {
-       if (LABEL_NO_FULL(keys[k]) == LABEL_NO_FULL(key)) {
-          return k;
-       }
+      if (LABEL_NO_FULL(keys[k]) == LABEL_NO_FULL(key)) {
+         return k;
+      }
    }
    return k;
 }
@@ -70,21 +72,21 @@ int findKey(int key) {
 void addKey(int key, int k) {
    if (k == max_keys - 1) {
       max_keys *= GROWTH_FACTOR;
-//printf("addKey(key %d k %d) max_keys %d%s", key, k, max_keys, EOL);
       keys = (int*)realloc(keys, max_keys * sizeof(int));
       max_sps = (int*)realloc(max_sps, max_keys * sizeof(int));
       sps_count = (int*)realloc(sps_count, max_keys * sizeof(int));
       steps = (char***)realloc(steps, max_keys * sizeof(char**));
       sps = (TPlace***)realloc(sps, max_keys * sizeof(TPlace**));
+      solutions = (int*)realloc(solutions, max_keys * sizeof(int));
       zeroAllFrom(k);
    }
    if (!keys[k]) {
-//printf("addKey(key %d (0x%x) k %d) keys[k] %d%s", key, key, k, keys[k], EOL);
       keys[k] = key;
       max_sps[k] = INITIAL_SPS;
       sps_count[k] = 0;
       steps[k] = (char**)malloc(max_sps[k] * sizeof(char*));
       sps[k] = (TPlace**)malloc(max_sps[k] * spXYZ2 * sizeof(TPlace));
+      solutions[k] = 0;
    }
 }
 
@@ -138,12 +140,14 @@ void solInit(int fz) {
       free(keys);
       free(max_sps);
       free(sps_count);
+      free(solutions);
    }
    keys = (int*)malloc(max_keys * sizeof(int));
    max_sps = (int*)malloc(max_keys * sizeof(int));
    sps_count = (int*)malloc(max_keys * sizeof(int));
    steps = (char***)malloc(max_keys * sizeof(char**));
    sps = (TPlace***)malloc(max_keys * sizeof(TPlace**));
+   solutions = (int*)malloc(max_keys * sizeof(int));
    zeroAllFrom(0);
 }
 
@@ -194,6 +198,7 @@ int solIsUnique(int key, const const TPlace* sp) {
 ///////////////////////////////////////////////////////////////////////////////
 int findUniqueSymmetric(int key, const char* spsteps, const TPlace* sp) {
    int k = findKey(key);
+   ++solutions[k];
    if (!keys[k]) {
       return k;
    }
@@ -315,6 +320,19 @@ int solMaxShapeCount() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+int solTotalSolutionsForPlayCount(int n, int complete) {
+   int found = 0;
+   int k;
+   for (k = 0; keys[k]; ++k) {
+     if (LABEL_GET_PLAY_COUNT(keys[k]) == n
+       && (!complete || LABEL_IS_FULL(keys[k]))) {
+         found += solutions[k];
+      }
+   }
+   return found;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 int solCountForPlayCount(int n, int complete) {
    int found = 0;
    int k;
@@ -322,6 +340,18 @@ int solCountForPlayCount(int n, int complete) {
      if (LABEL_GET_PLAY_COUNT(keys[k]) == n
        && (!complete || LABEL_IS_FULL(keys[k]))) {
          found += sps_count[k];
+      }
+   }
+   return found;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+int solTotalSolutionsForShapes(TSet s) {
+   int found = 0;
+   int k;
+   for (k = 0; keys[k]; ++k) {
+      if (LABEL_GET_SHAPES(keys[k]) == s) {
+         found += solutions[k];
       }
    }
    return found;

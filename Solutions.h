@@ -19,6 +19,8 @@ int solIsUniqueSymmetric(int key, const char*, const TPlace*);
 int solAddUniqueSymmetric(int key, const char*, const TPlace*);
 void solSetComplete(int key);
 int solMaxPlayCount();
+int solTotalSolutionsForPlayCount(int, int complete);
+int solTotalSolutionsForShapes(TSet);
 int solCountForPlayCount(int, int complete);
 int solCountForShapes(TSet);
 void solDisplay(int key, EDisplayShape);

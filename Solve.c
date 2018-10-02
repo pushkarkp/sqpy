@@ -20,11 +20,19 @@
 #include <string.h>
 
 static int fill = 0;
-static int plays = 0;
+static long long tests = 0;
+static long long plays = 0;
 
 ///////////////////////////////////////////////////////////////////////////////
-int GetAndClearPlays() {
-   int p = plays;
+long long GetAndClearTests() {
+   long long t = tests;
+   tests = 0;
+   return t;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+long long GetAndClearPlays() {
+   long long p = plays;
    plays = 0;
    return p;
 }
@@ -86,7 +94,6 @@ void showSkip(EPresence pc, int path, TSetOfOrientations skip) {
 ///////////////////////////////////////////////////////////////////////////////
 int search(EPresence pc, const  int* used, const TPosition* pos, const char* steps, const TPlace* sp, 
            const TSetOfRotations sorn, const TSetOfReflectionPlanes sorp) {
-   ++plays;
    int solutions = 0;
    TPlace* newsp = SP_NEW(1);
    int path;
@@ -119,6 +126,7 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
             }
             continue;
          }
+         ++tests;
          EPresence hit = pcWalk(eAbsent, 0, pieces[pc][path], or, pos, (TPlace*)sp);
          if (hit != eAbsent) {
             if (IS_TOPIC(eTopicProgress)) {
@@ -127,6 +135,7 @@ int search(EPresence pc, const  int* used, const TPosition* pos, const char* ste
                free(newsteps);
             }
          } else {
+            ++plays;
             spCopy(newsp, sp);
             SP_SET_PC_N(newsp, pc, used[pc], pos);
             pcWalk(pc, used[pc], pieces[pc][path], or, pos, newsp);
@@ -240,12 +249,14 @@ int solve(EPresence pc, int f, int fixz,
       solutions += sol;
       displayWide(ePyramid, 0);
       int max = solMaxPlayCount();
-      printf("%c: %d plays, %d solutions%s", GLYPH(pc), GetAndClearPlays(), sol, EOL);
+      printf("%c: %lld tests, %lld plays, %d found%s",
+             GLYPH(pc), GetAndClearTests(), GetAndClearPlays(), sol, EOL);
       int n;
       for (n = 1; n <= max; ++n) {
          int count = solCountForPlayCount(n, !IS_TOPIC(eTopicForks));
          if (count > 0) {
-            printf("%d with %d plays%s", count, n, EOL);
+            printf("%d unique (%d total) with %d plays%s",
+                   count, solTotalSolutionsForPlayCount(n, 0), n, EOL);
             solDisplayByPlayCount(n, !IS_TOPIC(eTopicForks), ePyramid);
          }
       }

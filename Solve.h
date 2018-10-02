@@ -11,5 +11,5 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 int solve(EPresence pc, int fill, int fixz, TSetOfRotations sorn, TSetOfReflectionPlanes sorp);
-int GetAndClearPlays();
+
 #endif
